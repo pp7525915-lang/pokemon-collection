@@ -479,41 +479,90 @@ function resetForm() {
   document.getElementById("ivPreview").style.display = "none";
 }
 
-function renderCollection() {
+// ===== PART 4: COLLECTION CARDS =====
 
-  const collection = getCollection();
-  const container = document.getElementById("collectionList");
+function renderCollection() {
+  const collectionList =
+    document.getElementById("collectionList");
+
+  if (!collectionList) return;
+
+  collectionList.innerHTML = "";
 
   if (collection.length === 0) {
-    container.innerHTML = "<p>No Pokémon added yet.</p>";
+    collectionList.innerHTML = `
+      <div class="panel">
+        <p>No Pokémon added yet.</p>
+      </div>
+    `;
     return;
   }
 
-  container.innerHTML = collection.map(pokemon => {
+  collection.forEach(pokemon => {
 
     const image =
       IMAGE_BASE + pokemon.pokemonId + ".png";
 
-    return `
-      <div class="panel">
-        <div style="display:flex;gap:14px;align-items:center;">
-          <img
-            src="${image}"
-            width="80"
-            height="80"
-            alt="${pokemon.name}"
-          >
+    const stars =
+      getAppraisalStars(pokemon.ivPercent);
 
-          <div>
-            <h3>${pokemon.name}</h3>
-            <p>CP: ${pokemon.cp || 0}</p>
-            <p>HP: ${pokemon.hp || 0}</p>
-            <p>IV: ${pokemon.ivPercent}%</p>
-          </div>
+    const hundo =
+      checkHundo(
+        pokemon.attackIV,
+        pokemon.defenseIV,
+        pokemon.staminaIV
+      );
+
+    const card =
+      document.createElement("div");
+
+    card.className = "panel";
+    card.style.marginBottom = "15px";
+
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;gap:15px;">
+
+        <img
+          src="${image}"
+          alt="${formatPokemonName(pokemon.name)}"
+          width="100"
+          height="100"
+        >
+
+        <div style="flex:1;">
+
+          <h3 style="margin:0;">
+            #${String(pokemon.pokemonId).padStart(3, "0")}
+            ${formatPokemonName(pokemon.name)}
+          </h3>
+
+          <p style="margin:6px 0;">
+            CP: ${pokemon.cp || 0}
+            &nbsp; | &nbsp;
+            HP: ${pokemon.hp || 0}
+          </p>
+
+          <p style="margin:6px 0;">
+            IV: ${pokemon.ivPercent}%
+          </p>
+
+          <p style="font-size:22px;margin:6px 0;">
+            ${stars}
+          </p>
+
+          ${
+            hundo
+              ? `<strong>💯 HUNDO!</strong>`
+              : ""
+          }
+
         </div>
+
       </div>
     `;
-  }).join("");
+
+    collectionList.appendChild(card);
+  });
 }
 
 function updateStats() {
