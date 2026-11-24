@@ -364,10 +364,23 @@ console.error("Pokédex loading error:",error);
 
 function fillPokemonSelect(list){
 pokemonSelect.innerHTML='<option value="">Select Pokémon</option>';
+const generationNames={1:"Gen 1 — Kanto",2:"Gen 2 — Johto",3:"Gen 3 — Hoenn",4:"Gen 4 — Sinnoh",5:"Gen 5 — Unova",6:"Gen 6 — Kalos",7:"Gen 7 — Alola",8:"Gen 8 — Galar",9:"Gen 9 — Paldea"};
+const groups={};
 list.forEach(pokemon=>{
+const generation=getGenerationInfo(pokemon.id).number;
+if(!groups[generation])groups[generation]=[];
+groups[generation].push(pokemon);
+});
+Object.keys(generationNames).forEach(generation=>{
+if(!groups[generation]||groups[generation].length===0)return;
+const group=document.createElement("optgroup");
+group.label=generationNames[generation];
+groups[generation].forEach(pokemon=>{
 const option=document.createElement("option");option.value=pokemon.id;
 option.textContent=`#${String(pokemon.id).padStart(3,"0")} - ${formatPokemonName(pokemon.name)}`;
-pokemonSelect.appendChild(option);
+group.appendChild(option);
+});
+pokemonSelect.appendChild(group);
 });
 }
 
