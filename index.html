@@ -32,6 +32,7 @@ button{cursor:pointer}
 .filter-row{display:grid;gap:10px}
 .filter-summary{margin:8px 0 0;font-size:14px;color:#6b7280}
 .clear-filters-btn{width:100%;padding:12px;border:0;border-radius:10px;background:#e5e7eb;font-weight:bold}
+.progress{width:100%;height:18px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin:10px 0 6px}.progress-bar{height:100%;width:0;background:#2563eb;transition:width .3s ease}.progress-text{font-size:14px;color:#6b7280}.generation-stats{display:grid;gap:10px}.generation-stat{padding:12px;background:#f3f4f6;border-radius:12px}.generation-header{display:flex;justify-content:space-between;gap:8px;font-weight:bold}.generation-percent{font-size:13px;color:#6b7280}
 .generation-badge{display:inline-block;margin-top:4px;padding:5px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:13px;font-weight:bold}
 .edit-btn,.delete-btn{flex:1;border:0;padding:11px;border-radius:10px;font-weight:bold}
 .edit-btn{background:#dbeafe;color:#1d4ed8}
@@ -52,10 +53,10 @@ button{cursor:pointer}
 <div class="panel"><h2>Welcome to Dex Go ⚡</h2><p>Track your Pokémon GO collection, IVs, CP, HP and more.</p></div>
 <div class="panel"><h2>Collection Overview</h2><div class="stats-grid">
 <div class="stat"><span class="stat-number" id="homeTotal">0</span>Total</div>
+<div class="stat"><span class="stat-number" id="homeUnique">0</span>Unique</div>
 <div class="stat"><span class="stat-number" id="homeHundo">0</span>Hundos</div>
-<div class="stat"><span class="stat-number" id="homeShiny">0</span>Shiny</div>
-<div class="stat"><span class="stat-number" id="homeLucky">0</span>Lucky</div>
-</div></div>
+<div class="stat"><span class="stat-number" id="homeProgressText">0%</span>Pokédex</div>
+</div><div class="progress"><div id="homeProgressBar" class="progress-bar"></div></div><div id="homeProgressLabel" class="progress-text">0 / 1025 Pokémon collected</div></div>
 </section>
 <section id="add">
 <div class="panel">
@@ -118,12 +119,25 @@ button{cursor:pointer}
 </div>
 </section>
 <section id="stats">
-<div class="panel"><h2>Stats</h2><div class="stats-grid">
-<div class="stat"><span class="stat-number" id="statsTotal">0</span>Total</div>
+<div class="panel"><h2>Collection Stats</h2><div class="stats-grid">
+<div class="stat"><span class="stat-number" id="statsTotal">0</span>Total Records</div>
+<div class="stat"><span class="stat-number" id="statsUnique">0</span>Unique Pokémon</div>
 <div class="stat"><span class="stat-number" id="statsHundo">0</span>Hundos</div>
+<div class="stat"><span class="stat-number" id="statsMissing">1025</span>Missing</div>
+</div></div>
+<div class="panel"><h2>IV Appraisal</h2><div class="stats-grid">
+<div class="stat"><span class="stat-number" id="stats0Star">0</span>0★</div>
+<div class="stat"><span class="stat-number" id="stats1Star">0</span>1★</div>
+<div class="stat"><span class="stat-number" id="stats2Star">0</span>2★</div>
+<div class="stat"><span class="stat-number" id="stats3Star">0</span>3★</div>
+<div class="stat"><span class="stat-number" id="stats4Star">0</span>4★</div>
+</div></div>
+<div class="panel"><h2>Pokédex Completion</h2><div class="progress"><div id="statsProgressBar" class="progress-bar"></div></div><div id="statsProgressText" class="progress-text">0 / 1025 Pokémon collected — 0%</div></div>
+<div class="panel"><h2>Generation Progress</h2><div id="generationStats" class="generation-stats"></div></div>
+<div class="panel"><h2>Other Stats</h2><div class="stats-grid">
 <div class="stat"><span class="stat-number" id="statsShiny">0</span>Shiny</div>
 <div class="stat"><span class="stat-number" id="statsLucky">0</span>Lucky</div>
-</div></div>
+</div><p class="progress-text">Shiny and Lucky tracking will be added when those fields are stored.</p></div>
 </section>
 </main>
 <script>
@@ -335,11 +349,47 @@ collectionList.appendChild(card);
 
 function updateStats(){
 const collection=getCollection(),total=collection.length;
+const uniqueIds=[...new Set(collection.map(pokemon=>Number(pokemon.pokemonId)).filter(id=>id>=1&&id<=1025))];
+const unique=uniqueIds.length;
 const hundos=collection.filter(pokemon=>Number(pokemon.attackIV)===15&&Number(pokemon.defenseIV)===15&&Number(pokemon.staminaIV)===15).length;
-document.getElementById("homeTotal").textContent=total;document.getElementById("statsTotal").textContent=total;
-document.getElementById("homeHundo").textContent=hundos;document.getElementById("statsHundo").textContent=hundos;
-document.getElementById("homeShiny").textContent=0;document.getElementById("statsShiny").textContent=0;
-document.getElementById("homeLucky").textContent=0;document.getElementById("statsLucky").textContent=0;
+const starCounts=[0,0,0,0,0];
+collection.forEach(pokemon=>{starCounts[getAppraisalStarCount(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV)]++;});
+const missing=1025-unique;
+const progress=Number(((unique/1025)*100).toFixed(1));
+document.getElementById("homeTotal").textContent=total;
+document.getElementById("homeUnique").textContent=unique;
+document.getElementById("homeHundo").textContent=hundos;
+document.getElementById("homeProgressText").textContent=progress+"%";
+document.getElementById("homeProgressLabel").textContent=unique+" / 1025 Pokémon collected";
+document.getElementById("homeProgressBar").style.width=progress+"%";
+document.getElementById("statsTotal").textContent=total;
+document.getElementById("statsUnique").textContent=unique;
+document.getElementById("statsHundo").textContent=hundos;
+document.getElementById("statsMissing").textContent=missing;
+document.getElementById("stats0Star").textContent=starCounts[0];
+document.getElementById("stats1Star").textContent=starCounts[1];
+document.getElementById("stats2Star").textContent=starCounts[2];
+document.getElementById("stats3Star").textContent=starCounts[3];
+document.getElementById("stats4Star").textContent=starCounts[4];
+document.getElementById("statsProgressText").textContent=unique+" / 1025 Pokémon collected — "+progress+"%";
+document.getElementById("statsProgressBar").style.width=progress+"%";
+document.getElementById("homeShiny").textContent=0;
+document.getElementById("statsShiny").textContent=0;
+document.getElementById("homeLucky").textContent=0;
+document.getElementById("statsLucky").textContent=0;
+
+const generationTotals={1:151,2:100,3:135,4:107,5:156,6:72,7:88,8:96,9:120};
+const generationNames={1:"Gen 1 — Kanto",2:"Gen 2 — Johto",3:"Gen 3 — Hoenn",4:"Gen 4 — Sinnoh",5:"Gen 5 — Unova",6:"Gen 6 — Kalos",7:"Gen 7 — Alola",8:"Gen 8 — Galar",9:"Gen 9 — Paldea"};
+const generationStats=document.getElementById("generationStats");
+generationStats.innerHTML="";
+Object.keys(generationTotals).forEach(generation=>{
+const collected=uniqueIds.filter(id=>getGenerationInfo(id).number===Number(generation)).length;
+const genPercent=Number(((collected/generationTotals[generation])*100).toFixed(1));
+const row=document.createElement("div");
+row.className="generation-stat";
+row.innerHTML=`<div class="generation-header"><span>${generationNames[generation]}</span><span>${collected} / ${generationTotals[generation]}</span></div><div class="progress"><div class="progress-bar" style="width:${genPercent}%"></div></div><div class="generation-percent">${genPercent}% complete</div>`;
+generationStats.appendChild(row);
+});
 }
 
 function formatPokemonName(name){
