@@ -262,6 +262,21 @@ button {
     <label for="hp">HP</label>
     <input id="hp" type="number" min="0" placeholder="Enter HP">
 
+    <label for="fastMove">Fast Move</label>
+    <input id="fastMove" type="text" placeholder="Example: Thunder Shock">
+
+    <label for="chargedMove">Charged Move</label>
+    <input id="chargedMove" type="text" placeholder="Example: Wild Charge">
+
+    <label for="costume">Costume</label>
+    <input id="costume" type="text" placeholder="Example: Party Hat">
+
+    <label for="event">Event</label>
+    <input id="event" type="text" placeholder="Example: Community Day 2026">
+
+    <label for="background">Background</label>
+    <input id="background" type="text" placeholder="Example: New York City">
+
     <label>IVs</label>
 
     <div class="stats-grid">
@@ -444,6 +459,11 @@ function savePokemon() {
     name: selectedPokemon.name,
     cp: document.getElementById("cp").value,
     hp: document.getElementById("hp").value,
+    fastMove: document.getElementById("fastMove").value.trim(),
+    chargedMove: document.getElementById("chargedMove").value.trim(),
+    costume: document.getElementById("costume").value.trim(),
+    event: document.getElementById("event").value.trim(),
+    background: document.getElementById("background").value.trim(),
     attackIV: attack,
     defenseIV: defense,
     staminaIV: stamina,
@@ -497,6 +517,12 @@ function resetForm() {
   document.getElementById("cp").value = "";
   document.getElementById("hp").value = "";
 
+  document.getElementById("fastMove").value = "";
+  document.getElementById("chargedMove").value = "";
+  document.getElementById("costume").value = "";
+  document.getElementById("event").value = "";
+  document.getElementById("background").value = "";
+
   document.getElementById("attackIV").value = 0;
   document.getElementById("defenseIV").value = 0;
   document.getElementById("staminaIV").value = 0;
@@ -548,6 +574,12 @@ function editPokemon(id) {
 
   document.getElementById("cp").value = pokemon.cp || "";
   document.getElementById("hp").value = pokemon.hp || "";
+
+  document.getElementById("fastMove").value = pokemon.fastMove || "";
+  document.getElementById("chargedMove").value = pokemon.chargedMove || "";
+  document.getElementById("costume").value = pokemon.costume || "";
+  document.getElementById("event").value = pokemon.event || "";
+  document.getElementById("background").value = pokemon.background || "";
 
   document.getElementById("attackIV").value =
     limitIV(pokemon.attackIV);
@@ -660,6 +692,22 @@ function renderCollection() {
           <p style="margin:6px 0;">
             IV: ${pokemon.ivPercent}%
           </p>
+
+          ${pokemon.fastMove || pokemon.chargedMove
+            ? `<p style="margin:6px 0;">🥊 Moves: ${pokemon.fastMove || "-"} / ${pokemon.chargedMove || "-"}</p>`
+            : ""}
+
+          ${pokemon.costume
+            ? `<p style="margin:6px 0;">👕 Costume: ${pokemon.costume}</p>`
+            : ""}
+
+          ${pokemon.event
+            ? `<p style="margin:6px 0;">🎉 Event: ${pokemon.event}</p>`
+            : ""}
+
+          ${pokemon.background
+            ? `<p style="margin:6px 0;">🖼️ Background: ${pokemon.background}</p>`
+            : ""}
 
           <p style="font-size:22px;margin:6px 0;">
             ${stars}
