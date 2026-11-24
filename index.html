@@ -355,7 +355,7 @@ button {
 
     <div class="collection-filters">
       <label for="collectionSearch">Search Collection</label>
-      <input id="collectionSearch" type="text" placeholder="Name, Pokédex #, move, costume, event...">
+      <input id="collectionSearch" type="text" placeholder="Name, Pokédex #, costume, event...">
 
       <div class="filter-row">
         <div>
@@ -393,10 +393,6 @@ button {
             <option value="8">Gen 8 — Galar</option>
             <option value="9">Gen 9 — Paldea</option>
           </select>
-        </div>
-        <div>
-          <label for="moveFilter">Move Filter</label>
-          <input id="moveFilter" type="text" placeholder="Example: Thunder Shock">
         </div>
       </div>
 
@@ -756,7 +752,6 @@ function getCollectionFilters() {
     iv: document.getElementById("ivFilter").value,
     hundo: document.getElementById("hundoFilter").value,
     generation: document.getElementById("generationFilter").value,
-    move: document.getElementById("moveFilter").value.toLowerCase().trim(),
     costume: document.getElementById("costumeFilter").value.toLowerCase().trim(),
     event: document.getElementById("eventFilter").value.toLowerCase().trim(),
     background: document.getElementById("backgroundFilter").value.toLowerCase().trim()
@@ -772,7 +767,6 @@ function clearCollectionFilters() {
   document.getElementById("ivFilter").value = "all";
   document.getElementById("hundoFilter").value = "all";
   document.getElementById("generationFilter").value = "all";
-  document.getElementById("moveFilter").value = "";
   document.getElementById("costumeFilter").value = "";
   document.getElementById("eventFilter").value = "";
   document.getElementById("backgroundFilter").value = "";
@@ -820,7 +814,6 @@ function renderCollection() {
     if (filters.hundo === "hundo" && !hundo) return false;
     if (filters.hundo === "non-hundo" && hundo) return false;
     if (filters.generation !== "all" && Number(filters.generation) !== generation.number) return false;
-    if (filters.move && ![pokemon.fastMove || "", pokemon.chargedMove || ""].join(" ").toLowerCase().includes(filters.move)) return false;
     if (filters.costume && !(pokemon.costume || "").toLowerCase().includes(filters.costume)) return false;
     if (filters.event && !(pokemon.event || "").toLowerCase().includes(filters.event)) return false;
     if (filters.background && !(pokemon.background || "").toLowerCase().includes(filters.background)) return false;
@@ -1180,7 +1173,6 @@ document
   "ivFilter",
   "hundoFilter",
   "generationFilter",
-  "moveFilter",
   "costumeFilter",
   "eventFilter",
   "backgroundFilter"
