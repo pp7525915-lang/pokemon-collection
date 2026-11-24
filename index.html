@@ -258,7 +258,7 @@ button {
 
     <div id="ivPreview" class="message"></div>
 
-    <button class="primary-btn" onclick="savePokemon()">
+    <button id="savePokemonButton" class="primary-btn" onclick="savePokemon()">
       Save Pokémon
     </button>
 
@@ -430,6 +430,7 @@ function savePokemon() {
   };
 
   const collection = getCollection();
+  const wasEditing = Boolean(editingId);
 
   if (editingId) {
     const index = collection.findIndex(
@@ -449,7 +450,7 @@ function savePokemon() {
 
   document.getElementById("saveMessage").style.display = "block";
   document.getElementById("saveMessage").textContent =
-    `${pokemon.name} saved successfully!`;
+    `${pokemon.name} ${wasEditing ? "updated" : "saved"} successfully!`;
 
   renderCollection();
   updateStats();
@@ -477,6 +478,7 @@ function resetForm() {
   document.getElementById("staminaIV").value = 0;
 
   document.getElementById("ivPreview").style.display = "none";
+  document.getElementById("savePokemonButton").textContent = "Save Pokémon";
 }
 
 // ===== PART 4: COLLECTION CARDS =====
@@ -558,6 +560,17 @@ function renderCollection() {
               : ""
           }
 
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button type="button" onclick="editPokemon(${pokemon.id})"
+              style="border:0;border-radius:8px;padding:9px 14px;background:#2563eb;color:white;font-weight:bold;">
+              Edit
+            </button>
+            <button type="button" onclick="deletePokemon(${pokemon.id})"
+              style="border:0;border-radius:8px;padding:9px 14px;background:#dc2626;color:white;font-weight:bold;">
+              Delete
+            </button>
+          </div>
+
         </div>
 
       </div>
@@ -565,6 +578,70 @@ function renderCollection() {
 
     collectionList.appendChild(card);
   });
+}
+
+async function editPokemon(id) {
+  const collection = getCollection();
+  const pokemon = collection.find(item => item.id === id);
+
+  if (!pokemon) {
+    alert("Pokémon not found.");
+    return;
+  }
+
+  if (pokemonList.length === 0) {
+    await loadPokedex();
+  }
+
+  selectedPokemon = pokemonList.find(
+    item => item.id === Number(pokemon.pokemonId)
+  );
+
+  if (!selectedPokemon) {
+    alert("Could not load this Pokémon. Please try again.");
+    return;
+  }
+
+  document.getElementById("pokemonSearch").value =
+    formatPokemonName(selectedPokemon.name);
+  document.getElementById("pokemonSelect").value =
+    String(selectedPokemon.id);
+  selectPokemon();
+
+  document.getElementById("cp").value = pokemon.cp || "";
+  document.getElementById("hp").value = pokemon.hp || "";
+  document.getElementById("attackIV").value = pokemon.attackIV;
+  document.getElementById("defenseIV").value = pokemon.defenseIV;
+  document.getElementById("staminaIV").value = pokemon.staminaIV;
+
+  editingId = pokemon.id;
+  showIVAppraisal();
+  document.getElementById("savePokemonButton").textContent = "Update Pokémon";
+  showSection("add", document.querySelector("nav button:nth-child(2)"));
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function deletePokemon(id) {
+  const collection = getCollection();
+  const pokemon = collection.find(item => item.id === id);
+
+  if (!pokemon) {
+    alert("Pokémon not found.");
+    return;
+  }
+
+  if (!confirm("Delete " + formatPokemonName(pokemon.name) + " from your collection?")) {
+    return;
+  }
+
+  const updatedCollection = collection.filter(item => item.id !== id);
+  saveCollection(updatedCollection);
+  renderCollection();
+  updateStats();
+
+  if (editingId === id) {
+    resetForm();
+  }
 }
 
 function updateStats() {
