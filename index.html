@@ -669,6 +669,97 @@ pokemonSelect.addEventListener(
 
 loadPokedex();
   
+// ===== PART 3: IV APPRAISAL =====
+
+function getAppraisalStars(ivPercent) {
+  const percent = Number(ivPercent);
+
+  if (percent >= 100) {
+    return "⭐⭐⭐⭐";
+  }
+
+  if (percent >= 80) {
+    return "⭐⭐⭐";
+  }
+
+  if (percent >= 50) {
+    return "⭐⭐";
+  }
+
+  return "⭐";
+}
+
+function checkHundo(attack, defense, stamina) {
+  return (
+    Number(attack) === 15 &&
+    Number(defense) === 15 &&
+    Number(stamina) === 15
+  );
+}
+
+function showIVAppraisal() {
+  const attack = limitIV(
+    document.getElementById("attackIV").value
+  );
+
+  const defense = limitIV(
+    document.getElementById("defenseIV").value
+  );
+
+  const stamina = limitIV(
+    document.getElementById("staminaIV").value
+  );
+
+  const percentage = calculateIV(
+    attack,
+    defense,
+    stamina
+  );
+
+  const stars = getAppraisalStars(percentage);
+
+  const hundo = checkHundo(
+    attack,
+    defense,
+    stamina
+  );
+
+  const preview =
+    document.getElementById("ivPreview");
+
+  preview.style.display = "block";
+
+  preview.innerHTML = `
+    <strong>IV: ${percentage}%</strong><br>
+    <span style="font-size:22px;">${stars}</span>
+    ${hundo ? "<br><strong>💯 HUNDO!</strong>" : ""}
+  `;
+}
+
+document
+  .getElementById("attackIV")
+  .removeEventListener("input", updateIV);
+
+document
+  .getElementById("defenseIV")
+  .removeEventListener("input", updateIV);
+
+document
+  .getElementById("staminaIV")
+  .removeEventListener("input", updateIV);
+
+document
+  .getElementById("attackIV")
+  .addEventListener("input", showIVAppraisal);
+
+document
+  .getElementById("defenseIV")
+  .addEventListener("input", showIVAppraisal);
+
+document
+  .getElementById("staminaIV")
+  .addEventListener("input", showIVAppraisal);
+  
 </script>
 
 </body>
