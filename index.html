@@ -4,1160 +4,400 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>⚡ Dex Go</title>
-
 <style>
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f2f4f7;
-  color: #222;
-}
-
-header {
-  background: #111827;
-  color: white;
-  padding: 18px;
-  text-align: center;
-}
-
-header h1 {
-  margin: 0;
-  font-size: 28px;
-}
-
-header p {
-  margin: 6px 0 0;
-  opacity: 0.8;
-}
-
-nav {
-  display: flex;
-  gap: 8px;
-  padding: 10px;
-  background: white;
-  border-bottom: 1px solid #ddd;
-  overflow-x: auto;
-}
-
-nav button {
-  border: 0;
-  background: #e5e7eb;
-  padding: 11px 16px;
-  border-radius: 10px;
-  font-weight: bold;
-  white-space: nowrap;
-}
-
-nav button.active {
-  background: #111827;
-  color: white;
-}
-
-main {
-  max-width: 900px;
-  margin: auto;
-  padding: 16px;
-}
-
-section {
-  display: none;
-}
-
-section.active {
-  display: block;
-}
-
-.panel {
-  background: white;
-  border-radius: 16px;
-  padding: 18px;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-
-h2 {
-  margin-top: 0;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
-
-.stat {
-  background: #f3f4f6;
-  padding: 16px;
-  border-radius: 14px;
-  text-align: center;
-}
-
-.stat-number {
-  display: block;
-  font-size: 25px;
-  font-weight: bold;
-}
-
-label {
-  display: block;
-  font-weight: bold;
-  margin-top: 14px;
-  margin-bottom: 6px;
-}
-
-input,
-select {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  font-size: 16px;
-}
-
-button {
-  cursor: pointer;
-}
-
-.primary-btn {
-  width: 100%;
-  margin-top: 18px;
-  padding: 14px;
-  border: 0;
-  border-radius: 12px;
-  background: #2563eb;
-  color: white;
-  font-size: 17px;
-  font-weight: bold;
-}
-
-.secondary-btn {
-  width: 100%;
-  margin-top: 10px;
-  padding: 12px;
-  border: 0;
-  border-radius: 12px;
-  background: #e5e7eb;
-  font-weight: bold;
-}
-
-.message {
-  margin-top: 12px;
-  padding: 12px;
-  border-radius: 10px;
-  background: #ecfdf5;
-  color: #065f46;
-  display: none;
-}
-
-.collection-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.collection-filters {
-  display: grid;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.filter-row {
-  display: grid;
-  gap: 10px;
-}
-
-.filter-summary {
-  margin: 8px 0 0;
-  font-size: 14px;
-  color: #6b7280;
-}
-
-.clear-filters-btn {
-  width: 100%;
-  padding: 12px;
-  border: 0;
-  border-radius: 10px;
-  background: #e5e7eb;
-  font-weight: bold;
-}
-
-.generation-badge {
-  display: inline-block;
-  margin-top: 4px;
-  padding: 5px 8px;
-  border-radius: 999px;
-  background: #eef2ff;
-  color: #3730a3;
-  font-size: 13px;
-  font-weight: bold;
-}
-
-.edit-btn,
-.delete-btn {
-  flex: 1;
-  border: 0;
-  padding: 11px;
-  border-radius: 10px;
-  font-weight: bold;
-}
-
-.edit-btn {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.delete-btn {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-
-@media (min-width: 600px) {
-  .stats-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f2f4f7;color:#222}
+header{background:#111827;color:white;padding:18px;text-align:center}
+header h1{margin:0;font-size:28px}
+header p{margin:6px 0 0;opacity:.8}
+nav{display:flex;gap:8px;padding:10px;background:white;border-bottom:1px solid #ddd;overflow-x:auto}
+nav button{border:0;background:#e5e7eb;padding:11px 16px;border-radius:10px;font-weight:bold;white-space:nowrap}
+nav button.active{background:#111827;color:white}
+main{max-width:900px;margin:auto;padding:16px}
+section{display:none}
+section.active{display:block}
+.panel{background:white;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+h2{margin-top:0}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.stat{background:#f3f4f6;padding:16px;border-radius:14px;text-align:center}
+.stat-number{display:block;font-size:25px;font-weight:bold}
+label{display:block;font-weight:bold;margin-top:14px;margin-bottom:6px}
+input,select{width:100%;padding:12px;border:1px solid #ccc;border-radius:10px;font-size:16px}
+button{cursor:pointer}
+.primary-btn{width:100%;margin-top:18px;padding:14px;border:0;border-radius:12px;background:#2563eb;color:white;font-size:17px;font-weight:bold}
+.secondary-btn{width:100%;margin-top:10px;padding:12px;border:0;border-radius:12px;background:#e5e7eb;font-weight:bold}
+.message{margin-top:12px;padding:12px;border-radius:10px;background:#ecfdf5;color:#065f46;display:none}
+.collection-actions{display:flex;gap:8px;margin-top:12px}
+.collection-filters{display:grid;gap:10px;margin-bottom:16px}
+.filter-row{display:grid;gap:10px}
+.filter-summary{margin:8px 0 0;font-size:14px;color:#6b7280}
+.clear-filters-btn{width:100%;padding:12px;border:0;border-radius:10px;background:#e5e7eb;font-weight:bold}
+.generation-badge{display:inline-block;margin-top:4px;padding:5px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:13px;font-weight:bold}
+.edit-btn,.delete-btn{flex:1;border:0;padding:11px;border-radius:10px;font-weight:bold}
+.edit-btn{background:#dbeafe;color:#1d4ed8}
+.delete-btn{background:#fee2e2;color:#b91c1c}
+@media (min-width:600px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
 </style>
 </head>
-
 <body>
-
-<header>
-  <h1>⚡ Dex Go</h1>
-  <p>Pokémon GO Collection Tracker</p>
-</header>
-
+<header><h1>⚡ Dex Go</h1><p>Pokémon GO Collection Tracker</p></header>
 <nav>
-  <button class="active" onclick="showSection('home', this)">Home</button>
-  <button onclick="showSection('add', this)">Add Pokémon</button>
-  <button onclick="showSection('collection', this)">My Pokémon</button>
-  <button onclick="showSection('stats', this)">Stats</button>
+<button class="active" onclick="showSection('home',this)">Home</button>
+<button onclick="showSection('add',this)">Add Pokémon</button>
+<button onclick="showSection('collection',this)">My Pokémon</button>
+<button onclick="showSection('stats',this)">Stats</button>
 </nav>
-
 <main>
-
 <section id="home" class="active">
-
-  <div class="panel">
-    <h2>Welcome to Dex Go ⚡</h2>
-    <p>Track your Pokémon GO collection, IVs, CP, HP and more.</p>
-  </div>
-
-  <div class="panel">
-    <h2>Collection Overview</h2>
-
-    <div class="stats-grid">
-      <div class="stat">
-        <span class="stat-number" id="homeTotal">0</span>
-        Total
-      </div>
-
-      <div class="stat">
-        <span class="stat-number" id="homeHundo">0</span>
-        Hundos
-      </div>
-
-      <div class="stat">
-        <span class="stat-number" id="homeShiny">0</span>
-        Shiny
-      </div>
-
-      <div class="stat">
-        <span class="stat-number" id="homeLucky">0</span>
-        Lucky
-      </div>
-    </div>
-  </div>
-
+<div class="panel"><h2>Welcome to Dex Go ⚡</h2><p>Track your Pokémon GO collection, IVs, CP, HP and more.</p></div>
+<div class="panel"><h2>Collection Overview</h2><div class="stats-grid">
+<div class="stat"><span class="stat-number" id="homeTotal">0</span>Total</div>
+<div class="stat"><span class="stat-number" id="homeHundo">0</span>Hundos</div>
+<div class="stat"><span class="stat-number" id="homeShiny">0</span>Shiny</div>
+<div class="stat"><span class="stat-number" id="homeLucky">0</span>Lucky</div>
+</div></div>
 </section>
-
 <section id="add">
-
-  <div class="panel">
-    <h2>Add Pokémon</h2>
-
-    <label for="pokemonSearch">Search Pokémon</label>
-    <input
-      id="pokemonSearch"
-      type="text"
-      placeholder="Example: Pikachu"
-    >
-
-    <label for="pokemonSelect">Select Pokémon</label>
-    <select id="pokemonSelect">
-      <option value="">Loading Pokémon...</option>
-    </select>
-
-    <div id="selectedPokemonPreview"></div>
-
-    <label for="cp">CP</label>
-    <input id="cp" type="number" min="0" placeholder="Enter CP">
-
-    <label for="hp">HP</label>
-    <input id="hp" type="number" min="0" placeholder="Enter HP">
-
-    <label for="fastMove">Fast Move</label>
-    <input id="fastMove" type="text" placeholder="Example: Thunder Shock">
-
-    <label for="chargedMove">Charged Move</label>
-    <input id="chargedMove" type="text" placeholder="Example: Wild Charge">
-
-    <label for="costume">Costume</label>
-    <input id="costume" type="text" placeholder="Example: Party Hat">
-
-    <label for="event">Event</label>
-    <input id="event" type="text" placeholder="Example: Community Day 2026">
-
-    <label for="background">Background</label>
-    <input id="background" type="text" placeholder="Example: New York City">
-
-    <label>IVs</label>
-
-    <div class="stats-grid">
-      <div>
-        <label for="attackIV">Attack</label>
-        <input id="attackIV" type="number" min="0" max="15" value="0">
-      </div>
-
-      <div>
-        <label for="defenseIV">Defense</label>
-        <input id="defenseIV" type="number" min="0" max="15" value="0">
-      </div>
-
-      <div>
-        <label for="staminaIV">Stamina</label>
-        <input id="staminaIV" type="number" min="0" max="15" value="0">
-      </div>
-    </div>
-
-    <div id="ivPreview" class="message"></div>
-
-    <button id="savePokemonBtn" class="primary-btn" onclick="savePokemon()">
-      Save Pokémon
-    </button>
-
-    <button class="secondary-btn" onclick="resetForm()">
-      Reset
-    </button>
-
-    <div id="saveMessage" class="message"></div>
-  </div>
-
+<div class="panel">
+<h2>Add Pokémon</h2>
+<label for="pokemonSearch">Search Pokémon</label><input id="pokemonSearch" type="text" placeholder="Example: Pikachu">
+<label for="pokemonSelect">Select Pokémon</label><select id="pokemonSelect"><option value="">Loading Pokémon...</option></select>
+<div id="selectedPokemonPreview"></div>
+<label for="cp">CP</label><input id="cp" type="number" min="0" placeholder="Enter CP">
+<label for="hp">HP</label><input id="hp" type="number" min="0" placeholder="Enter HP">
+<label for="fastMove">Fast Move</label><input id="fastMove" type="text" placeholder="Example: Thunder Shock">
+<label for="chargedMove">Charged Move</label><input id="chargedMove" type="text" placeholder="Example: Wild Charge">
+<label for="costume">Costume</label><input id="costume" type="text" placeholder="Example: Party Hat">
+<label for="event">Event</label><input id="event" type="text" placeholder="Example: Community Day 2026">
+<label for="background">Background</label><input id="background" type="text" placeholder="Example: New York City">
+<label>IVs</label>
+<div class="stats-grid">
+<div><label for="attackIV">Attack</label><input id="attackIV" type="number" min="0" max="15" value="0"></div>
+<div><label for="defenseIV">Defense</label><input id="defenseIV" type="number" min="0" max="15" value="0"></div>
+<div><label for="staminaIV">Stamina</label><input id="staminaIV" type="number" min="0" max="15" value="0"></div>
+</div>
+<div id="ivPreview" class="message"></div>
+<button id="savePokemonBtn" class="primary-btn" onclick="savePokemon()">Save Pokémon</button>
+<button class="secondary-btn" onclick="resetForm()">Reset</button>
+<div id="saveMessage" class="message"></div>
+</div>
 </section>
-
 <section id="collection">
-
-  <div class="panel">
-    <h2>My Pokémon</h2>
-
-    <div class="collection-filters">
-      <label for="collectionSearch">Search Collection</label>
-      <input id="collectionSearch" type="text" placeholder="Name, Pokédex #, costume, event...">
-
-      <div class="filter-row">
-        <div>
-          <label for="ivFilter">IV Stars</label>
-          <select id="ivFilter">
-            <option value="all">All IVs</option>
-            <option value="1">⭐ 1 Star</option>
-            <option value="2">⭐⭐ 2 Stars</option>
-            <option value="3">⭐⭐⭐ 3 Stars</option>
-            <option value="4">⭐⭐⭐⭐ 4 Stars</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="filter-row">
-        <div>
-          <label for="generationFilter">Generation / Region</label>
-          <select id="generationFilter">
-            <option value="all">All Generations</option>
-            <option value="1">Gen 1 — Kanto</option>
-            <option value="2">Gen 2 — Johto</option>
-            <option value="3">Gen 3 — Hoenn</option>
-            <option value="4">Gen 4 — Sinnoh</option>
-            <option value="5">Gen 5 — Unova</option>
-            <option value="6">Gen 6 — Kalos</option>
-            <option value="7">Gen 7 — Alola</option>
-            <option value="8">Gen 8 — Galar</option>
-            <option value="9">Gen 9 — Paldea</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="filter-row">
-        <div>
-          <label for="costumeFilter">Costume Filter</label>
-          <input id="costumeFilter" type="text" placeholder="Example: Party Hat">
-        </div>
-        <div>
-          <label for="eventFilter">Event Filter</label>
-          <input id="eventFilter" type="text" placeholder="Example: Community Day">
-        </div>
-      </div>
-
-      <div class="filter-row">
-        <div>
-          <label for="backgroundFilter">Background Filter</label>
-          <input id="backgroundFilter" type="text" placeholder="Example: New York City">
-        </div>
-      </div>
-
-      <button class="clear-filters-btn" onclick="clearCollectionFilters()">
-        Clear Filters
-      </button>
-
-      <p id="collectionFilterSummary" class="filter-summary"></p>
-    </div>
-
-    <div id="collectionList">
-      <p>No Pokémon added yet.</p>
-    </div>
-  </div>
-
+<div class="panel">
+<h2>My Pokémon</h2>
+<div class="collection-filters">
+<label for="collectionSearch">Search Collection</label>
+<input id="collectionSearch" type="text" placeholder="Name, Pokédex #, costume, event...">
+<div class="filter-row"><div>
+<label for="ivFilter">IV Stars</label>
+<select id="ivFilter">
+<option value="all">All IVs</option>
+<option value="0">0★</option>
+<option value="1">⭐ 1 Star</option>
+<option value="2">⭐⭐ 2 Stars</option>
+<option value="3">⭐⭐⭐ 3 Stars</option>
+<option value="4">⭐⭐⭐⭐ 4 Stars</option>
+</select>
+</div></div>
+<div class="filter-row"><div>
+<label for="generationFilter">Generation / Region</label>
+<select id="generationFilter">
+<option value="all">All Generations</option>
+<option value="1">Gen 1 — Kanto</option><option value="2">Gen 2 — Johto</option><option value="3">Gen 3 — Hoenn</option><option value="4">Gen 4 — Sinnoh</option><option value="5">Gen 5 — Unova</option><option value="6">Gen 6 — Kalos</option><option value="7">Gen 7 — Alola</option><option value="8">Gen 8 — Galar</option><option value="9">Gen 9 — Paldea</option>
+</select>
+</div></div>
+<div class="filter-row">
+<div><label for="costumeFilter">Costume Filter</label><input id="costumeFilter" type="text" placeholder="Example: Party Hat"></div>
+<div><label for="eventFilter">Event Filter</label><input id="eventFilter" type="text" placeholder="Example: Community Day"></div>
+</div>
+<div class="filter-row"><div><label for="backgroundFilter">Background Filter</label><input id="backgroundFilter" type="text" placeholder="Example: New York City"></div></div>
+<button class="clear-filters-btn" onclick="clearCollectionFilters()">Clear Filters</button>
+<p id="collectionFilterSummary" class="filter-summary"></p>
+</div>
+<div id="collectionList"><p>No Pokémon added yet.</p></div>
+</div>
 </section>
-
 <section id="stats">
-
-  <div class="panel">
-    <h2>Stats</h2>
-
-    <div class="stats-grid">
-      <div class="stat">
-        <span class="stat-number" id="statsTotal">0</span>
-        Total
-      </div>
-
-      <div class="stat">
-        <span class="stat-number" id="statsHundo">0</span>
-        Hundos
-      </div>
-
-      <div class="stat">
-        <span class="stat-number" id="statsShiny">0</span>
-        Shiny
-      </div>
-
-      <div class="stat">
-        <span class="stat-number" id="statsLucky">0</span>
-        Lucky
-      </div>
-    </div>
-  </div>
-
+<div class="panel"><h2>Stats</h2><div class="stats-grid">
+<div class="stat"><span class="stat-number" id="statsTotal">0</span>Total</div>
+<div class="stat"><span class="stat-number" id="statsHundo">0</span>Hundos</div>
+<div class="stat"><span class="stat-number" id="statsShiny">0</span>Shiny</div>
+<div class="stat"><span class="stat-number" id="statsLucky">0</span>Lucky</div>
+</div></div>
 </section>
-
 </main>
-
 <script>
+const IMAGE_BASE="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/";
+let pokemonList=[],selectedPokemon=null,editingId=null;
 
-const IMAGE_BASE =
-  "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/";
-
-let pokemonList = [];
-let selectedPokemon = null;
-let editingId = null;
-
-function showSection(sectionId, button) {
-  document.querySelectorAll("section").forEach(section => {
-    section.classList.remove("active");
-  });
-
-  document.getElementById(sectionId).classList.add("active");
-
-  document.querySelectorAll("nav button").forEach(btn => {
-    btn.classList.remove("active");
-  });
-
-  if (button) {
-    button.classList.add("active");
-  }
+function showSection(sectionId,button){
+document.querySelectorAll("section").forEach(section=>section.classList.remove("active"));
+document.getElementById(sectionId).classList.add("active");
+document.querySelectorAll("nav button").forEach(btn=>btn.classList.remove("active"));
+if(button)button.classList.add("active");
 }
 
-function limitIV(value) {
-  let number = parseInt(value) || 0;
-
-  if (number < 0) number = 0;
-  if (number > 15) number = 15;
-
-  return number;
+function limitIV(value){
+let number=parseInt(value,10);
+if(Number.isNaN(number))number=0;
+return Math.max(0,Math.min(15,number));
 }
 
-function calculateIV(attack, defense, stamina) {
-  const total = attack + defense + stamina;
-  return ((total / 45) * 100).toFixed(1);
+function calculateIV(attack,defense,stamina){
+const total=limitIV(attack)+limitIV(defense)+limitIV(stamina);
+return ((total/45)*100).toFixed(1);
 }
 
-function updateIV() {
-  const attack = limitIV(document.getElementById("attackIV").value);
-  const defense = limitIV(document.getElementById("defenseIV").value);
-  const stamina = limitIV(document.getElementById("staminaIV").value);
-
-  document.getElementById("attackIV").value = attack;
-  document.getElementById("defenseIV").value = defense;
-  document.getElementById("staminaIV").value = stamina;
-
-  const percentage = calculateIV(attack, defense, stamina);
-
-  const preview = document.getElementById("ivPreview");
-
-  preview.style.display = "block";
-  preview.textContent =
-    `IV: ${percentage}% (${attack}/15/${defense}/15/${stamina}/15)`;
+function getIVTotal(attack,defense,stamina){
+return limitIV(attack)+limitIV(defense)+limitIV(stamina);
 }
 
-document
-  .getElementById("attackIV")
-  .addEventListener("input", updateIV);
-
-document
-  .getElementById("defenseIV")
-  .addEventListener("input", updateIV);
-
-document
-  .getElementById("staminaIV")
-  .addEventListener("input", updateIV);
-
-function getCollection() {
-  return JSON.parse(localStorage.getItem("dexGoCollection") || "[]");
+function getAppraisalStars(attack,defense,stamina){
+const total=getIVTotal(attack,defense,stamina);
+if(total===45)return "⭐⭐⭐⭐";
+if(total>=37)return "⭐⭐⭐";
+if(total>=30)return "⭐⭐";
+if(total>=23)return "⭐";
+return "";
 }
 
-function saveCollection(collection) {
-  localStorage.setItem(
-    "dexGoCollection",
-    JSON.stringify(collection)
-  );
+function getAppraisalStarCount(attack,defense,stamina){
+return getIVTotal(attack,defense,stamina)===45?4:
+getIVTotal(attack,defense,stamina)>=37?3:
+getIVTotal(attack,defense,stamina)>=30?2:
+getIVTotal(attack,defense,stamina)>=23?1:0;
 }
 
-function savePokemon() {
-
-  if (!selectedPokemon) {
-    alert("Please select a Pokémon first.");
-    return;
-  }
-
-  const attack = limitIV(
-    document.getElementById("attackIV").value
-  );
-
-  const defense = limitIV(
-    document.getElementById("defenseIV").value
-  );
-
-  const stamina = limitIV(
-    document.getElementById("staminaIV").value
-  );
-
-  const pokemon = {
-    id: editingId || Date.now(),
-    pokemonId: selectedPokemon.id,
-    name: selectedPokemon.name,
-    cp: document.getElementById("cp").value,
-    hp: document.getElementById("hp").value,
-    fastMove: document.getElementById("fastMove").value.trim(),
-    chargedMove: document.getElementById("chargedMove").value.trim(),
-    costume: document.getElementById("costume").value.trim(),
-    event: document.getElementById("event").value.trim(),
-    background: document.getElementById("background").value.trim(),
-    attackIV: attack,
-    defenseIV: defense,
-    staminaIV: stamina,
-    ivPercent: calculateIV(
-      attack,
-      defense,
-      stamina
-    )
-  };
-
-  const collection = getCollection();
-
-  if (editingId) {
-    const index = collection.findIndex(
-      item => String(item.id) === String(editingId)
-    );
-
-    if (index !== -1) {
-      collection[index] = pokemon;
-    }
-
-    editingId = null;
-  } else {
-    collection.push(pokemon);
-  }
-
-  saveCollection(collection);
-
-  document.getElementById("saveMessage").style.display = "block";
-  document.getElementById("saveMessage").textContent =
-    `${pokemon.name} saved successfully!`;
-
-  renderCollection();
-  updateStats();
-
-  setTimeout(() => {
-    document.getElementById("saveMessage").style.display = "none";
-  }, 2500);
-
-  resetForm();
+function showIVAppraisal(){
+const attack=limitIV(document.getElementById("attackIV").value);
+const defense=limitIV(document.getElementById("defenseIV").value);
+const stamina=limitIV(document.getElementById("staminaIV").value);
+document.getElementById("attackIV").value=attack;
+document.getElementById("defenseIV").value=defense;
+document.getElementById("staminaIV").value=stamina;
+const percentage=calculateIV(attack,defense,stamina);
+const stars=getAppraisalStars(attack,defense,stamina);
+const total=getIVTotal(attack,defense,stamina);
+const preview=document.getElementById("ivPreview");
+preview.style.display="block";
+preview.innerHTML=`<strong>IV: ${percentage}% (${total}/45)</strong><br><span style="font-size:22px;">${stars||"0★"}</span>`;
 }
 
-function resetForm() {
-  selectedPokemon = null;
-  editingId = null;
+function getCollection(){return JSON.parse(localStorage.getItem("dexGoCollection")||"[]")}
+function saveCollection(collection){localStorage.setItem("dexGoCollection",JSON.stringify(collection))}
 
-  document.getElementById("pokemonSearch").value = "";
-  document.getElementById("pokemonSelect").value = "";
-  document.getElementById("selectedPokemonPreview").innerHTML = "";
-
-  document.getElementById("cp").value = "";
-  document.getElementById("hp").value = "";
-
-  document.getElementById("fastMove").value = "";
-  document.getElementById("chargedMove").value = "";
-  document.getElementById("costume").value = "";
-  document.getElementById("event").value = "";
-  document.getElementById("background").value = "";
-
-  document.getElementById("attackIV").value = 0;
-  document.getElementById("defenseIV").value = 0;
-  document.getElementById("staminaIV").value = 0;
-
-  document.getElementById("ivPreview").style.display = "none";
-
-  document.getElementById("savePokemonBtn").textContent =
-    "Save Pokémon";
+function savePokemon(){
+if(!selectedPokemon){alert("Please select a Pokémon first.");return}
+const attack=limitIV(document.getElementById("attackIV").value);
+const defense=limitIV(document.getElementById("defenseIV").value);
+const stamina=limitIV(document.getElementById("staminaIV").value);
+const pokemon={
+id:editingId||Date.now(),pokemonId:selectedPokemon.id,name:selectedPokemon.name,
+cp:document.getElementById("cp").value,hp:document.getElementById("hp").value,
+fastMove:document.getElementById("fastMove").value.trim(),chargedMove:document.getElementById("chargedMove").value.trim(),
+costume:document.getElementById("costume").value.trim(),event:document.getElementById("event").value.trim(),background:document.getElementById("background").value.trim(),
+attackIV:attack,defenseIV:defense,staminaIV:stamina,ivPercent:calculateIV(attack,defense,stamina)
+};
+const collection=getCollection();
+if(editingId){
+const index=collection.findIndex(item=>String(item.id)===String(editingId));
+if(index!==-1)collection[index]=pokemon;
+editingId=null;
+}else collection.push(pokemon);
+saveCollection(collection);
+document.getElementById("saveMessage").style.display="block";
+document.getElementById("saveMessage").textContent=`${pokemon.name} saved successfully!`;
+renderCollection();updateStats();
+setTimeout(()=>document.getElementById("saveMessage").style.display="none",2500);
+resetForm();
 }
 
-function editPokemon(id) {
-  const collection = getCollection();
-
-  const pokemon = collection.find(
-    item => String(item.id) === String(id)
-  );
-
-  if (!pokemon) return;
-
-  editingId = pokemon.id;
-
-  const pokemonData =
-    pokemonList.find(item => Number(item.id) === Number(pokemon.pokemonId))
-    || {
-      id: Number(pokemon.pokemonId),
-      name: pokemon.name
-    };
-
-  selectedPokemon = pokemonData;
-
-  document.getElementById("pokemonSearch").value =
-    formatPokemonName(pokemonData.name);
-
-  document.getElementById("pokemonSelect").value =
-    String(pokemonData.id);
-
-  document.getElementById("selectedPokemonPreview").innerHTML = `
-    <div class="panel" style="margin-top:15px;text-align:center;">
-      <img
-        src="${IMAGE_BASE + pokemonData.id + ".png"}"
-        alt="${formatPokemonName(pokemonData.name)}"
-        width="150"
-        height="150"
-      >
-      <h3>${formatPokemonName(pokemonData.name)}</h3>
-      <p>Pokédex #${String(pokemonData.id).padStart(3, "0")}</p>
-    </div>
-  `;
-
-  document.getElementById("cp").value = pokemon.cp || "";
-  document.getElementById("hp").value = pokemon.hp || "";
-
-  document.getElementById("fastMove").value = pokemon.fastMove || "";
-  document.getElementById("chargedMove").value = pokemon.chargedMove || "";
-  document.getElementById("costume").value = pokemon.costume || "";
-  document.getElementById("event").value = pokemon.event || "";
-  document.getElementById("background").value = pokemon.background || "";
-
-  document.getElementById("attackIV").value =
-    limitIV(pokemon.attackIV);
-
-  document.getElementById("defenseIV").value =
-    limitIV(pokemon.defenseIV);
-
-  document.getElementById("staminaIV").value =
-    limitIV(pokemon.staminaIV);
-
-  document.getElementById("savePokemonBtn").textContent =
-    "Update Pokémon";
-
-  showIVAppraisal();
-
-  showSection(
-    "add",
-    document.querySelector('nav button[onclick*="add"]')
-  );
+function resetForm(){
+selectedPokemon=null;editingId=null;
+document.getElementById("pokemonSearch").value="";
+document.getElementById("pokemonSelect").value="";
+document.getElementById("selectedPokemonPreview").innerHTML="";
+document.getElementById("cp").value="";document.getElementById("hp").value="";
+["fastMove","chargedMove","costume","event","background"].forEach(id=>document.getElementById(id).value="");
+["attackIV","defenseIV","staminaIV"].forEach(id=>document.getElementById(id).value=0);
+document.getElementById("ivPreview").style.display="none";
+document.getElementById("savePokemonBtn").textContent="Save Pokémon";
 }
 
-function deletePokemon(id) {
-  const collection = getCollection();
-
-  const pokemon = collection.find(
-    item => String(item.id) === String(id)
-  );
-
-  if (!pokemon) return;
-
-  const confirmed = confirm(
-    `Delete ${formatPokemonName(pokemon.name)} from your collection?`
-  );
-
-  if (!confirmed) return;
-
-  const updatedCollection = collection.filter(
-    item => String(item.id) !== String(id)
-  );
-
-  saveCollection(updatedCollection);
-
-  renderCollection();
-  updateStats();
+function editPokemon(id){
+const collection=getCollection();
+const pokemon=collection.find(item=>String(item.id)===String(id));
+if(!pokemon)return;
+editingId=pokemon.id;
+const pokemonData=pokemonList.find(item=>Number(item.id)===Number(pokemon.pokemonId))||{id:Number(pokemon.pokemonId),name:pokemon.name};
+selectedPokemon=pokemonData;
+document.getElementById("pokemonSearch").value=formatPokemonName(pokemonData.name);
+document.getElementById("pokemonSelect").value=String(pokemonData.id);
+document.getElementById("selectedPokemonPreview").innerHTML=`<div class="panel" style="margin-top:15px;text-align:center;"><img src="${IMAGE_BASE+pokemonData.id+".png"}" alt="${formatPokemonName(pokemonData.name)}" width="150" height="150"><h3>${formatPokemonName(pokemonData.name)}</h3><p>Pokédex #${String(pokemonData.id).padStart(3,"0")}</p></div>`;
+document.getElementById("cp").value=pokemon.cp||"";
+document.getElementById("hp").value=pokemon.hp||"";
+["fastMove","chargedMove","costume","event","background"].forEach(id=>document.getElementById(id).value=pokemon[id]||"");
+document.getElementById("attackIV").value=limitIV(pokemon.attackIV);
+document.getElementById("defenseIV").value=limitIV(pokemon.defenseIV);
+document.getElementById("staminaIV").value=limitIV(pokemon.staminaIV);
+document.getElementById("savePokemonBtn").textContent="Update Pokémon";
+showIVAppraisal();
+showSection("add",document.querySelector('nav button[onclick*="add"]'));
 }
 
-function getGenerationInfo(pokemonId) {
-  const id = Number(pokemonId);
-
-  if (id <= 151) return { number: 1, name: "Kanto" };
-  if (id <= 251) return { number: 2, name: "Johto" };
-  if (id <= 386) return { number: 3, name: "Hoenn" };
-  if (id <= 493) return { number: 4, name: "Sinnoh" };
-  if (id <= 649) return { number: 5, name: "Unova" };
-  if (id <= 721) return { number: 6, name: "Kalos" };
-  if (id <= 809) return { number: 7, name: "Alola" };
-  if (id <= 905) return { number: 8, name: "Galar" };
-  return { number: 9, name: "Paldea" };
+function deletePokemon(id){
+const collection=getCollection();
+const pokemon=collection.find(item=>String(item.id)===String(id));
+if(!pokemon)return;
+if(!confirm(`Delete ${formatPokemonName(pokemon.name)} from your collection?`))return;
+saveCollection(collection.filter(item=>String(item.id)!==String(id)));
+renderCollection();updateStats();
 }
 
-function getCollectionFilters() {
-  return {
-    search: document.getElementById("collectionSearch").value.toLowerCase().trim(),
-    iv: document.getElementById("ivFilter").value,
-    generation: document.getElementById("generationFilter").value,
-    costume: document.getElementById("costumeFilter").value.toLowerCase().trim(),
-    event: document.getElementById("eventFilter").value.toLowerCase().trim(),
-    background: document.getElementById("backgroundFilter").value.toLowerCase().trim()
-  };
+function getGenerationInfo(pokemonId){
+const id=Number(pokemonId);
+if(id<=151)return{number:1,name:"Kanto"};
+if(id<=251)return{number:2,name:"Johto"};
+if(id<=386)return{number:3,name:"Hoenn"};
+if(id<=493)return{number:4,name:"Sinnoh"};
+if(id<=649)return{number:5,name:"Unova"};
+if(id<=721)return{number:6,name:"Kalos"};
+if(id<=809)return{number:7,name:"Alola"};
+if(id<=905)return{number:8,name:"Galar"};
+return{number:9,name:"Paldea"};
 }
 
-function filterCollection() {
-  renderCollection();
+function getCollectionFilters(){
+return{
+search:document.getElementById("collectionSearch").value.toLowerCase().trim(),
+iv:document.getElementById("ivFilter").value,
+generation:document.getElementById("generationFilter").value,
+costume:document.getElementById("costumeFilter").value.toLowerCase().trim(),
+event:document.getElementById("eventFilter").value.toLowerCase().trim(),
+background:document.getElementById("backgroundFilter").value.toLowerCase().trim()
+};
 }
 
-function clearCollectionFilters() {
-  document.getElementById("collectionSearch").value = "";
-  document.getElementById("ivFilter").value = "all";
-  document.getElementById("generationFilter").value = "all";
-  document.getElementById("costumeFilter").value = "";
-  document.getElementById("eventFilter").value = "";
-  document.getElementById("backgroundFilter").value = "";
-  renderCollection();
+function filterCollection(){renderCollection()}
+function clearCollectionFilters(){
+document.getElementById("collectionSearch").value="";
+document.getElementById("ivFilter").value="all";
+document.getElementById("generationFilter").value="all";
+document.getElementById("costumeFilter").value="";
+document.getElementById("eventFilter").value="";
+document.getElementById("backgroundFilter").value="";
+renderCollection();
 }
 
-function renderCollection() {
-  const collection = getCollection();
-
-  const collectionList =
-    document.getElementById("collectionList");
-
-  if (!collectionList) return;
-
-  collectionList.innerHTML = "";
-
-  if (collection.length === 0) {
-    collectionList.innerHTML = `
-      <div class="panel">
-        <p>No Pokémon added yet.</p>
-      </div>
-    `;
-    return;
-  }
-
-  const filters = getCollectionFilters();
-
-  const filteredCollection = collection.filter(pokemon => {
-    const generation = getGenerationInfo(pokemon.pokemonId);
-    const stars = getAppraisalStars(pokemon.attackIV, pokemon.defenseIV, pokemon.staminaIV).length / 2;
-
-    const searchableText = [
-      pokemon.name,
-      pokemon.pokemonId,
-      pokemon.fastMove,
-      pokemon.chargedMove,
-      pokemon.costume,
-      pokemon.event,
-      pokemon.background
-    ].join(" ").toLowerCase();
-
-    if (filters.search && !searchableText.includes(filters.search)) return false;
-    if (filters.iv !== "all" && Number(filters.iv) !== stars) return false;
-    if (filters.generation !== "all" && Number(filters.generation) !== generation.number) return false;
-    if (filters.costume && !(pokemon.costume || "").toLowerCase().includes(filters.costume)) return false;
-    if (filters.event && !(pokemon.event || "").toLowerCase().includes(filters.event)) return false;
-    if (filters.background && !(pokemon.background || "").toLowerCase().includes(filters.background)) return false;
-
-    return true;
-  });
-
-  const summary = document.getElementById("collectionFilterSummary");
-  if (summary) {
-    summary.textContent = "Showing " + filteredCollection.length + " of " + collection.length + " Pokémon";
-  }
-
-  if (filteredCollection.length === 0) {
-    collectionList.innerHTML = '<div class="panel"><p>No Pokémon match your filters.</p></div>';
-    return;
-  }
-
-  filteredCollection.forEach(pokemon => {
-
-    const image =
-      IMAGE_BASE + pokemon.pokemonId + ".png";
-
-    const stars =
-      getAppraisalStars(pokemon.attackIV, pokemon.defenseIV, pokemon.staminaIV);
-
-
-    const card =
-      document.createElement("div");
-
-    card.className = "panel";
-    card.style.marginBottom = "15px";
-
-    card.innerHTML = `
-      <div style="display:flex;align-items:center;gap:15px;">
-
-        <img
-          src="${image}"
-          alt="${formatPokemonName(pokemon.name)}"
-          width="100"
-          height="100"
-        >
-
-        <div style="flex:1;">
-
-          <h3 style="margin:0;">
-            #${String(pokemon.pokemonId).padStart(3, "0")}
-            ${formatPokemonName(pokemon.name)}
-          </h3>
-
-          <p style="margin:6px 0;">
-            CP: ${pokemon.cp || 0}
-            &nbsp; | &nbsp;
-            HP: ${pokemon.hp || 0}
-          </p>
-
-          <p style="margin:6px 0;">
-            IV: ${calculateIV(Number(pokemon.attackIV) || 0, Number(pokemon.defenseIV) || 0, Number(pokemon.staminaIV) || 0)}%
-          </p>
-
-          ${pokemon.fastMove || pokemon.chargedMove
-            ? `<p style="margin:6px 0;">🥊 Moves: ${pokemon.fastMove || "-"} / ${pokemon.chargedMove || "-"}</p>`
-            : ""}
-
-          ${pokemon.costume
-            ? `<p style="margin:6px 0;">👕 Costume: ${pokemon.costume}</p>`
-            : ""}
-
-          ${pokemon.event
-            ? `<p style="margin:6px 0;">🎉 Event: ${pokemon.event}</p>`
-            : ""}
-
-          ${pokemon.background
-            ? `<p style="margin:6px 0;">🖼️ Background: ${pokemon.background}</p>`
-            : ""}
-
-          <p style="font-size:22px;margin:6px 0;">
-            ${stars}
-          </p>
-
-        </div>
-
-      </div>
-
-      <div class="collection-actions">
-        <button
-          type="button"
-          class="edit-btn"
-          onclick="editPokemon(${pokemon.id})"
-        >
-          ✏️ Edit
-        </button>
-
-        <button
-          type="button"
-          class="delete-btn"
-          onclick="deletePokemon(${pokemon.id})"
-        >
-          🗑️ Delete
-        </button>
-      </div>
-    `;
-
-    collectionList.appendChild(card);
-  });
+function renderCollection(){
+const collection=getCollection();
+const collectionList=document.getElementById("collectionList");
+if(!collectionList)return;
+collectionList.innerHTML="";
+if(collection.length===0){
+collectionList.innerHTML='<div class="panel"><p>No Pokémon added yet.</p></div>';
+const summary=document.getElementById("collectionFilterSummary");if(summary)summary.textContent="Showing 0 of 0 Pokémon";
+return;
+}
+const filters=getCollectionFilters();
+const filteredCollection=collection.filter(pokemon=>{
+const generation=getGenerationInfo(pokemon.pokemonId);
+const stars=getAppraisalStarCount(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV);
+const searchableText=[pokemon.name,pokemon.pokemonId,pokemon.fastMove,pokemon.chargedMove,pokemon.costume,pokemon.event,pokemon.background].join(" ").toLowerCase();
+if(filters.search&&!searchableText.includes(filters.search))return false;
+if(filters.iv!=="all"&&Number(filters.iv)!==stars)return false;
+if(filters.generation!=="all"&&Number(filters.generation)!==generation.number)return false;
+if(filters.costume&&!(pokemon.costume||"").toLowerCase().includes(filters.costume))return false;
+if(filters.event&&!(pokemon.event||"").toLowerCase().includes(filters.event))return false;
+if(filters.background&&!(pokemon.background||"").toLowerCase().includes(filters.background))return false;
+return true;
+});
+const summary=document.getElementById("collectionFilterSummary");
+if(summary)summary.textContent="Showing "+filteredCollection.length+" of "+collection.length+" Pokémon";
+if(filteredCollection.length===0){
+collectionList.innerHTML='<div class="panel"><p>No Pokémon match your filters.</p></div>';return;
+}
+filteredCollection.forEach(pokemon=>{
+const image=IMAGE_BASE+pokemon.pokemonId+".png";
+const stars=getAppraisalStars(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV);
+const total=getIVTotal(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV);
+const card=document.createElement("div");card.className="panel";card.style.marginBottom="15px";
+card.innerHTML=`<div style="display:flex;align-items:center;gap:15px;"><img src="${image}" alt="${formatPokemonName(pokemon.name)}" width="100" height="100"><div style="flex:1;"><h3 style="margin:0;">#${String(pokemon.pokemonId).padStart(3,"0")} ${formatPokemonName(pokemon.name)}</h3><p style="margin:6px 0;">CP: ${pokemon.cp||0} &nbsp; | &nbsp; HP: ${pokemon.hp||0}</p><p style="margin:6px 0;">IV: ${calculateIV(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV)}% (${total}/45)</p>
+${pokemon.fastMove||pokemon.chargedMove?`<p style="margin:6px 0;">🥊 Moves: ${pokemon.fastMove||"-"} / ${pokemon.chargedMove||"-"}</p>`:""}
+${pokemon.costume?`<p style="margin:6px 0;">👕 Costume: ${pokemon.costume}</p>`:""}
+${pokemon.event?`<p style="margin:6px 0;">🎉 Event: ${pokemon.event}</p>`:""}
+${pokemon.background?`<p style="margin:6px 0;">🖼️ Background: ${pokemon.background}</p>`:""}
+<p style="font-size:22px;margin:6px 0;">${stars||"0★"}</p></div></div>
+<div class="collection-actions"><button type="button" class="edit-btn" onclick="editPokemon(${pokemon.id})">✏️ Edit</button><button type="button" class="delete-btn" onclick="deletePokemon(${pokemon.id})">🗑️ Delete</button></div>`;
+collectionList.appendChild(card);
+});
 }
 
-function updateStats() {
-
-  const collection = getCollection();
-
-  const total = collection.length;
-
-  const hundos = collection.filter(
-    pokemon =>
-      Number(pokemon.attackIV) === 15 &&
-      Number(pokemon.defenseIV) === 15 &&
-      Number(pokemon.staminaIV) === 15
-  ).length;
-
-  document.getElementById("homeTotal").textContent = total;
-  document.getElementById("statsTotal").textContent = total;
-
-  document.getElementById("homeHundo").textContent = hundos;
-  document.getElementById("statsHundo").textContent = hundos;
-
-  document.getElementById("homeShiny").textContent = 0;
-  document.getElementById("statsShiny").textContent = 0;
-
-  document.getElementById("homeLucky").textContent = 0;
-  document.getElementById("statsLucky").textContent = 0;
+function updateStats(){
+const collection=getCollection(),total=collection.length;
+const hundos=collection.filter(pokemon=>Number(pokemon.attackIV)===15&&Number(pokemon.defenseIV)===15&&Number(pokemon.staminaIV)===15).length;
+document.getElementById("homeTotal").textContent=total;document.getElementById("statsTotal").textContent=total;
+document.getElementById("homeHundo").textContent=hundos;document.getElementById("statsHundo").textContent=hundos;
+document.getElementById("homeShiny").textContent=0;document.getElementById("statsShiny").textContent=0;
+document.getElementById("homeLucky").textContent=0;document.getElementById("statsLucky").textContent=0;
 }
 
-function formatPokemonName(name) {
-  return name
-    .split("-")
-    .map(word =>
-      word.charAt(0).toUpperCase() + word.slice(1)
-    )
-    .join(" ");
+function formatPokemonName(name){
+return name.split("-").map(word=>word.charAt(0).toUpperCase()+word.slice(1)).join(" ");
 }
 
-// ===== PART 2: POKÉDEX =====
+const pokemonSearch=document.getElementById("pokemonSearch");
+const pokemonSelect=document.getElementById("pokemonSelect");
 
-const pokemonSearch = document.getElementById("pokemonSearch");
-const pokemonSelect = document.getElementById("pokemonSelect");
-
-async function loadPokedex() {
-  try {
-    pokemonSelect.innerHTML =
-      '<option value="">Loading Pokémon...</option>';
-
-    const response = await fetch(
-      "https://pokeapi.co/api/v2/pokemon?limit=1025"
-    );
-
-    const data = await response.json();
-
-    pokemonList = data.results.map((pokemon, index) => ({
-      id: index + 1,
-      name: pokemon.name
-    }));
-
-    fillPokemonSelect(pokemonList);
-
-  } catch (error) {
-    pokemonSelect.innerHTML =
-      '<option value="">Could not load Pokémon</option>';
-
-    console.error("Pokédex loading error:", error);
-  }
+async function loadPokedex(){
+try{
+pokemonSelect.innerHTML='<option value="">Loading Pokémon...</option>';
+const response=await fetch("https://pokeapi.co/api/v2/pokemon?limit=1025");
+const data=await response.json();
+pokemonList=data.results.map((pokemon,index)=>({id:index+1,name:pokemon.name}));
+fillPokemonSelect(pokemonList);
+}catch(error){
+pokemonSelect.innerHTML='<option value="">Could not load Pokémon</option>';
+console.error("Pokédex loading error:",error);
+}
 }
 
-function fillPokemonSelect(list) {
-
-  pokemonSelect.innerHTML =
-    '<option value="">Select Pokémon</option>';
-
-  list.forEach(pokemon => {
-
-    const option = document.createElement("option");
-
-    option.value = pokemon.id;
-
-    option.textContent =
-      `#${String(pokemon.id).padStart(3, "0")} - ${formatPokemonName(pokemon.name)}`;
-
-    pokemonSelect.appendChild(option);
-  });
+function fillPokemonSelect(list){
+pokemonSelect.innerHTML='<option value="">Select Pokémon</option>';
+list.forEach(pokemon=>{
+const option=document.createElement("option");option.value=pokemon.id;
+option.textContent=`#${String(pokemon.id).padStart(3,"0")} - ${formatPokemonName(pokemon.name)}`;
+pokemonSelect.appendChild(option);
+});
 }
 
-function filterPokemon() {
-
-  const search =
-    pokemonSearch.value.toLowerCase().trim();
-
-  const filtered = pokemonList.filter(pokemon =>
-    pokemon.name.toLowerCase().includes(search) ||
-    String(pokemon.id).includes(search)
-  );
-
-  fillPokemonSelect(filtered);
+function filterPokemon(){
+const search=pokemonSearch.value.toLowerCase().trim();
+fillPokemonSelect(pokemonList.filter(pokemon=>pokemon.name.toLowerCase().includes(search)||String(pokemon.id).includes(search)));
 }
 
-function selectPokemon() {
-
-  const id = Number(pokemonSelect.value);
-
-  if (!id) {
-    selectedPokemon = null;
-
-    document.getElementById(
-      "selectedPokemonPreview"
-    ).innerHTML = "";
-
-    return;
-  }
-
-  selectedPokemon =
-    pokemonList.find(pokemon => pokemon.id === id);
-
-  if (!selectedPokemon) return;
-
-  const image =
-    IMAGE_BASE + selectedPokemon.id + ".png";
-
-  document.getElementById(
-    "selectedPokemonPreview"
-  ).innerHTML = `
-    <div class="panel" style="margin-top:15px;text-align:center;">
-      <img
-        src="${image}"
-        alt="${formatPokemonName(selectedPokemon.name)}"
-        width="150"
-        height="150"
-      >
-
-      <h3>
-        ${formatPokemonName(selectedPokemon.name)}
-      </h3>
-
-      <p>
-        Pokédex #${String(selectedPokemon.id).padStart(3, "0")}
-      </p>
-    </div>
-  `;
+function selectPokemon(){
+const id=Number(pokemonSelect.value);
+if(!id){selectedPokemon=null;document.getElementById("selectedPokemonPreview").innerHTML="";return}
+selectedPokemon=pokemonList.find(pokemon=>pokemon.id===id);
+if(!selectedPokemon)return;
+const image=IMAGE_BASE+selectedPokemon.id+".png";
+document.getElementById("selectedPokemonPreview").innerHTML=`<div class="panel" style="margin-top:15px;text-align:center;"><img src="${image}" alt="${formatPokemonName(selectedPokemon.name)}" width="150" height="150"><h3>${formatPokemonName(selectedPokemon.name)}</h3><p>Pokédex #${String(selectedPokemon.id).padStart(3,"0")}</p></div>`;
 }
 
-pokemonSearch.addEventListener(
-  "input",
-  filterPokemon
-);
-
-pokemonSelect.addEventListener(
-  "change",
-  selectPokemon
-);
-
+pokemonSearch.addEventListener("input",filterPokemon);
+pokemonSelect.addEventListener("change",selectPokemon);
 loadPokedex();
 
-// ===== PART 3: IV APPRAISAL =====
+["attackIV","defenseIV","staminaIV"].forEach(id=>document.getElementById(id).addEventListener("input",showIVAppraisal));
 
-function getAppraisalStars(attack, defense, stamina) {
-  const total = Number(attack) + Number(defense) + Number(stamina);
-
-  if (total === 45) return "⭐⭐⭐⭐";
-  if (total >= 37) return "⭐⭐⭐";
-  if (total >= 30) return "⭐⭐";
-
-  return "⭐";
-}
-
-function checkHundo(attack, defense, stamina) {
-  return (
-    Number(attack) === 15 &&
-    Number(defense) === 15 &&
-    Number(stamina) === 15
-  );
-}
-
-function showIVAppraisal() {
-  const attackInput =
-    document.getElementById("attackIV");
-
-  const defenseInput =
-    document.getElementById("defenseIV");
-
-  const staminaInput =
-    document.getElementById("staminaIV");
-
-  const attack = limitIV(attackInput.value);
-  const defense = limitIV(defenseInput.value);
-  const stamina = limitIV(staminaInput.value);
-
-  attackInput.value = attack;
-  defenseInput.value = defense;
-  staminaInput.value = stamina;
-
-  const percentage =
-    calculateIV(attack, defense, stamina);
-
-  const stars =
-    getAppraisalStars(attack, defense, stamina);
-
-  const preview =
-    document.getElementById("ivPreview");
-
-  preview.style.display = "block";
-
-  preview.innerHTML = `
-    <strong>IV: ${percentage}%</strong><br>
-    <span style="font-size:22px;">${stars}</span>
-  `;
-}
-
-document
-  .getElementById("attackIV")
-  .removeEventListener("input", updateIV);
-
-document
-  .getElementById("defenseIV")
-  .removeEventListener("input", updateIV);
-
-document
-  .getElementById("staminaIV")
-  .removeEventListener("input", updateIV);
-
-document
-  .getElementById("attackIV")
-  .addEventListener("input", showIVAppraisal);
-
-document
-  .getElementById("defenseIV")
-  .addEventListener("input", showIVAppraisal);
-
-document
-  .getElementById("staminaIV")
-  .addEventListener("input", showIVAppraisal);
-
-[
-  "collectionSearch",
-  "ivFilter",
-  "generationFilter",
-  "costumeFilter",
-  "eventFilter",
-  "backgroundFilter"
-].forEach(id => {
-  const element = document.getElementById(id);
-  if (element) {
-    element.addEventListener("input", filterCollection);
-    element.addEventListener("change", filterCollection);
-  }
+["collectionSearch","ivFilter","generationFilter","costumeFilter","eventFilter","backgroundFilter"].forEach(id=>{
+const element=document.getElementById(id);
+if(element){element.addEventListener("input",filterCollection);element.addEventListener("change",filterCollection);}
 });
 
 renderCollection();
 updateStats();
-
 </script>
-
 </body>
 </html>
