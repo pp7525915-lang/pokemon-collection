@@ -750,7 +750,6 @@ function getCollectionFilters() {
   return {
     search: document.getElementById("collectionSearch").value.toLowerCase().trim(),
     iv: document.getElementById("ivFilter").value,
-    hundo: document.getElementById("hundoFilter").value,
     generation: document.getElementById("generationFilter").value,
     costume: document.getElementById("costumeFilter").value.toLowerCase().trim(),
     event: document.getElementById("eventFilter").value.toLowerCase().trim(),
@@ -765,7 +764,6 @@ function filterCollection() {
 function clearCollectionFilters() {
   document.getElementById("collectionSearch").value = "";
   document.getElementById("ivFilter").value = "all";
-  document.getElementById("hundoFilter").value = "all";
   document.getElementById("generationFilter").value = "all";
   document.getElementById("costumeFilter").value = "";
   document.getElementById("eventFilter").value = "";
@@ -796,8 +794,7 @@ function renderCollection() {
 
   const filteredCollection = collection.filter(pokemon => {
     const generation = getGenerationInfo(pokemon.pokemonId);
-    const stars = getAppraisalStars(pokemon.ivPercent).length / 2;
-    const hundo = checkHundo(pokemon.attackIV, pokemon.defenseIV, pokemon.staminaIV);
+    const stars = getAppraisalStars(pokemon.attackIV, pokemon.defenseIV, pokemon.staminaIV).length / 2;
 
     const searchableText = [
       pokemon.name,
@@ -811,8 +808,6 @@ function renderCollection() {
 
     if (filters.search && !searchableText.includes(filters.search)) return false;
     if (filters.iv !== "all" && Number(filters.iv) !== stars) return false;
-    if (filters.hundo === "hundo" && !hundo) return false;
-    if (filters.hundo === "non-hundo" && hundo) return false;
     if (filters.generation !== "all" && Number(filters.generation) !== generation.number) return false;
     if (filters.costume && !(pokemon.costume || "").toLowerCase().includes(filters.costume)) return false;
     if (filters.event && !(pokemon.event || "").toLowerCase().includes(filters.event)) return false;
@@ -837,7 +832,7 @@ function renderCollection() {
       IMAGE_BASE + pokemon.pokemonId + ".png";
 
     const stars =
-      getAppraisalStars(pokemon.ivPercent);
+      getAppraisalStars(pokemon.attackIV, pokemon.defenseIV, pokemon.staminaIV);
 
     const hundo =
       checkHundo(
@@ -898,12 +893,6 @@ function renderCollection() {
           <p style="font-size:22px;margin:6px 0;">
             ${stars}
           </p>
-
-          ${
-            hundo
-              ? `<strong>💯 HUNDO!</strong>`
-              : ""
-          }
 
         </div>
 
@@ -1087,12 +1076,12 @@ loadPokedex();
 
 // ===== PART 3: IV APPRAISAL =====
 
-function getAppraisalStars(ivPercent) {
-  const percent = Number(ivPercent);
+function getAppraisalStars(attack, defense, stamina) {
+  const total = Number(attack) + Number(defense) + Number(stamina);
 
-  if (percent >= 100) return "⭐⭐⭐⭐";
-  if (percent >= 80) return "⭐⭐⭐";
-  if (percent >= 50) return "⭐⭐";
+  if (total === 45) return "⭐⭐⭐⭐";
+  if (total >= 37) return "⭐⭐⭐";
+  if (total >= 30) return "⭐⭐";
 
   return "⭐";
 }
@@ -1129,9 +1118,6 @@ function showIVAppraisal() {
   const stars =
     getAppraisalStars(percentage);
 
-  const hundo =
-    checkHundo(attack, defense, stamina);
-
   const preview =
     document.getElementById("ivPreview");
 
@@ -1140,7 +1126,6 @@ function showIVAppraisal() {
   preview.innerHTML = `
     <strong>IV: ${percentage}%</strong><br>
     <span style="font-size:22px;">${stars}</span>
-    ${hundo ? "<br><strong>💯 HUNDO!</strong>" : ""}
   `;
 }
 
@@ -1171,7 +1156,6 @@ document
 [
   "collectionSearch",
   "ivFilter",
-  "hundoFilter",
   "generationFilter",
   "costumeFilter",
   "eventFilter",
