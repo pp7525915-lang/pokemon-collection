@@ -368,14 +368,6 @@ button {
             <option value="4">⭐⭐⭐⭐ 4 Stars</option>
           </select>
         </div>
-        <div>
-          <label for="hundoFilter">Hundo</label>
-          <select id="hundoFilter">
-            <option value="all">All Pokémon</option>
-            <option value="hundo">💯 Hundo Only</option>
-            <option value="non-hundo">Non-Hundo</option>
-          </select>
-        </div>
       </div>
 
       <div class="filter-row">
@@ -834,12 +826,6 @@ function renderCollection() {
     const stars =
       getAppraisalStars(pokemon.attackIV, pokemon.defenseIV, pokemon.staminaIV);
 
-    const hundo =
-      checkHundo(
-        pokemon.attackIV,
-        pokemon.defenseIV,
-        pokemon.staminaIV
-      );
 
     const card =
       document.createElement("div");
@@ -871,7 +857,7 @@ function renderCollection() {
           </p>
 
           <p style="margin:6px 0;">
-            IV: ${pokemon.ivPercent}%
+            IV: ${calculateIV(Number(pokemon.attackIV) || 0, Number(pokemon.defenseIV) || 0, Number(pokemon.staminaIV) || 0)}%
           </p>
 
           ${pokemon.fastMove || pokemon.chargedMove
@@ -1116,7 +1102,7 @@ function showIVAppraisal() {
     calculateIV(attack, defense, stamina);
 
   const stars =
-    getAppraisalStars(percentage);
+    getAppraisalStars(attack, defense, stamina);
 
   const preview =
     document.getElementById("ivPreview");
