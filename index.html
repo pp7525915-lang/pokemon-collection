@@ -71,6 +71,8 @@ button{cursor:pointer}
 <label for="costume">Costume</label><input id="costume" type="text" placeholder="Example: Party Hat">
 <label for="event">Event</label><input id="event" type="text" placeholder="Example: Community Day 2026">
 <label for="background">Background</label><input id="background" type="text" placeholder="Example: New York City">
+<label for="pokemonType">Type</label><input id="pokemonType" type="text" placeholder="Auto-detected from Pokémon" readonly>
+<label for="pokemonForm">Form</label><select id="pokemonForm"><option value="Normal">Normal Form</option></select>
 <label>IVs</label>
 <div class="stats-grid">
 <div><label for="attackIV">Attack</label><input id="attackIV" type="number" min="0" max="15" value="0"></div>
@@ -111,7 +113,9 @@ button{cursor:pointer}
 <div><label for="costumeFilter">Costume Filter</label><input id="costumeFilter" type="text" placeholder="Example: Party Hat"></div>
 <div><label for="eventFilter">Event Filter</label><input id="eventFilter" type="text" placeholder="Example: Community Day"></div>
 </div>
-<div class="filter-row"><div><label for="backgroundFilter">Background Filter</label><input id="backgroundFilter" type="text" placeholder="Example: New York City"></div></div>
+<div class="filter-row"><div><label for="backgroundFilter">Background Filter</label><input id="backgroundFilter" type="text" placeholder="Example: New York City"></div><div><label for="typeFilter">Type</label><select id="typeFilter"><option value="all">All Types</option><option>Normal</option><option>Fire</option><option>Water</option><option>Electric</option><option>Grass</option><option>Ice</option><option>Fighting</option><option>Poison</option><option>Ground</option><option>Flying</option><option>Psychic</option><option>Bug</option><option>Rock</option><option>Ghost</option><option>Dragon</option><option>Dark</option><option>Steel</option><option>Fairy</option></select></div></div>
+<div class="filter-row"><div><label for="formFilter">Form</label><select id="formFilter"><option value="all">All Forms</option><option value="Normal">Normal</option><option value="Alolan">Alolan</option><option value="Galarian">Galarian</option><option value="Hisuian">Hisuian</option><option value="Paldean">Paldean</option><option value="Other">Other</option></select></div><div><label for="ivMinFilter">Minimum IV %</label><input id="ivMinFilter" type="number" min="0" max="100" step="0.1" placeholder="0"></div><div><label for="ivMaxFilter">Maximum IV %</label><input id="ivMaxFilter" type="number" min="0" max="100" step="0.1" placeholder="100"></div></div>
+<div class="filter-row"><div><label for="cpMinFilter">Minimum CP</label><input id="cpMinFilter" type="number" min="0" placeholder="0"></div><div><label for="cpMaxFilter">Maximum CP</label><input id="cpMaxFilter" type="number" min="0" placeholder="Any"></div><div><label for="hpMinFilter">Minimum HP</label><input id="hpMinFilter" type="number" min="0" placeholder="0"></div><div><label for="hpMaxFilter">Maximum HP</label><input id="hpMaxFilter" type="number" min="0" placeholder="Any"></div></div>
 <button class="clear-filters-btn" onclick="clearCollectionFilters()">Clear Filters</button>
 <p id="collectionFilterSummary" class="filter-summary"></p>
 </div>
@@ -210,6 +214,8 @@ id:editingId||Date.now(),pokemonId:selectedPokemon.id,name:selectedPokemon.name,
 cp:document.getElementById("cp").value,hp:document.getElementById("hp").value,
 fastMove:document.getElementById("fastMove").value.trim(),chargedMove:document.getElementById("chargedMove").value.trim(),
 costume:document.getElementById("costume").value.trim(),event:document.getElementById("event").value.trim(),background:document.getElementById("background").value.trim(),
+type:document.getElementById("pokemonType").value.trim(),
+form:document.getElementById("pokemonForm").value,
 attackIV:attack,defenseIV:defense,staminaIV:stamina,ivPercent:calculateIV(attack,defense,stamina)
 };
 const collection=getCollection();
@@ -232,7 +238,8 @@ document.getElementById("pokemonSearch").value="";
 document.getElementById("pokemonSelect").value="";
 document.getElementById("selectedPokemonPreview").innerHTML="";
 document.getElementById("cp").value="";document.getElementById("hp").value="";
-["fastMove","chargedMove","costume","event","background"].forEach(id=>document.getElementById(id).value="");
+["fastMove","chargedMove","costume","event","background","pokemonType"].forEach(id=>document.getElementById(id).value="");
+document.getElementById("pokemonForm").innerHTML="<option value=\"Normal\">Normal Form</option>";
 ["attackIV","defenseIV","staminaIV"].forEach(id=>document.getElementById(id).value=0);
 document.getElementById("ivPreview").style.display="none";
 document.getElementById("savePokemonBtn").textContent="Save Pokémon";
@@ -251,6 +258,8 @@ document.getElementById("selectedPokemonPreview").innerHTML=`<div class="panel" 
 document.getElementById("cp").value=pokemon.cp||"";
 document.getElementById("hp").value=pokemon.hp||"";
 ["fastMove","chargedMove","costume","event","background"].forEach(id=>document.getElementById(id).value=pokemon[id]||"");
+document.getElementById("pokemonType").value=pokemon.type||"";
+setFormOptions(pokemon.pokemonId,pokemon.form||"Normal");
 document.getElementById("attackIV").value=limitIV(pokemon.attackIV);
 document.getElementById("defenseIV").value=limitIV(pokemon.defenseIV);
 document.getElementById("staminaIV").value=limitIV(pokemon.staminaIV);
@@ -288,7 +297,15 @@ iv:document.getElementById("ivFilter").value,
 generation:document.getElementById("generationFilter").value,
 costume:document.getElementById("costumeFilter").value.toLowerCase().trim(),
 event:document.getElementById("eventFilter").value.toLowerCase().trim(),
-background:document.getElementById("backgroundFilter").value.toLowerCase().trim()
+background:document.getElementById("backgroundFilter").value.toLowerCase().trim(),
+type:document.getElementById("typeFilter").value,
+form:document.getElementById("formFilter").value,
+ivMin:document.getElementById("ivMinFilter").value,
+ivMax:document.getElementById("ivMaxFilter").value,
+cpMin:document.getElementById("cpMinFilter").value,
+cpMax:document.getElementById("cpMaxFilter").value,
+hpMin:document.getElementById("hpMinFilter").value,
+hpMax:document.getElementById("hpMaxFilter").value
 };
 }
 
@@ -300,6 +317,9 @@ document.getElementById("generationFilter").value="all";
 document.getElementById("costumeFilter").value="";
 document.getElementById("eventFilter").value="";
 document.getElementById("backgroundFilter").value="";
+document.getElementById("typeFilter").value="all";
+document.getElementById("formFilter").value="all";
+["ivMinFilter","ivMaxFilter","cpMinFilter","cpMaxFilter","hpMinFilter","hpMaxFilter"].forEach(id=>document.getElementById(id).value="");
 renderCollection();
 }
 
@@ -317,13 +337,23 @@ const filters=getCollectionFilters();
 const filteredCollection=collection.filter(pokemon=>{
 const generation=getGenerationInfo(pokemon.pokemonId);
 const stars=getAppraisalStarCount(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV);
-const searchableText=[pokemon.name,pokemon.pokemonId,pokemon.fastMove,pokemon.chargedMove,pokemon.costume,pokemon.event,pokemon.background].join(" ").toLowerCase();
+const searchableText=[pokemon.name,pokemon.pokemonId,pokemon.fastMove,pokemon.chargedMove,pokemon.costume,pokemon.event,pokemon.background,pokemon.type,pokemon.form].join(" ").toLowerCase();
 if(filters.search&&!searchableText.includes(filters.search))return false;
 if(filters.iv!=="all"&&Number(filters.iv)!==stars)return false;
 if(filters.generation!=="all"&&Number(filters.generation)!==generation.number)return false;
 if(filters.costume&&!(pokemon.costume||"").toLowerCase().includes(filters.costume))return false;
 if(filters.event&&!(pokemon.event||"").toLowerCase().includes(filters.event))return false;
 if(filters.background&&!(pokemon.background||"").toLowerCase().includes(filters.background))return false;
+if(filters.type&&filters.type!=="all"&&!(pokemon.type||"").split(", ").map(value=>value.toLowerCase()).includes(filters.type.toLowerCase()))return false;
+if(filters.form&&filters.form!=="all"&&(pokemon.form||"Normal")!==filters.form)return false;
+const ivValue=Number(pokemon.ivPercent||calculateIV(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV));
+if(filters.ivMin!==""&&ivValue<Number(filters.ivMin))return false;
+if(filters.ivMax!==""&&ivValue>Number(filters.ivMax))return false;
+const cpValue=Number(pokemon.cp||0),hpValue=Number(pokemon.hp||0);
+if(filters.cpMin!==""&&cpValue<Number(filters.cpMin))return false;
+if(filters.cpMax!==""&&cpValue>Number(filters.cpMax))return false;
+if(filters.hpMin!==""&&hpValue<Number(filters.hpMin))return false;
+if(filters.hpMax!==""&&hpValue>Number(filters.hpMax))return false;
 return true;
 });
 const summary=document.getElementById("collectionFilterSummary");
@@ -341,6 +371,8 @@ ${pokemon.fastMove||pokemon.chargedMove?`<p style="margin:6px 0;">🥊 Moves: ${
 ${pokemon.costume?`<p style="margin:6px 0;">👕 Costume: ${pokemon.costume}</p>`:""}
 ${pokemon.event?`<p style="margin:6px 0;">🎉 Event: ${pokemon.event}</p>`:""}
 ${pokemon.background?`<p style="margin:6px 0;">🖼️ Background: ${pokemon.background}</p>`:""}
+${pokemon.type?`<p style="margin:6px 0;">🔹 Type: ${pokemon.type}</p>`:""}
+${pokemon.form&&pokemon.form!=="Normal"?`<p style="margin:6px 0;">🌀 Form: ${pokemon.form}</p>`:""}
 <p style="font-size:22px;margin:6px 0;">${stars||"0★"}</p></div></div>
 <div class="collection-actions"><button type="button" class="edit-btn" onclick="editPokemon(${pokemon.id})">✏️ Edit</button><button type="button" class="delete-btn" onclick="deletePokemon(${pokemon.id})">🗑️ Delete</button></div>`;
 collectionList.appendChild(card);
@@ -390,6 +422,31 @@ row.className="generation-stat";
 row.innerHTML=`<div class="generation-header"><span>${generationNames[generation]}</span><span>${genPercent}%</span></div><div class="generation-details"><div class="generation-detail"><strong>${collected}</strong><span>Collected</span></div><div class="generation-detail"><strong>${generationTotals[generation]-collected}</strong><span>Missing</span></div><div class="generation-detail"><strong>${generationTotals[generation]}</strong><span>Total</span></div></div><div class="progress"><div class="progress-bar" style="width:${genPercent}%"></div></div><div class="generation-percent">${genPercent}% complete</div>`;
 generationStats.appendChild(row);
 });
+}
+
+const regionalFormMap={
+Alolan:[19,20,26,27,28,37,38,50,51,52,53,74,75,76,88,89,103,105],
+Galarian:[52,77,78,79,80,83,110,122,144,145,146,199,222,263,264,554,555,562,618],
+Hisuian:[58,59,100,101,157,211,215,503,549,570,571,628,705,706,713,724],
+Paldean:[194,195,199,1000]
+};
+function getAvailableForms(pokemonId){
+const forms=["Normal"];
+Object.keys(regionalFormMap).forEach(form=>{if(regionalFormMap[form].includes(Number(pokemonId)))forms.push(form);});
+return forms;
+}
+function setFormOptions(pokemonId,selectedForm="Normal"){
+const select=document.getElementById("pokemonForm");
+const forms=getAvailableForms(pokemonId);
+select.innerHTML="";
+forms.forEach(form=>{
+const option=document.createElement("option");
+option.value=form;
+option.textContent=form==="Normal"?"Normal Form":form+" Form";
+select.appendChild(option);
+});
+if(!forms.includes(selectedForm))selectedForm="Normal";
+select.value=selectedForm;
 }
 
 function formatPokemonName(name){
@@ -445,6 +502,9 @@ if(!id){selectedPokemon=null;document.getElementById("selectedPokemonPreview").i
 selectedPokemon=pokemonList.find(pokemon=>pokemon.id===id);
 if(!selectedPokemon)return;
 const image=IMAGE_BASE+selectedPokemon.id+".png";
+setFormOptions(selectedPokemon.id,"Normal");
+document.getElementById("pokemonType").value="Loading...";
+fetch("https://pokeapi.co/api/v2/pokemon/"+selectedPokemon.id).then(response=>response.json()).then(data=>{if(selectedPokemon&&selectedPokemon.id===id)document.getElementById("pokemonType").value=data.types.map(item=>formatPokemonName(item.type.name)).join(", ");}).catch(()=>{document.getElementById("pokemonType").value="";});
 document.getElementById("selectedPokemonPreview").innerHTML=`<div class="panel" style="margin-top:15px;text-align:center;"><img src="${image}" alt="${formatPokemonName(selectedPokemon.name)}" width="150" height="150"><h3>${formatPokemonName(selectedPokemon.name)}</h3><p>Pokédex #${String(selectedPokemon.id).padStart(3,"0")}</p></div>`;
 }
 
@@ -454,7 +514,7 @@ loadPokedex();
 
 ["attackIV","defenseIV","staminaIV"].forEach(id=>document.getElementById(id).addEventListener("input",showIVAppraisal));
 
-["collectionSearch","ivFilter","generationFilter","costumeFilter","eventFilter","backgroundFilter"].forEach(id=>{
+["collectionSearch","ivFilter","generationFilter","costumeFilter","eventFilter","backgroundFilter","typeFilter","formFilter","ivMinFilter","ivMaxFilter","cpMinFilter","cpMaxFilter","hpMinFilter","hpMaxFilter"].forEach(id=>{
 const element=document.getElementById(id);
 if(element){element.addEventListener("input",filterCollection);element.addEventListener("change",filterCollection);}
 });
