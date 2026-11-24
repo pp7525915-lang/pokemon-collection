@@ -159,6 +159,43 @@ button {
   margin-top: 12px;
 }
 
+.collection-filters {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.filter-row {
+  display: grid;
+  gap: 10px;
+}
+
+.filter-summary {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.clear-filters-btn {
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  border-radius: 10px;
+  background: #e5e7eb;
+  font-weight: bold;
+}
+
+.generation-badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 13px;
+  font-weight: bold;
+}
+
 .edit-btn,
 .delete-btn {
   flex: 1;
@@ -315,6 +352,79 @@ button {
 
   <div class="panel">
     <h2>My Pokémon</h2>
+
+    <div class="collection-filters">
+      <label for="collectionSearch">Search Collection</label>
+      <input id="collectionSearch" type="text" placeholder="Name, Pokédex #, move, costume, event...">
+
+      <div class="filter-row">
+        <div>
+          <label for="ivFilter">IV Stars</label>
+          <select id="ivFilter">
+            <option value="all">All IVs</option>
+            <option value="1">⭐ 1 Star</option>
+            <option value="2">⭐⭐ 2 Stars</option>
+            <option value="3">⭐⭐⭐ 3 Stars</option>
+            <option value="4">⭐⭐⭐⭐ 4 Stars</option>
+          </select>
+        </div>
+        <div>
+          <label for="hundoFilter">Hundo</label>
+          <select id="hundoFilter">
+            <option value="all">All Pokémon</option>
+            <option value="hundo">💯 Hundo Only</option>
+            <option value="non-hundo">Non-Hundo</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-row">
+        <div>
+          <label for="generationFilter">Generation / Region</label>
+          <select id="generationFilter">
+            <option value="all">All Generations</option>
+            <option value="1">Gen 1 — Kanto</option>
+            <option value="2">Gen 2 — Johto</option>
+            <option value="3">Gen 3 — Hoenn</option>
+            <option value="4">Gen 4 — Sinnoh</option>
+            <option value="5">Gen 5 — Unova</option>
+            <option value="6">Gen 6 — Kalos</option>
+            <option value="7">Gen 7 — Alola</option>
+            <option value="8">Gen 8 — Galar</option>
+            <option value="9">Gen 9 — Paldea</option>
+          </select>
+        </div>
+        <div>
+          <label for="moveFilter">Move Filter</label>
+          <input id="moveFilter" type="text" placeholder="Example: Thunder Shock">
+        </div>
+      </div>
+
+      <div class="filter-row">
+        <div>
+          <label for="costumeFilter">Costume Filter</label>
+          <input id="costumeFilter" type="text" placeholder="Example: Party Hat">
+        </div>
+        <div>
+          <label for="eventFilter">Event Filter</label>
+          <input id="eventFilter" type="text" placeholder="Example: Community Day">
+        </div>
+      </div>
+
+      <div class="filter-row">
+        <div>
+          <label for="backgroundFilter">Background Filter</label>
+          <input id="backgroundFilter" type="text" placeholder="Example: New York City">
+        </div>
+      </div>
+
+      <button class="clear-filters-btn" onclick="clearCollectionFilters()">
+        Clear Filters
+      </button>
+
+      <p id="collectionFilterSummary" class="filter-summary"></p>
+    </div>
+
     <div id="collectionList">
       <p>No Pokémon added yet.</p>
     </div>
@@ -626,6 +736,49 @@ function deletePokemon(id) {
   updateStats();
 }
 
+function getGenerationInfo(pokemonId) {
+  const id = Number(pokemonId);
+
+  if (id <= 151) return { number: 1, name: "Kanto" };
+  if (id <= 251) return { number: 2, name: "Johto" };
+  if (id <= 386) return { number: 3, name: "Hoenn" };
+  if (id <= 493) return { number: 4, name: "Sinnoh" };
+  if (id <= 649) return { number: 5, name: "Unova" };
+  if (id <= 721) return { number: 6, name: "Kalos" };
+  if (id <= 809) return { number: 7, name: "Alola" };
+  if (id <= 905) return { number: 8, name: "Galar" };
+  return { number: 9, name: "Paldea" };
+}
+
+function getCollectionFilters() {
+  return {
+    search: document.getElementById("collectionSearch").value.toLowerCase().trim(),
+    iv: document.getElementById("ivFilter").value,
+    hundo: document.getElementById("hundoFilter").value,
+    generation: document.getElementById("generationFilter").value,
+    move: document.getElementById("moveFilter").value.toLowerCase().trim(),
+    costume: document.getElementById("costumeFilter").value.toLowerCase().trim(),
+    event: document.getElementById("eventFilter").value.toLowerCase().trim(),
+    background: document.getElementById("backgroundFilter").value.toLowerCase().trim()
+  };
+}
+
+function filterCollection() {
+  renderCollection();
+}
+
+function clearCollectionFilters() {
+  document.getElementById("collectionSearch").value = "";
+  document.getElementById("ivFilter").value = "all";
+  document.getElementById("hundoFilter").value = "all";
+  document.getElementById("generationFilter").value = "all";
+  document.getElementById("moveFilter").value = "";
+  document.getElementById("costumeFilter").value = "";
+  document.getElementById("eventFilter").value = "";
+  document.getElementById("backgroundFilter").value = "";
+  renderCollection();
+}
+
 function renderCollection() {
   const collection = getCollection();
 
@@ -645,7 +798,47 @@ function renderCollection() {
     return;
   }
 
-  collection.forEach(pokemon => {
+  const filters = getCollectionFilters();
+
+  const filteredCollection = collection.filter(pokemon => {
+    const generation = getGenerationInfo(pokemon.pokemonId);
+    const stars = getAppraisalStars(pokemon.ivPercent).length / 2;
+    const hundo = checkHundo(pokemon.attackIV, pokemon.defenseIV, pokemon.staminaIV);
+
+    const searchableText = [
+      pokemon.name,
+      pokemon.pokemonId,
+      pokemon.fastMove,
+      pokemon.chargedMove,
+      pokemon.costume,
+      pokemon.event,
+      pokemon.background
+    ].join(" ").toLowerCase();
+
+    if (filters.search && !searchableText.includes(filters.search)) return false;
+    if (filters.iv !== "all" && Number(filters.iv) !== stars) return false;
+    if (filters.hundo === "hundo" && !hundo) return false;
+    if (filters.hundo === "non-hundo" && hundo) return false;
+    if (filters.generation !== "all" && Number(filters.generation) !== generation.number) return false;
+    if (filters.move && ![pokemon.fastMove || "", pokemon.chargedMove || ""].join(" ").toLowerCase().includes(filters.move)) return false;
+    if (filters.costume && !(pokemon.costume || "").toLowerCase().includes(filters.costume)) return false;
+    if (filters.event && !(pokemon.event || "").toLowerCase().includes(filters.event)) return false;
+    if (filters.background && !(pokemon.background || "").toLowerCase().includes(filters.background)) return false;
+
+    return true;
+  });
+
+  const summary = document.getElementById("collectionFilterSummary");
+  if (summary) {
+    summary.textContent = "Showing " + filteredCollection.length + " of " + collection.length + " Pokémon";
+  }
+
+  if (filteredCollection.length === 0) {
+    collectionList.innerHTML = '<div class="panel"><p>No Pokémon match your filters.</p></div>';
+    return;
+  }
+
+  filteredCollection.forEach(pokemon => {
 
     const image =
       IMAGE_BASE + pokemon.pokemonId + ".png";
@@ -981,6 +1174,23 @@ document
 document
   .getElementById("staminaIV")
   .addEventListener("input", showIVAppraisal);
+
+[
+  "collectionSearch",
+  "ivFilter",
+  "hundoFilter",
+  "generationFilter",
+  "moveFilter",
+  "costumeFilter",
+  "eventFilter",
+  "backgroundFilter"
+].forEach(id => {
+  const element = document.getElementById(id);
+  if (element) {
+    element.addEventListener("input", filterCollection);
+    element.addEventListener("change", filterCollection);
+  }
+});
 
 renderCollection();
 updateStats();
