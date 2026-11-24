@@ -114,8 +114,7 @@ button{cursor:pointer}
 <div><label for="eventFilter">Event Filter</label><input id="eventFilter" type="text" placeholder="Example: Community Day"></div>
 </div>
 <div class="filter-row"><div><label for="backgroundFilter">Background Filter</label><input id="backgroundFilter" type="text" placeholder="Example: New York City"></div><div><label for="typeFilter">Type</label><select id="typeFilter"><option value="all">All Types</option><option>Normal</option><option>Fire</option><option>Water</option><option>Electric</option><option>Grass</option><option>Ice</option><option>Fighting</option><option>Poison</option><option>Ground</option><option>Flying</option><option>Psychic</option><option>Bug</option><option>Rock</option><option>Ghost</option><option>Dragon</option><option>Dark</option><option>Steel</option><option>Fairy</option></select></div></div>
-<div class="filter-row"><div><label for="formFilter">Form</label><select id="formFilter"><option value="all">All Forms</option><option value="Normal">Normal</option><option value="Alolan">Alolan</option><option value="Galarian">Galarian</option><option value="Hisuian">Hisuian</option><option value="Paldean">Paldean</option><option value="Other">Other</option></select></div><div><label for="ivMinFilter">Minimum IV %</label><input id="ivMinFilter" type="number" min="0" max="100" step="0.1" placeholder="0"></div><div><label for="ivMaxFilter">Maximum IV %</label><input id="ivMaxFilter" type="number" min="0" max="100" step="0.1" placeholder="100"></div></div>
-<div class="filter-row"><div><label for="cpMinFilter">Minimum CP</label><input id="cpMinFilter" type="number" min="0" placeholder="0"></div><div><label for="cpMaxFilter">Maximum CP</label><input id="cpMaxFilter" type="number" min="0" placeholder="Any"></div><div><label for="hpMinFilter">Minimum HP</label><input id="hpMinFilter" type="number" min="0" placeholder="0"></div><div><label for="hpMaxFilter">Maximum HP</label><input id="hpMaxFilter" type="number" min="0" placeholder="Any"></div></div>
+<div class="filter-row"><div><label for="formFilter">Form</label><select id="formFilter"><option value="all">All Forms</option><option value="Normal">Normal</option><option value="Alolan">Alolan</option><option value="Galarian">Galarian</option><option value="Hisuian">Hisuian</option><option value="Paldean">Paldean</option><option value="Other">Other</option></select></div></div>
 <button class="clear-filters-btn" onclick="clearCollectionFilters()">Clear Filters</button>
 <p id="collectionFilterSummary" class="filter-summary"></p>
 </div>
@@ -300,12 +299,7 @@ event:document.getElementById("eventFilter").value.toLowerCase().trim(),
 background:document.getElementById("backgroundFilter").value.toLowerCase().trim(),
 type:document.getElementById("typeFilter").value,
 form:document.getElementById("formFilter").value,
-ivMin:document.getElementById("ivMinFilter").value,
-ivMax:document.getElementById("ivMaxFilter").value,
-cpMin:document.getElementById("cpMinFilter").value,
-cpMax:document.getElementById("cpMaxFilter").value,
-hpMin:document.getElementById("hpMinFilter").value,
-hpMax:document.getElementById("hpMaxFilter").value
+
 };
 }
 
@@ -319,7 +313,7 @@ document.getElementById("eventFilter").value="";
 document.getElementById("backgroundFilter").value="";
 document.getElementById("typeFilter").value="all";
 document.getElementById("formFilter").value="all";
-["ivMinFilter","ivMaxFilter","cpMinFilter","cpMaxFilter","hpMinFilter","hpMaxFilter"].forEach(id=>document.getElementById(id).value="");
+
 renderCollection();
 }
 
@@ -346,14 +340,7 @@ if(filters.event&&!(pokemon.event||"").toLowerCase().includes(filters.event))ret
 if(filters.background&&!(pokemon.background||"").toLowerCase().includes(filters.background))return false;
 if(filters.type&&filters.type!=="all"&&!(pokemon.type||"").split(", ").map(value=>value.toLowerCase()).includes(filters.type.toLowerCase()))return false;
 if(filters.form&&filters.form!=="all"&&(pokemon.form||"Normal")!==filters.form)return false;
-const ivValue=Number(pokemon.ivPercent||calculateIV(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV));
-if(filters.ivMin!==""&&ivValue<Number(filters.ivMin))return false;
-if(filters.ivMax!==""&&ivValue>Number(filters.ivMax))return false;
-const cpValue=Number(pokemon.cp||0),hpValue=Number(pokemon.hp||0);
-if(filters.cpMin!==""&&cpValue<Number(filters.cpMin))return false;
-if(filters.cpMax!==""&&cpValue>Number(filters.cpMax))return false;
-if(filters.hpMin!==""&&hpValue<Number(filters.hpMin))return false;
-if(filters.hpMax!==""&&hpValue>Number(filters.hpMax))return false;
+
 return true;
 });
 const summary=document.getElementById("collectionFilterSummary");
@@ -514,7 +501,7 @@ loadPokedex();
 
 ["attackIV","defenseIV","staminaIV"].forEach(id=>document.getElementById(id).addEventListener("input",showIVAppraisal));
 
-["collectionSearch","ivFilter","generationFilter","costumeFilter","eventFilter","backgroundFilter","typeFilter","formFilter","ivMinFilter","ivMaxFilter","cpMinFilter","cpMaxFilter","hpMinFilter","hpMaxFilter"].forEach(id=>{
+["collectionSearch","ivFilter","generationFilter","costumeFilter","eventFilter","backgroundFilter","typeFilter","formFilter"].forEach(id=>{
 const element=document.getElementById(id);
 if(element){element.addEventListener("input",filterCollection);element.addEventListener("change",filterCollection);}
 });
