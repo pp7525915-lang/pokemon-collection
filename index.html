@@ -1,77 +1,460 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pokémon Collection</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #f4f6f8;
-      color: #222;
-    }
+<title>Dex Go</title>
 
-    header {
-      background: #e3350d;
-      color: white;
-      padding: 20px;
-      text-align: center;
-    }
+<style>
+* {
+  box-sizing: border-box;
+}
 
-    .container {
-      padding: 20px;
-      max-width: 600px;
-      margin: auto;
-    }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f2f4f7;
+  color: #222;
+}
 
-    .card {
-      background: white;
-      padding: 20px;
-      margin-top: 15px;
-      border-radius: 15px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
+header {
+  background: #e3350d;
+  color: white;
+  padding: 22px 18px;
+  text-align: center;
+}
 
-    button {
-      width: 100%;
-      padding: 15px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 10px;
-      background: #e3350d;
-      color: white;
-      font-size: 16px;
-    }
-  </style>
+header h1 {
+  margin: 0;
+  font-size: 32px;
+}
+
+header p {
+  margin: 6px 0 0;
+  font-size: 15px;
+}
+
+.container {
+  max-width: 600px;
+  margin: auto;
+  padding: 18px;
+}
+
+.card {
+  background: white;
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+}
+
+.card h2 {
+  margin-top: 0;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.stat {
+  background: #f7f7f7;
+  border-radius: 14px;
+  padding: 15px;
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 25px;
+  font-weight: bold;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #666;
+}
+
+button {
+  width: 100%;
+  padding: 15px;
+  margin-top: 10px;
+  border: 0;
+  border-radius: 12px;
+  background: #e3350d;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+button.secondary {
+  background: #333;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+.hidden {
+  display: none;
+}
+
+input, select {
+  width: 100%;
+  padding: 13px;
+  margin-top: 6px;
+  margin-bottom: 14px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+label {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.checkbox-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.checkbox {
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 10px;
+}
+
+.checkbox input {
+  width: auto;
+  margin: 0 6px 0 0;
+}
+
+.pokemon {
+  background: #fff;
+  border-radius: 15px;
+  padding: 15px;
+  margin-top: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+
+.pokemon h3 {
+  margin: 0 0 5px;
+}
+
+.small {
+  color: #666;
+  font-size: 13px;
+}
+</style>
 </head>
 
 <body>
 
 <header>
-  <h1>🎮 Pokémon Collection</h1>
-  <p>My Pokémon Tracker</p>
+  <h1>⚡ Dex Go</h1>
+  <p>My Pokémon GO Collection</p>
 </header>
 
 <div class="container">
 
-  <div class="card">
-    <h2>📊 My Collection</h2>
-    <p>Pokémon: 0</p>
-    <p>Shiny: 0</p>
-    <p>Hundo: 0</p>
-    <p>Lucky: 0</p>
+  <div id="home">
+
+    <div class="card">
+      <h2>📊 My Collection</h2>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-number" id="pokemonCount">0</div>
+          <div class="stat-label">Pokémon</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-number" id="shinyCount">0</div>
+          <div class="stat-label">Shiny</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-number" id="hundoCount">0</div>
+          <div class="stat-label">Hundo</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-number" id="luckyCount">0</div>
+          <div class="stat-label">Lucky</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🏆 Collection</h2>
+
+      <button onclick="showAddPokemon()">
+        ➕ Add Pokémon
+      </button>
+
+      <button class="secondary">
+        📖 Pokédex
+      </button>
+
+      <button class="secondary">
+        💎 Best / Rare
+      </button>
+    </div>
+
+    <div class="card">
+      <h2>📦 My Pokémon</h2>
+      <div id="pokemonList">
+        <p class="small">No Pokémon added yet.</p>
+      </div>
+    </div>
+
   </div>
 
-  <div class="card">
-    <h2>🏆 Collection</h2>
-    <button>➕ Add Pokémon</button>
-    <button>📖 Pokédex</button>
-    <button>💎 Best / Rare</button>
+  <div id="addPokemon" class="hidden">
+
+    <div class="card">
+
+      <h2>➕ Add Pokémon</h2>
+
+      <label>Pokémon Name</label>
+      <input id="name" type="text" placeholder="e.g. Pikachu">
+
+      <label>Pokédex #</label>
+      <input id="dex" type="number" placeholder="e.g. 25">
+
+      <label>CP</label>
+      <input id="cp" type="number" placeholder="e.g. 1200">
+
+      <label>HP</label>
+      <input id="hp" type="number" placeholder="e.g. 100">
+
+      <label>ATK IV</label>
+      <input id="atk" type="number" min="0" max="15">
+
+      <label>DEF IV</label>
+      <input id="def" type="number" min="0" max="15">
+
+      <label>HP IV</label>
+      <input id="hpiv" type="number" min="0" max="15">
+
+      <label>IV %</label>
+      <input id="iv" type="number" min="0" max="100" placeholder="e.g. 98">
+
+      <div class="checkbox-row">
+
+        <div class="checkbox">
+          <input id="shiny" type="checkbox">
+          ✨ Shiny
+        </div>
+
+        <div class="checkbox">
+          <input id="lucky" type="checkbox">
+          🍀 Lucky
+        </div>
+
+        <div class="checkbox">
+          <input id="hundo" type="checkbox">
+          💯 Hundo
+        </div>
+
+        <div class="checkbox">
+          <input id="dynamax" type="checkbox">
+          💥 Dynamax
+        </div>
+
+        <div class="checkbox">
+          <input id="gigantamax" type="checkbox">
+          🌟 Gigantamax
+        </div>
+
+        <div class="checkbox">
+          <input id="shadow" type="checkbox">
+          👻 Shadow
+        </div>
+
+      </div>
+
+      <br>
+
+      <label>Costume</label>
+      <input id="costume" type="text" placeholder="e.g. Party Hat">
+
+      <label>Event</label>
+      <input id="event" type="text" placeholder="e.g. Halloween 2026">
+
+      <label>Background</label>
+      <input id="background" type="text" placeholder="e.g. City Background">
+
+      <label>Fast Attack</label>
+      <input id="fast" type="text" placeholder="Fast Attack">
+
+      <label>Charged Attack 1</label>
+      <input id="charged1" type="text" placeholder="Charged Attack">
+
+      <label>Charged Attack 2</label>
+      <input id="charged2" type="text" placeholder="Charged Attack">
+
+      <label>Rarity /10</label>
+      <input id="rarity" type="number" min="1" max="10" placeholder="e.g. 8">
+
+      <button onclick="savePokemon()">
+        💾 Save Pokémon
+      </button>
+
+      <button class="secondary" onclick="showHome()">
+        ← Back
+      </button>
+
+    </div>
+
   </div>
 
 </div>
+
+<script>
+
+let pokemon = JSON.parse(localStorage.getItem("dexGoPokemon")) || [];
+
+function showAddPokemon() {
+  document.getElementById("home").classList.add("hidden");
+  document.getElementById("addPokemon").classList.remove("hidden");
+}
+
+function showHome() {
+  document.getElementById("addPokemon").classList.add("hidden");
+  document.getElementById("home").classList.remove("hidden");
+}
+
+function savePokemon() {
+
+  const name = document.getElementById("name").value.trim();
+
+  if (!name) {
+    alert("Please enter the Pokémon name.");
+    return;
+  }
+
+  const newPokemon = {
+    id: Date.now(),
+
+    name: name,
+    dex: document.getElementById("dex").value,
+    cp: document.getElementById("cp").value,
+    hp: document.getElementById("hp").value,
+
+    atk: document.getElementById("atk").value,
+    def: document.getElementById("def").value,
+    hpiv: document.getElementById("hpiv").value,
+    iv: document.getElementById("iv").value,
+
+    shiny: document.getElementById("shiny").checked,
+    lucky: document.getElementById("lucky").checked,
+    hundo: document.getElementById("hundo").checked,
+
+    costume: document.getElementById("costume").value,
+    event: document.getElementById("event").value,
+    background: document.getElementById("background").value,
+
+    shadow: document.getElementById("shadow").checked,
+    dynamax: document.getElementById("dynamax").checked,
+    gigantamax: document.getElementById("gigantamax").checked,
+
+    fast: document.getElementById("fast").value,
+    charged1: document.getElementById("charged1").value,
+    charged2: document.getElementById("charged2").value,
+
+    rarity: document.getElementById("rarity").value
+  };
+
+  pokemon.push(newPokemon);
+
+  localStorage.setItem(
+    "dexGoPokemon",
+    JSON.stringify(pokemon)
+  );
+
+  alert("Pokémon saved! 🎉");
+
+  updateStats();
+  displayPokemon();
+  showHome();
+}
+
+function updateStats() {
+
+  document.getElementById("pokemonCount").textContent =
+    pokemon.length;
+
+  document.getElementById("shinyCount").textContent =
+    pokemon.filter(p => p.shiny).length;
+
+  document.getElementById("hundoCount").textContent =
+    pokemon.filter(p => p.hundo).length;
+
+  document.getElementById("luckyCount").textContent =
+    pokemon.filter(p => p.lucky).length;
+}
+
+function displayPokemon() {
+
+  const list = document.getElementById("pokemonList");
+
+  if (pokemon.length === 0) {
+    list.innerHTML =
+      '<p class="small">No Pokémon added yet.</p>';
+    return;
+  }
+
+  list.innerHTML = "";
+
+  pokemon.forEach(p => {
+
+    const card = document.createElement("div");
+
+    card.className = "pokemon";
+
+    card.innerHTML = `
+      <h3>${p.name}</h3>
+
+      <div class="small">
+        Pokédex #${p.dex || "—"}
+        ${p.cp ? " • CP " + p.cp : ""}
+        ${p.iv ? " • IV " + p.iv + "%" : ""}
+      </div>
+
+      <div class="small">
+        ${p.shiny ? "✨ Shiny " : ""}
+        ${p.lucky ? "🍀 Lucky " : ""}
+        ${p.hundo ? "💯 Hundo " : ""}
+        ${p.shadow ? "👻 Shadow " : ""}
+        ${p.dynamax ? "💥 Dynamax " : ""}
+        ${p.gigantamax ? "🌟 Gigantamax" : ""}
+      </div>
+
+      ${
+        p.costume
+          ? `<div class="small">🎩 ${p.costume}</div>`
+          : ""
+      }
+
+      ${
+        p.rarity
+          ? `<div class="small">💎 Rarity: ${p.rarity}/10</div>`
+          : ""
+      }
+    `;
+
+    list.appendChild(card);
+  });
+}
+
+updateStats();
+displayPokemon();
+
+</script>
 
 </body>
 </html>
