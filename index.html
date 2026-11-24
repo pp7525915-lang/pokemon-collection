@@ -153,6 +153,31 @@ button {
   display: none;
 }
 
+.collection-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.edit-btn,
+.delete-btn {
+  flex: 1;
+  border: 0;
+  padding: 11px;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+.edit-btn {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.delete-btn {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
 @media (min-width: 600px) {
   .stats-grid {
     grid-template-columns: repeat(4, 1fr);
@@ -258,7 +283,7 @@ button {
 
     <div id="ivPreview" class="message"></div>
 
-    <button class="primary-btn" onclick="savePokemon()">
+    <button id="savePokemonBtn" class="primary-btn" onclick="savePokemon()">
       Save Pokémon
     </button>
 
@@ -433,7 +458,7 @@ function savePokemon() {
 
   if (editingId) {
     const index = collection.findIndex(
-      item => item.id === editingId
+      item => String(item.id) === String(editingId)
     );
 
     if (index !== -1) {
@@ -477,13 +502,101 @@ function resetForm() {
   document.getElementById("staminaIV").value = 0;
 
   document.getElementById("ivPreview").style.display = "none";
+
+  document.getElementById("savePokemonBtn").textContent =
+    "Save Pokémon";
 }
 
-// ===== PART 4: COLLECTION CARDS =====
+function editPokemon(id) {
+  const collection = getCollection();
+
+  const pokemon = collection.find(
+    item => String(item.id) === String(id)
+  );
+
+  if (!pokemon) return;
+
+  editingId = pokemon.id;
+
+  const pokemonData =
+    pokemonList.find(item => Number(item.id) === Number(pokemon.pokemonId))
+    || {
+      id: Number(pokemon.pokemonId),
+      name: pokemon.name
+    };
+
+  selectedPokemon = pokemonData;
+
+  document.getElementById("pokemonSearch").value =
+    formatPokemonName(pokemonData.name);
+
+  document.getElementById("pokemonSelect").value =
+    String(pokemonData.id);
+
+  document.getElementById("selectedPokemonPreview").innerHTML = `
+    <div class="panel" style="margin-top:15px;text-align:center;">
+      <img
+        src="${IMAGE_BASE + pokemonData.id + ".png"}"
+        alt="${formatPokemonName(pokemonData.name)}"
+        width="150"
+        height="150"
+      >
+      <h3>${formatPokemonName(pokemonData.name)}</h3>
+      <p>Pokédex #${String(pokemonData.id).padStart(3, "0")}</p>
+    </div>
+  `;
+
+  document.getElementById("cp").value = pokemon.cp || "";
+  document.getElementById("hp").value = pokemon.hp || "";
+
+  document.getElementById("attackIV").value =
+    limitIV(pokemon.attackIV);
+
+  document.getElementById("defenseIV").value =
+    limitIV(pokemon.defenseIV);
+
+  document.getElementById("staminaIV").value =
+    limitIV(pokemon.staminaIV);
+
+  document.getElementById("savePokemonBtn").textContent =
+    "Update Pokémon";
+
+  showIVAppraisal();
+
+  showSection(
+    "add",
+    document.querySelector('nav button[onclick*="add"]')
+  );
+}
+
+function deletePokemon(id) {
+  const collection = getCollection();
+
+  const pokemon = collection.find(
+    item => String(item.id) === String(id)
+  );
+
+  if (!pokemon) return;
+
+  const confirmed = confirm(
+    `Delete ${formatPokemonName(pokemon.name)} from your collection?`
+  );
+
+  if (!confirmed) return;
+
+  const updatedCollection = collection.filter(
+    item => String(item.id) !== String(id)
+  );
+
+  saveCollection(updatedCollection);
+
+  renderCollection();
+  updateStats();
+}
 
 function renderCollection() {
   const collection = getCollection();
-  
+
   const collectionList =
     document.getElementById("collectionList");
 
@@ -561,6 +674,24 @@ function renderCollection() {
         </div>
 
       </div>
+
+      <div class="collection-actions">
+        <button
+          type="button"
+          class="edit-btn"
+          onclick="editPokemon(${pokemon.id})"
+        >
+          ✏️ Edit
+        </button>
+
+        <button
+          type="button"
+          class="delete-btn"
+          onclick="deletePokemon(${pokemon.id})"
+        >
+          🗑️ Delete
+        </button>
+      </div>
     `;
 
     collectionList.appendChild(card);
@@ -575,9 +706,9 @@ function updateStats() {
 
   const hundos = collection.filter(
     pokemon =>
-      pokemon.attackIV === 15 &&
-      pokemon.defenseIV === 15 &&
-      pokemon.staminaIV === 15
+      Number(pokemon.attackIV) === 15 &&
+      Number(pokemon.defenseIV) === 15 &&
+      Number(pokemon.staminaIV) === 15
   ).length;
 
   document.getElementById("homeTotal").textContent = total;
@@ -593,7 +724,16 @@ function updateStats() {
   document.getElementById("statsLucky").textContent = 0;
 }
 
-  // ===== PART 2: POKÉDEX =====
+function formatPokemonName(name) {
+  return name
+    .split("-")
+    .map(word =>
+      word.charAt(0).toUpperCase() + word.slice(1)
+    )
+    .join(" ");
+}
+
+// ===== PART 2: POKÉDEX =====
 
 const pokemonSearch = document.getElementById("pokemonSearch");
 const pokemonSelect = document.getElementById("pokemonSelect");
@@ -622,15 +762,6 @@ async function loadPokedex() {
 
     console.error("Pokédex loading error:", error);
   }
-}
-
-function formatPokemonName(name) {
-  return name
-    .split("-")
-    .map(word =>
-      word.charAt(0).toUpperCase() + word.slice(1)
-    )
-    .join(" ");
 }
 
 function fillPokemonSelect(list) {
@@ -720,7 +851,7 @@ pokemonSelect.addEventListener(
 
 loadPokedex();
 
-  // ===== PART 3: IV APPRAISAL =====
+// ===== PART 3: IV APPRAISAL =====
 
 function getAppraisalStars(ivPercent) {
   const percent = Number(ivPercent);
@@ -802,7 +933,10 @@ document
 document
   .getElementById("staminaIV")
   .addEventListener("input", showIVAppraisal);
-  
+
+renderCollection();
+updateStats();
+
 </script>
 
 </body>
