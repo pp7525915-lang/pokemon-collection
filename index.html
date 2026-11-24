@@ -405,9 +405,9 @@ document.getElementById("stats3Star").textContent=starCounts[3];
 document.getElementById("stats4Star").textContent=starCounts[4];
 document.getElementById("statsProgressText").textContent=unique+" / 1025 Pokémon collected — "+progress+"%";
 document.getElementById("statsProgressBar").style.width=progress+"%";
-document.getElementById("homeShiny").textContent=0;
+if(document.getElementById("homeShiny"))document.getElementById("homeShiny").textContent=0;
 document.getElementById("statsShiny").textContent=0;
-document.getElementById("homeLucky").textContent=0;
+if(document.getElementById("homeLucky"))document.getElementById("homeLucky").textContent=0;
 document.getElementById("statsLucky").textContent=0;
 
 const generationTotals={1:151,2:100,3:135,4:107,5:156,6:72,7:88,8:96,9:120};
@@ -428,7 +428,7 @@ const regionalFormMap={
 Alolan:[19,20,26,27,28,37,38,50,51,52,53,74,75,76,88,89,103,105],
 Galarian:[52,77,78,79,80,83,110,122,144,145,146,199,222,263,264,554,555,562,618],
 Hisuian:[58,59,100,101,157,211,215,503,549,570,571,628,705,706,713,724],
-Paldean:[194,195,199,1000]
+Paldean:[128,194]
 };
 function getAvailableForms(pokemonId){
 const forms=["Normal"];
