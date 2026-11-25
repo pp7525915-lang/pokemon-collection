@@ -833,66 +833,22 @@ try{
 const sourceWidth=image.naturalWidth;
 const sourceHeight=image.naturalHeight;
 const crops=[
-{y:0.02,h:0.24},
-{y:0.22,h:0.30},
-{y:0.38,h:0.34}
+{y:0,h:0.30},
+{y:0.25,h:0.45},
+{y:0.40,h:0.40}
 ];
 let values={cp:null,hp:null};
-
-function preprocessCrop(canvas){
-const ctx=canvas.getContext("2d");
-const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
-const data=imageData.data;
-for(let i=0;i<data.length;i+=4){
-const gray=Math.round((data[i]*299+data[i+1]*587+data[i+2]*114)/1000);
-const boosted=Math.max(0,Math.min(255,(gray-90)*1.8+70));
-data[i]=boosted;
-data[i+1]=boosted;
-data[i+2]=boosted;
-}
-ctx.putImageData(imageData,0,0);
-}
-
-function readNumbers(text){
-const normalized=normalizeOCRText(text);
-let cp=null;
-let hp=null;
-const cpMatches=[...normalized.matchAll(/(?:CP|C[Pp])\\s*[:#-]?\\s*(\\d{2,5})/gi)];
-for(const match of cpMatches){
-const value=Number(match[1]);
-if(value>=10&&value<=5000){cp=value;break;}
-}
-const hpMatches=[...normalized.matchAll(/(\\d{1,4})\\s*\\/\\s*(\\d{1,4})\\s*(?:HP|H[Pp])?/gi)];
-for(const match of hpMatches){
-const current=Number(match[1]);
-const maximum=Number(match[2]);
-if(current>0&&maximum>=current&&maximum<=1000){hp=current;break;}
-}
-if(hp===null){
-const labelMatch=normalized.match(/(?:HP|H[Pp])\\D{0,12}(\\d{1,4})/i);
-if(labelMatch){
-const value=Number(labelMatch[1]);
-if(value>0&&value<=1000)hp=value;
-}
-}
-return{cp,hp};
-}
-
 for(const crop of crops){
 if(values.cp!==null&&values.hp!==null)break;
-const y=Math.max(0,Math.round(sourceHeight*crop.y));
-const h=Math.min(sourceHeight-y,Math.round(sourceHeight*crop.h));
-const scale=2;
 const canvas=document.createElement("canvas");
-canvas.width=Math.max(1,Math.round(sourceWidth*scale));
-canvas.height=Math.max(1,Math.round(h*scale));
+const y=Math.round(sourceHeight*crop.y);
+const h=Math.min(sourceHeight-y,Math.round(sourceHeight*crop.h));
+canvas.width=sourceWidth;
+canvas.height=h;
 const ctx=canvas.getContext("2d");
-ctx.drawImage(image,0,y,sourceWidth,h,0,0,canvas.width,canvas.height);
-preprocessCrop(canvas);
-const result=await Tesseract.recognize(canvas,"eng",{
-logger:()=>{}
-});
-const detected=readNumbers(result.data.text||"");
+ctx.drawImage(image,0,y,sourceWidth,h,0,0,sourceWidth,h);
+const result=await Tesseract.recognize(canvas,"eng");
+const detected=extractCPHP(result.data.text||"");
 if(values.cp===null&&detected.cp!==null)values.cp=detected.cp;
 if(values.hp===null&&detected.hp!==null)values.hp=detected.hp;
 }
