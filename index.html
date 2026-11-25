@@ -867,41 +867,43 @@ canvas.height=Math.round(image.naturalHeight*scale);
 const ctx=canvas.getContext("2d",{willReadFrequently:true});
 ctx.drawImage(image,0,0,canvas.width,canvas.height);
 const data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
-const yStart=Math.floor(canvas.height*0.48);
-const yEnd=Math.floor(canvas.height*0.92);
-const xStart=Math.floor(canvas.width*0.05);
-const xEnd=Math.floor(canvas.width*0.72);
-const rows=[];
+const yStart=Math.floor(canvas.height*0.70);
+const yEnd=Math.floor(canvas.height*0.94);
+const xStart=Math.floor(canvas.width*0.08);
+const xEnd=Math.floor(canvas.width*0.95);
+const rowGroups=[];
+let active=[];
 for(let y=yStart;y<yEnd;y++){
 let count=0;
 for(let x=xStart;x<xEnd;x++){
 const i=(y*canvas.width+x)*4;
 const r=data[i],g=data[i+1],b=data[i+2];
-const redBar=r>160&&r>g*1.35&&r>b*1.2&&g<150;
-const orangeBar=r>180&&g>70&&g<190&&b<90&&r>g*1.25;
+const redBar=r>185&&r>g*1.35&&r>b*1.2&&g<155;
+const orangeBar=r>190&&g>75&&g<180&&b<100&&r>g*1.25;
 if(redBar||orangeBar)count++;
 }
-if(count>canvas.width*0.18)rows.push(y);
+if(count>canvas.width*0.35){
+if(!active.length||y-active[active.length-1]<=2)active.push(y);
+else{rowGroups.push(active);active=[y];}
 }
-const groups=[];
-rows.forEach(y=>{
-const last=groups[groups.length-1];
-if(!last||y-last[last.length-1]>2)groups.push([y]);else last.push(y);
-});
+}
+if(active.length)rowGroups.push(active);
+
 const values=[];
-groups.slice(0,3).forEach(group=>{
+rowGroups.slice(0,3).forEach(group=>{
 const y=Math.round(group.reduce((a,b)=>a+b,0)/group.length);
 let minX=Infinity,maxX=-Infinity,count=0;
 for(let x=xStart;x<xEnd;x++){
 const i=(y*canvas.width+x)*4;
 const r=data[i],g=data[i+1],b=data[i+2];
-const redBar=r>160&&r>g*1.35&&r>b*1.2&&g<150;
-const orangeBar=r>180&&g>70&&g<190&&b<90&&r>g*1.25;
+const redBar=r>185&&r>g*1.35&&r>b*1.2&&g<155;
+const orangeBar=r>190&&g>75&&g<180&&b<100&&r>g*1.25;
 if(redBar||orangeBar){minX=Math.min(minX,x);maxX=Math.max(maxX,x);count++;}
 }
-if(count>20&&maxX>minX){
-const width=maxX-minX+1;
-values.push(Math.max(0,Math.min(15,Math.round((count/width)*15))));
+if(count>0&&maxX>minX){
+const span=maxX-minX+1;
+const coverage=count/span;
+if(coverage>0.75)values.push(Math.max(0,Math.min(15,Math.round(coverage*15))));
 }
 });
 resolve(values.length===3?values:null);
@@ -936,8 +938,14 @@ if(ivs.defense!==null){document.getElementById("defenseIV").value=ivs.defense;fi
 if(ivs.stamina!==null){document.getElementById("staminaIV").value=ivs.stamina;filled.push("Stamina IV: "+ivs.stamina);}
 if(moves.length){
 document.getElementById("fastMove").value=moves[0];
-filled.push("Fast Move: "+moves[0]);
-if(moves[1]){document.getElementById("chargedMove").value=moves[1];filled.push("Charged Move: "+moves[1]);}
+filled.push("Possible Fast Move: "+moves[0]);
+if(moves[1]){
+document.getElementById("chargedMove").value=moves[1];
+filled.push("Possible Charged Move: "+moves[1]);
+}
+}
+if(!barIVs){
+filled.push("IVs: bars not fully visible, so Dex Go did not guess individual IVs");
 }
 if(ivs.attack!==null||ivs.defense!==null||ivs.stamina!==null)showIVAppraisal();
 
