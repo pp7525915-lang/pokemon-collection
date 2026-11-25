@@ -777,30 +777,132 @@ return text
 .trim();
 }
 
-function findPokemonFromOCR(text){
-const normalized=normalizeOCRText(text).toLowerCase();
+function escapeRegExp(str){
+return str.replace(/[.*+?^$\\{\\}()|[\\]\\\\]/g,"\\\\$&");
+}
+
+function levenshteinDistance(a,b){
+const m=a.length;
+const n=b.length;
+if(m===0)return n;
+if(n===0)return m;
+const dp=Array.from({length:m+1},()=>new Array(n+1).fill(0));
+for(let i=0;i<=m;i++)dp[i][0]=i;
+for(let j=0;j<=n;j++)dp[0][j]=j;
+for(let i=1;i<=m;i++){
+for(let j=1;j<=n;j++){
+const cost=a[i-1]===b[j-1]?0:1;
+dp[i][j]=Math.min(
+dp[i-1][j]+1,
+dp[i][j-1]+1,
+dp[i-1][j-1]+cost
+);
+}
+}
+return dp[m][n];
+}
+
+function hasWholePhraseMatch(cleanedText,formattedName){
+const words=formattedName.split(/\\s+/).map(w=>w.trim()).filter(Boolean);
+if(words.length===0)return false;
+const phrasePattern=words.map(w=>escapeRegExp(w)).join("\\\\s+");
+return new RegExp("(?:^|[^a-z0-9])"+phrasePattern+"(?:$|[^a-z0-9])","i").test(cleanedText);
+}
+
+function matchStrictPokemonName(text){
 if(!pokemonList||pokemonList.length===0)return null;
-let best=null;
+const cleaned=normalizeOCRText(text).toLowerCase();
+if(!cleaned)return null;
+
+const tokens=cleaned
+.split(/[^a-z0-9]+/)
+.map(t=>t.trim())
+.filter(t=>t.length>=3);
+
+const compactFull=cleaned.replace(/[^a-z0-9]/g,"");
+let bestPokemon=null;
 let bestScore=0;
-pokemonList.forEach(pokemon=>{
-const name=formatPokemonName(pokemon.name).toLowerCase();
-const compact=name.replace(/[^a-z0-9]/g,"");
-const compactText=normalized.replace(/[^a-z0-9]/g," ");
-if(normalized.includes(name)||compactText.includes(compact)){
-best=pokemon;
-bestScore=1;
+
+for(const pokemon of pokemonList){
+const formatted=formatPokemonName(pokemon.name).toLowerCase();
+const compactName=formatted.replace(/[^a-z0-9]/g,"");
+if(compactName.length<3)continue;
+
+if(hasWholePhraseMatch(cleaned,formatted)||compactFull===compactName){
+return pokemon;
+}
+
+const maxAllowedEdits=compactName.length>=7?2:compactName.length>=5?1:0;
+for(const token of tokens){
+if(token===compactName)return pokemon;
+if(compactName.length<5)continue;
+
+const dist=levenshteinDistance(token,compactName);
+const maxLen=Math.max(token.length,compactName.length);
+const similarity=(maxLen-dist)/maxLen;
+
+if(dist<=maxAllowedEdits&&similarity>=0.72&&similarity>bestScore){
+bestScore=similarity;
+bestPokemon=pokemon;
+}
+}
+}
+return bestPokemon;
+}
+
+function findPokemonFromOCR(text){
+return matchStrictPokemonName(text);
+}
+
+async function recognizeNameCrop(file,rectRatio,psm){
+return await new Promise(resolve=>{
+const image=new Image();
+image.onload=async function(){
+try{
+const w=image.naturalWidth;
+const h=image.naturalHeight;
+const left=Math.max(0,Math.round(w*rectRatio.x));
+const top=Math.max(0,Math.round(h*rectRatio.y));
+const cropWidth=Math.max(1,Math.round(w*rectRatio.w));
+const cropHeight=Math.max(1,Math.round(h*rectRatio.h));
+
+const canvas=document.createElement("canvas");
+canvas.width=cropWidth;
+canvas.height=cropHeight;
+const ctx=canvas.getContext("2d");
+ctx.drawImage(image,left,top,cropWidth,cropHeight,0,0,cropWidth,cropHeight);
+
+const croppedBlob=await new Promise(res=>canvas.toBlob(res,"image/png"));
+if(!croppedBlob||typeof Tesseract==="undefined"){
+resolve("");
 return;
 }
-const words=normalized.split(/[^a-z0-9]+/).filter(Boolean);
-const nameWords=name.split(/\s+/);
-const matches=nameWords.filter(word=>words.some(ocrWord=>ocrWord===word||ocrWord.includes(word)||word.includes(ocrWord))).length;
-const score=matches/nameWords.length;
-if(score>bestScore&&score>=0.6){
-best=pokemon;
-bestScore=score;
-}
+
+const res=await Tesseract.recognize(croppedBlob,"eng",{
+tessedit_pageseg_mode:psm,
+logger:()=>{}
 });
-return best;
+resolve(normalizeOCRText((res&&res.data&&res.data.text)||""));
+}catch(err){
+console.error("Dex Go name-region OCR error:",err);
+resolve("");
+}
+};
+image.onerror=function(){resolve("");};
+image.src=URL.createObjectURL(file);
+});
+}
+
+async function findPokemonFromImage(file,fallbackText){
+const primaryText=await recognizeNameCrop(file,{x:0.15,y:0.34,w:0.70,h:0.18},"7");
+const fromPrimary=matchStrictPokemonName(primaryText);
+if(fromPrimary)return fromPrimary;
+
+const broadText=await recognizeNameCrop(file,{x:0.10,y:0.28,w:0.80,h:0.30},"6");
+const fromBroad=matchStrictPokemonName(broadText);
+if(fromBroad)return fromBroad;
+
+return matchStrictPokemonName(fallbackText||"");
 }
 
 function extractNumberNearLabel(text,label){
@@ -1174,7 +1276,7 @@ image.src=URL.createObjectURL(file);
 }
 async function applyScreenshotRecognition(result,file){
 const text=result.text||"";
-const pokemon=findPokemonFromOCR(text);
+const pokemon=await findPokemonFromImage(file,text);
 const caughtDateTime=extractCaughtDateTime(text);
 const values={cp:null,hp:null};
 const targetedCPHP=await extractCPHPFromImage(file,result);
