@@ -58,6 +58,18 @@ button{cursor:pointer}
 .home-section-title h2{margin:0;font-size:19px}
 .home-section-title p{margin:0;font-size:12px;color:#6b7280}
 .home-stat-card{background:linear-gradient(180deg,#fff 0%,#f8fafc 100%);border:1px solid #e5e7eb}
+
+.home-insights{margin-top:16px}
+.home-insights-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.home-insight-card{border:1px solid #e5e7eb;border-radius:18px;background:white;padding:12px;box-shadow:0 4px 14px rgba(0,0,0,.05);text-align:center;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.home-insight-card:hover{transform:translateY(-2px);box-shadow:0 7px 18px rgba(0,0,0,.08)}
+.home-insight-card img{width:105px;height:105px;object-fit:contain}
+.home-insight-icon{font-size:23px;display:block;margin-bottom:3px}
+.home-insight-label{font-size:12px;color:#6b7280}
+.home-insight-name{font-weight:bold;margin-top:3px}
+.home-insight-meta{font-size:12px;color:#6b7280;margin-top:4px}
+.home-insight-empty{grid-column:1/-1;padding:18px;border:1px dashed #d1d5db;border-radius:16px;text-align:center;color:#6b7280;background:#f9fafb}
+@media(min-width:600px){.home-insights-grid{grid-template-columns:repeat(4,1fr)}.home-insight-card img{width:120px;height:120px}}
 .home-backup{margin-top:4px}
 .home-special{margin-top:16px}
 .home-progress-snapshot{margin-top:16px}
@@ -160,6 +172,11 @@ button{cursor:pointer}
 <div class="stat home-stat-card"><span class="stat-number" id="homeProgressText">0%</span>Pokédex</div>
 </div>
 
+
+<div class="home-insights">
+<div class="home-section-title"><h2>⚡ Quick Insights</h2><p>Your collection highlights</p></div>
+<div id="homeQuickInsights" class="home-insights-grid"></div>
+</div>
 <div class="panel home-backup"><div class="home-section-title"><h2>💾 Backup & Restore</h2><p>Keep your collection safe</p></div><p>Save your Dex Go collection as a JSON backup or restore it later.</p><button class="primary-btn" type="button" onclick="exportCollection()">📤 Export Collection</button><input id="importCollectionFile" type="file" accept=".json,application/json" style="display:none" onchange="importCollection(event)"><button class="secondary-btn" type="button" onclick="document.getElementById('importCollectionFile').click()">📥 Import Collection</button><div id="backupMessage" class="message"></div></div>
 </section>
 <section id="add">
@@ -658,6 +675,31 @@ card.style.cursor="pointer";
 grid.appendChild(card);
 });
 }
+
+function renderHomeQuickInsights(collection){
+const box=document.getElementById("homeQuickInsights");
+if(!box)return;
+if(collection.length===0){
+box.innerHTML='<div class="home-insight-empty"><strong>Your insights will appear here.</strong><br>Add Pokémon to see your best catches and latest collection highlights.</div>';
+return;
+}
+const bestIV=[...collection].sort((a,b)=>Number(b.ivPercent||calculateIV(b.attackIV,b.defenseIV,b.staminaIV))-Number(a.ivPercent||calculateIV(a.attackIV,a.defenseIV,a.staminaIV)))[0];
+const highestCP=[...collection].sort((a,b)=>Number(b.cp||0)-Number(a.cp||0))[0];
+const latest=collection[collection.length-1];
+const special=[...collection].reverse().find(pokemon=>pokemon.shiny||pokemon.lucky||(pokemon.variant&&pokemon.variant!=="Normal")||(pokemon.form&&pokemon.form!=="Normal")||pokemon.costume||pokemon.event||pokemon.background);
+const insights=[["🏆","Best IV",bestIV],["⚡","Highest CP",highestCP],["🆕","Latest Catch",latest],["✨","Special Catch",special]];
+box.innerHTML="";
+insights.forEach(([icon,label,pokemon])=>{
+const card=document.createElement("div");
+card.className="home-insight-card";
+if(!pokemon){card.innerHTML='<span class="home-insight-icon">'+icon+'</span><strong>'+label+'</strong><div class="home-insight-meta">None yet</div>';box.appendChild(card);return;}
+const stars=getAppraisalStars(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV);
+const specialBadge=pokemon.shiny?"✨ Shiny":pokemon.lucky?"🍀 Lucky":pokemon.variant&&pokemon.variant!=="Normal"?pokemon.variant:pokemon.form&&pokemon.form!=="Normal"?pokemon.form:pokemon.costume?"👕 Costume":pokemon.event?"🎉 Event":pokemon.background?"🖼️ Background":"";
+card.innerHTML='<span class="home-insight-icon">'+icon+'</span><img src="'+getPokemonArtwork(pokemon)+'" alt="'+formatPokemonName(pokemon.name)+'" loading="lazy"><div class="home-insight-label">'+label+'</div><div class="home-insight-name">#'+String(pokemon.pokemonId).padStart(3,"0")+' '+formatPokemonName(pokemon.name)+'</div><div class="home-insight-meta">CP '+(pokemon.cp||0)+' • IV '+calculateIV(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV)+'% '+(stars||"0★")+(specialBadge?" • "+specialBadge:"")+'</div>';
+card.onclick=()=>showSection("collection",document.querySelectorAll("nav button")[2]);
+box.appendChild(card);
+});
+}
 function updateStats(){
 const collection=getCollection(),total=collection.length;
 const uniqueIds=[...new Set(collection.map(pokemon=>Number(pokemon.pokemonId)).filter(id=>id>=1&&id<=1025))];
@@ -717,6 +759,7 @@ if(document.getElementById("homeVariants"))document.getElementById("homeVariants
 document.getElementById("statsLucky").textContent=luckyCount;
 renderRankings(collection);
 renderHomeFeaturedCollection(collection);
+renderHomeQuickInsights(collection);
 
 const generationTotals={1:151,2:100,3:135,4:107,5:156,6:72,7:88,8:96,9:120};
 const generationNames={1:"Gen 1 — Kanto",2:"Gen 2 — Johto",3:"Gen 3 — Hoenn",4:"Gen 4 — Sinnoh",5:"Gen 5 — Unova",6:"Gen 6 — Kalos",7:"Gen 7 — Alola",8:"Gen 8 — Galar",9:"Gen 9 — Paldea"};
