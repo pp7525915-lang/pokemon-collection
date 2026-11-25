@@ -39,7 +39,7 @@ button{cursor:pointer}
 .edit-btn{background:#dbeafe;color:#1d4ed8}
 .delete-btn{background:#fee2e2;color:#b91c1c}
 @media (min-width:600px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
-.add-browser{margin-bottom:18px}.browser-row{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px}.browser-row button{border:0;background:#e5e7eb;padding:9px 12px;border-radius:999px;font-weight:bold;white-space:nowrap}.browser-row button.active{background:#111827;color:white}.pokemon-browser-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.pokemon-browser-card{border:1px solid #e5e7eb;background:#f9fafb;border-radius:14px;padding:10px;text-align:center}.pokemon-browser-card img{width:90px;height:90px;object-fit:contain}.pokemon-browser-card strong{display:block;font-size:14px}.pokemon-browser-card span{display:block;font-size:12px;color:#6b7280;margin-top:3px}.browser-more{width:100%;margin-top:12px;padding:11px;border:0;border-radius:10px;background:#e5e7eb;font-weight:bold}@media(min-width:600px){.pokemon-browser-grid{grid-template-columns:repeat(5,1fr)}} .screenshot-scanner{margin-bottom:18px}.screenshot-scanner input[type="file"]{padding:10px;background:#f9fafb}.screenshot-scanner img{object-fit:contain}.screenshot-scanner button:disabled{opacity:.6;cursor:wait}</style>
+.add-browser{margin-bottom:18px}.browser-row{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px}.browser-row button{border:0;background:#e5e7eb;padding:9px 12px;border-radius:999px;font-weight:bold;white-space:nowrap}.browser-row button.active{background:#111827;color:white}.pokemon-browser-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.pokemon-browser-card{border:1px solid #e5e7eb;background:#f9fafb;border-radius:14px;padding:10px;text-align:center}.pokemon-browser-card img{width:90px;height:90px;object-fit:contain}.pokemon-browser-card strong{display:block;font-size:14px}.pokemon-browser-card span{display:block;font-size:12px;color:#6b7280;margin-top:3px}.browser-more{width:100%;margin-top:12px;padding:11px;border:0;border-radius:10px;background:#e5e7eb;font-weight:bold}@media(min-width:600px){.pokemon-browser-grid{grid-template-columns:repeat(5,1fr)}}  .collection-artwork{object-fit:contain;transition:transform .2s ease,filter .2s ease}.collection-artwork:hover{transform:scale(1.05)}.collection-artwork.shiny{filter:drop-shadow(0 0 8px rgba(250,204,21,.7))}.screenshot-scanner{margin-bottom:18px}.screenshot-scanner input[type="file"]{padding:10px;background:#f9fafb}.screenshot-scanner img{object-fit:contain}.screenshot-scanner button:disabled{opacity:.6;cursor:wait}</style>
 </head>
 <body>
 <header><h1>⚡ Dex Go</h1><p>Pokémon GO Collection Tracker</p></header>
@@ -176,6 +176,10 @@ button{cursor:pointer}
 </main>
 <script>
 const IMAGE_BASE="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/";
+function getPokemonArtwork(pokemon){
+const base=pokemon&&pokemon.shiny?IMAGE_BASE+"shiny/":IMAGE_BASE;
+return base+String(pokemon.pokemonId)+".png";
+}
 let pokemonList=[],selectedPokemon=null,editingId=null;
 
 function showSection(sectionId,button){
@@ -451,11 +455,11 @@ if(filteredCollection.length===0){
 collectionList.innerHTML='<div class="panel"><p>No Pokémon match your filters.</p></div>';return;
 }
 filteredCollection.forEach(pokemon=>{
-const image=IMAGE_BASE+pokemon.pokemonId+".png";
+const image=getPokemonArtwork(pokemon);
 const stars=getAppraisalStars(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV);
 const total=getIVTotal(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV);
 const card=document.createElement("div");card.className="panel";card.style.marginBottom="15px";
-card.innerHTML=`<div style="display:flex;align-items:center;gap:15px;"><img src="${image}" alt="${formatPokemonName(pokemon.name)}" width="100" height="100"><div style="flex:1;"><h3 style="margin:0;">#${String(pokemon.pokemonId).padStart(3,"0")} ${formatPokemonName(pokemon.name)}</h3><p style="margin:6px 0;">CP: ${pokemon.cp||0} &nbsp; | &nbsp; HP: ${pokemon.hp||0}</p><p style="margin:6px 0;">IV: ${calculateIV(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV)}% (${total}/45)</p>
+card.innerHTML=`<div style="display:flex;align-items:center;gap:15px;"><div style="text-align:center;min-width:100px;"><img class="collection-artwork${pokemon.shiny?" shiny":""}" src="${image}" alt="${formatPokemonName(pokemon.name)}${pokemon.shiny?" shiny":""}" width="100" height="100" loading="lazy"><div style="font-size:12px;color:#6b7280;margin-top:2px;">${pokemon.shiny?"✨ Shiny artwork":"Official artwork"}</div></div><div style="flex:1;"><h3 style="margin:0;">#${String(pokemon.pokemonId).padStart(3,"0")} ${formatPokemonName(pokemon.name)}</h3><p style="margin:6px 0;">CP: ${pokemon.cp||0} &nbsp; | &nbsp; HP: ${pokemon.hp||0}</p><p style="margin:6px 0;">IV: ${calculateIV(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV)}% (${total}/45)</p>
 ${pokemon.fastMove||pokemon.chargedMove?`<p style="margin:6px 0;">🥊 Moves: ${pokemon.fastMove||"-"} / ${pokemon.chargedMove||"-"}</p>`:""}
 ${pokemon.costume?`<p style="margin:6px 0;">👕 Costume: ${pokemon.costume}</p>`:""}
 ${pokemon.event?`<p style="margin:6px 0;">🎉 Event: ${pokemon.event}</p>`:""}
