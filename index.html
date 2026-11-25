@@ -209,6 +209,7 @@ const regionalData=await regionalResponse.json();
 const artwork=regionalData.sprites&&regionalData.sprites.other&&regionalData.sprites.other["official-artwork"];
 const url=shiny?(artwork&&artwork.front_shiny):(artwork&&artwork.front_default);
 if(url){
+const cacheKey=String(pokemon.pokemonId||pokemon.id)+"|"+form+"|"+(shiny?"shiny":"normal");
 regionalArtworkCache[cacheKey]=url;
 return url;
 }
