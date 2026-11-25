@@ -69,8 +69,6 @@ button{cursor:pointer}
 <div id="browserRegionRow" class="browser-row"></div>
 <label>Types</label>
 <div id="browserTypeRow" class="browser-row"></div>
-<label for="browserSearch">Search Browser</label>
-<input id="browserSearch" type="text" placeholder="Name or Pokédex #">
 <div id="pokemonBrowserGrid" class="pokemon-browser-grid"></div>
 <button id="browserMoreBtn" class="browser-more" type="button" onclick="showMoreBrowserPokemon()">Load More</button>
 </div>
@@ -603,7 +601,7 @@ const browserRegions=[
 ["5","Unova"],["6","Kalos"],["7","Alola"],["8","Galar"],["9","Paldea"]
 ];
 const browserTypes=["all","Normal","Fire","Water","Grass","Electric","Ice","Fighting","Poison","Ground","Flying","Psychic","Bug","Rock","Ghost","Dragon","Dark","Steel","Fairy"];
-let browserRegion="all",browserType="all",browserSearch="",browserVisibleCount=60,browserTypeIds={};
+let browserRegion="all",browserType="all",browserVisibleCount=60,browserTypeIds={};
 
 function initPokemonBrowser(){
 const regionRow=document.getElementById("browserRegionRow");
@@ -624,9 +622,6 @@ button.type="button";button.textContent=type==="all"?"All Types":type;button.dat
 if(type==="all")button.classList.add("active");
 button.onclick=()=>setBrowserType(type);
 typeRow.appendChild(button);
-});
-document.getElementById("browserSearch").addEventListener("input",event=>{
-browserSearch=event.target.value.toLowerCase().trim();browserVisibleCount=60;renderPokemonBrowser();
 });
 renderPokemonBrowser();
 }
@@ -657,7 +652,6 @@ if(!grid)return;
 let list=pokemonList.filter(pokemon=>{
 if(browserRegion!=="all"&&String(getGenerationInfo(pokemon.id).number)!==browserRegion)return false;
 if(browserType!=="all"&&(!browserTypeIds[browserType]||!browserTypeIds[browserType].has(pokemon.id)))return false;
-if(browserSearch&&!((pokemon.name+" "+pokemon.id).toLowerCase().includes(browserSearch)))return false;
 return true;
 });
 const visible=list.slice(0,browserVisibleCount);
