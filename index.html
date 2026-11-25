@@ -867,10 +867,12 @@ const cropWidth=Math.max(1,Math.round(w*rectRatio.w));
 const cropHeight=Math.max(1,Math.round(h*rectRatio.h));
 
 const canvas=document.createElement("canvas");
-canvas.width=cropWidth;
-canvas.height=cropHeight;
+const scale=2;
+canvas.width=cropWidth*scale;
+canvas.height=cropHeight*scale;
 const ctx=canvas.getContext("2d");
-ctx.drawImage(image,left,top,cropWidth,cropHeight,0,0,cropWidth,cropHeight);
+ctx.imageSmoothingEnabled=true;
+ctx.drawImage(image,left,top,cropWidth,cropHeight,0,0,canvas.width,canvas.height);
 
 const croppedBlob=await new Promise(res=>canvas.toBlob(res,"image/png"));
 if(!croppedBlob||typeof Tesseract==="undefined"){
@@ -894,13 +896,18 @@ image.src=URL.createObjectURL(file);
 }
 
 async function findPokemonFromImage(file,fallbackText){
-const primaryText=await recognizeNameCrop(file,{x:0.15,y:0.34,w:0.70,h:0.18},"7");
-const fromPrimary=matchStrictPokemonName(primaryText);
-if(fromPrimary)return fromPrimary;
+const regions=[
+{x:0.08,y:0.22,w:0.84,h:0.16,psm:"7"},
+{x:0.10,y:0.28,w:0.80,h:0.18,psm:"7"},
+{x:0.12,y:0.34,w:0.76,h:0.20,psm:"7"},
+{x:0.08,y:0.24,w:0.84,h:0.34,psm:"11"}
+];
 
-const broadText=await recognizeNameCrop(file,{x:0.10,y:0.28,w:0.80,h:0.30},"6");
-const fromBroad=matchStrictPokemonName(broadText);
-if(fromBroad)return fromBroad;
+for(const region of regions){
+const regionText=await recognizeNameCrop(file,region,region.psm);
+const match=matchStrictPokemonName(regionText);
+if(match)return match;
+}
 
 return matchStrictPokemonName(fallbackText||"");
 }
@@ -1198,164 +1205,3 @@ if(startX<0)startX=x;
 }else if(startX>=0){
 if(x-startX>=18)runs.push({x0:startX,x1:x-1,width:x-startX,center:(startX+x-1)/2});
 startX=-1;
-}
-}
-if(startX>=0&&canvas.width-startX>=18){
-runs.push({x0:startX,x1:canvas.width-1,width:canvas.width-startX,center:(startX+canvas.width-1)/2});
-}
-return runs;
-}
-
-const candidates=rowGroups.map(group=>{
-let bestRow=group.start;
-for(let y=group.start+1;y<=group.end;y++){
-if(rowCounts[y]>rowCounts[bestRow])bestRow=y;
-}
-return{...group,y:bestRow,runs:getRunsForRow(bestRow)};
-}).filter(item=>item.runs.length>=3);
-
-let bestSet=null;
-for(let i=0;i<candidates.length-2;i++){
-for(let j=i+1;j<candidates.length-1;j++){
-for(let k=j+1;k<candidates.length;k++){
-const rows=[candidates[i],candidates[j],candidates[k]];
-const spacing1=rows[1].y-rows[0].y;
-const spacing2=rows[2].y-rows[1].y;
-if(spacing1<15||spacing1>80||spacing2<15||spacing2>80)continue;
-
-const referenceRuns=rows[0].runs.slice(0,3);
-if(referenceRuns.length<3)continue;
-
-const selected=[];
-let valid=true;
-for(const row of rows){
-const aligned=referenceRuns.map(reference=>{
-return row.runs.reduce((best,run)=>{
-const distance=Math.abs(run.center-reference.center);
-return !best||distance<best.distance?{run,distance}:best;
-},null);
-});
-if(aligned.some(item=>!item||item.distance>15)){valid=false;break;}
-selected.push(aligned.map(item=>item.run));
-}
-if(!valid)continue;
-
-const segmentWidths=selected.flat().map(run=>run.width);
-const referenceWidth=segmentWidths.slice().sort((a,b)=>a-b)[Math.floor(segmentWidths.length/2)];
-const totalScore=selected.reduce((sum,runs)=>sum+runs.reduce((s,run)=>s+run.width,0),0);
-const score=totalScore-(Math.abs(spacing1-spacing2)*2);
-if(!bestSet||score>bestSet.score)bestSet={rows,selected,referenceWidth,score};
-}
-}
-}
-
-if(!bestSet){
-resolve(null);
-return;
-}
-
-const values=bestSet.selected.map(runs=>{
-const raw=runs.reduce((sum,run)=>sum+run.width,0)/bestSet.referenceWidth*5;
-return Math.max(0,Math.min(15,Math.round(raw)));
-});
-
-const confidence=values.length===3&&bestSet.referenceWidth>=25?0.95:0;
-if(confidence>=0.75){
-resolve({attack:values[0],defense:values[1],stamina:values[2]});
-return;
-}
-resolve(null);
-}catch(error){
-console.error("Dex Go IV bar detection error:",error);
-resolve(null);
-}
-};
-image.onerror=function(){resolve(null);};
-image.src=URL.createObjectURL(file);
-});
-}
-async function applyScreenshotRecognition(result,file){
-const text=result.text||"";
-const pokemon=await findPokemonFromImage(file,text);
-const caughtDateTime=extractCaughtDateTime(text);
-const values={cp:null,hp:null};
-const targetedCPHP=await extractCPHPFromImage(file,result);
-if(values.cp===null&&targetedCPHP.cp!==null)values.cp=targetedCPHP.cp;
-if(values.hp===null&&targetedCPHP.hp!==null)values.hp=targetedCPHP.hp;
-const ocrIVs=extractIVs(text);
-const barIVs=await detectIVBarsFromImage(file,result);
-const ivs={
-attack:barIVs?barIVs.attack:ocrIVs.attack,
-defense:barIVs?barIVs.defense:ocrIVs.defense,
-stamina:barIVs?barIVs.stamina:ocrIVs.stamina
-};
-const moves=extractMoveCandidates(text);
-let filled=[];
-if(caughtDateTime.date!==null){document.getElementById("caughtDate").value=caughtDateTime.date;filled.push("Caught Date: "+caughtDateTime.date);}
-if(pokemon){
-document.getElementById("pokemonSelect").value=String(pokemon.id);
-selectPokemon();
-filled.push("Pokémon: "+formatPokemonName(pokemon.name));
-}
-if(values.cp!==null){document.getElementById("cp").value=values.cp;filled.push("CP: "+values.cp);}
-if(values.hp!==null){document.getElementById("hp").value=values.hp;filled.push("HP: "+values.hp);}
-if(ivs.attack!==null){document.getElementById("attackIV").value=ivs.attack;filled.push("Attack IV: "+ivs.attack);}
-if(ivs.defense!==null){document.getElementById("defenseIV").value=ivs.defense;filled.push("Defense IV: "+ivs.defense);}
-if(ivs.stamina!==null){document.getElementById("staminaIV").value=ivs.stamina;filled.push("Stamina IV: "+ivs.stamina);}
-if(moves.length){
-document.getElementById("fastMove").value=moves[0];
-filled.push("Possible Fast Move: "+moves[0]);
-if(moves[1]){
-document.getElementById("chargedMove").value=moves[1];
-filled.push("Possible Charged Move: "+moves[1]);
-}
-}
-if(!barIVs){
-filled.push("IVs: bars not fully visible, so Dex Go did not guess individual IVs");
-}
-if(ivs.attack!==null||ivs.defense!==null||ivs.stamina!==null)showIVAppraisal();
-
-if(filled.length===0){
-showScreenshotMessage("Scan finished, but no supported Pokémon details were detected. Try a clearer Pokémon GO screenshot.");
-showScreenshotResults("");
-return;
-}
-showScreenshotMessage("Scan complete. Please review the detected values before saving.");
-showScreenshotResults("Detected: "+filled.join(" • "));
-}
-
-async function scanPokemonScreenshot(){
-const fileInput=document.getElementById("pokemonScreenshot");
-if(!fileInput||!fileInput.files||!fileInput.files[0]){
-showScreenshotMessage("Please choose a screenshot first.");
-return;
-}
-const button=document.getElementById("scanScreenshotBtn");
-button.disabled=true;
-button.textContent="🔍 Scanning...";
-showScreenshotMessage("OCR is reading the screenshot. The first scan may take a little longer.");
-showScreenshotResults("");
-try{
-if(typeof Tesseract==="undefined")throw new Error("OCR library failed to load.");
-const result=await Tesseract.recognize(fileInput.files[0],"eng",{
-logger:message=>{
-if(message.status==="recognizing text"&&message.progress){
-showScreenshotMessage("Scanning screenshot... "+Math.round(message.progress*100)+"%");
-}
-}
-});
-await applyScreenshotRecognition(result.data,fileInput.files[0]);
-}catch(error){
-console.error("Dex Go screenshot recognition error:",error);
-showScreenshotMessage("Could not scan this screenshot. Please try again with a clear image.");
-showScreenshotResults("");
-}finally{
-button.disabled=false;
-button.textContent="🔍 Scan Screenshot";
-}
-}
-
-document.getElementById("pokemonScreenshot").addEventListener("change",previewPokemonScreenshot);
-</script>
-</body>
-</html>
