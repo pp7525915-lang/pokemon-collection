@@ -96,6 +96,7 @@ button{cursor:pointer}
 <label for="event">Event</label><input id="event" type="text" placeholder="Example: Community Day 2026">
 <label for="background">Background</label><input id="background" type="text" placeholder="Example: New York City">
 <label for="caughtDate">Caught Date</label><input id="caughtDate" type="date">
+<label for="caughtTime">Caught Time</label><input id="caughtTime" type="time">
 <label for="caughtPlace">Caught Place</label><input id="caughtPlace" type="text" placeholder="Example: Surat, India">
 <label for="pokemonType">Type</label><input id="pokemonType" type="text" placeholder="Auto-detected from Pokémon" readonly>
 <label for="pokemonForm">Form</label><select id="pokemonForm"><option value="Normal">Normal Form</option></select>
@@ -299,6 +300,7 @@ cp:document.getElementById("cp").value,hp:document.getElementById("hp").value,
 fastMove:document.getElementById("fastMove").value.trim(),chargedMove:document.getElementById("chargedMove").value.trim(),
 costume:document.getElementById("costume").value.trim(),event:document.getElementById("event").value.trim(),background:document.getElementById("background").value.trim(),
 caughtDate:document.getElementById("caughtDate").value,
+caughtTime:document.getElementById("caughtTime").value,
 caughtPlace:document.getElementById("caughtPlace").value.trim(),
 type:document.getElementById("pokemonType").value.trim(),
 form:document.getElementById("pokemonForm").value,
@@ -328,6 +330,7 @@ document.getElementById("selectedPokemonPreview").innerHTML="";
 document.getElementById("cp").value="";document.getElementById("hp").value="";
 ["fastMove","chargedMove","costume","event","background","caughtPlace","pokemonType"].forEach(id=>document.getElementById(id).value="");
 document.getElementById("caughtDate").value="";
+document.getElementById("caughtTime").value="";
 document.getElementById("pokemonForm").innerHTML="<option value=\"Normal\">Normal Form</option>";
 document.getElementById("shiny").value="false";
 document.getElementById("lucky").value="false";
@@ -351,6 +354,7 @@ document.getElementById("cp").value=pokemon.cp||"";
 document.getElementById("hp").value=pokemon.hp||"";
 ["fastMove","chargedMove","costume","event","background","caughtPlace"].forEach(id=>document.getElementById(id).value=pokemon[id]||"");
 document.getElementById("caughtDate").value=pokemon.caughtDate||"";
+document.getElementById("caughtTime").value=pokemon.caughtTime||"";
 document.getElementById("pokemonType").value=pokemon.type||"";
 setFormOptions(pokemon.pokemonId,pokemon.form||"Normal");
 document.getElementById("shiny").value=pokemon.shiny?"true":"false";
@@ -461,6 +465,7 @@ ${pokemon.costume?`<p style="margin:6px 0;">👕 Costume: ${pokemon.costume}</p>
 ${pokemon.event?`<p style="margin:6px 0;">🎉 Event: ${pokemon.event}</p>`:""}
 ${pokemon.background?`<p style="margin:6px 0;">🖼️ Background: ${pokemon.background}</p>`:""}
 ${pokemon.caughtDate?`<p style="margin:6px 0;">📅 Caught: ${pokemon.caughtDate}</p>`:""}
+${pokemon.caughtTime?`<p style="margin:6px 0;">🕐 Time: ${pokemon.caughtTime}</p>`:""}
 ${pokemon.caughtPlace?`<p style="margin:6px 0;">📍 Place: ${pokemon.caughtPlace}</p>`:""}
 ${pokemon.type?`<p style="margin:6px 0;">🔹 Type: ${pokemon.type}</p>`:""}
 ${pokemon.form&&pokemon.form!=="Normal"?`<p style="margin:6px 0;">🌀 Form: ${pokemon.form}</p>`:""}
@@ -809,6 +814,52 @@ const match=text.match(pattern);
 return match?Number(match[1]):null;
 }
 
+function extractCaughtDateTime(text){
+const normalized=normalizeOCRText(text);
+let date=null;
+let time=null;
+const datePatterns=[
+/\b(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})\b/,
+/\b(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})\b/,
+/\b(\d{1,2})\s+(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{2,4})\b/i
+];
+for(const pattern of datePatterns){
+const match=normalized.match(pattern);
+if(!match)continue;
+if(pattern===datePatterns[1]){
+date=match[1]+"-"+String(Number(match[2])).padStart(2,"0")+"-"+String(Number(match[3])).padStart(2,"0");
+break;
+}
+if(pattern===datePatterns[0]){
+let year=Number(match[3]);
+if(year<100)year+=2000;
+date=year+"-"+String(Number(match[2])).padStart(2,"0")+"-"+String(Number(match[1])).padStart(2,"0");
+break;
+}
+const monthMap={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,sept:9,oct:10,nov:11,dec:12};
+const monthKey=match[2].toLowerCase().slice(0,4).replace("uary","").replace("ruary","").replace("rch","").replace("ril","").replace("une","").replace("uly","").replace("ust","").replace("tember","");
+const month=monthMap[monthKey]||monthMap[match[2].toLowerCase().slice(0,3)];
+if(month){
+let year=Number(match[3]);
+if(year<100)year+=2000;
+date=year+"-"+String(month).padStart(2,"0")+"-"+String(Number(match[1])).padStart(2,"0");
+break;
+}
+}
+const timeMatch=normalized.match(/\b(\d{1,2}):(\d{2})(?:\s*([AP]M))?\b/i);
+if(timeMatch){
+let hour=Number(timeMatch[1]);
+const minute=Number(timeMatch[2]);
+const meridiem=(timeMatch[3]||"").toUpperCase();
+if(minute<=59&&hour<=23){
+if(meridiem==="PM"&&hour<12)hour+=12;
+if(meridiem==="AM"&&hour===12)hour=0;
+time=String(hour).padStart(2,"0")+":"+String(minute).padStart(2,"0");
+}
+}
+return{date,time};
+}
+
 function extractCPHP(text){
 const normalized=normalizeOCRText(text);
 let cp=null;
@@ -1129,6 +1180,7 @@ image.src=URL.createObjectURL(file);
 async function applyScreenshotRecognition(result,file){
 const text=result.text||"";
 const pokemon=findPokemonFromOCR(text);
+const caughtDateTime=extractCaughtDateTime(text);
 const values={cp:null,hp:null};
 const targetedCPHP=await extractCPHPFromImage(file,result);
 if(values.cp===null&&targetedCPHP.cp!==null)values.cp=targetedCPHP.cp;
@@ -1142,6 +1194,8 @@ stamina:barIVs?barIVs.stamina:ocrIVs.stamina
 };
 const moves=extractMoveCandidates(text);
 let filled=[];
+if(caughtDateTime.date!==null){document.getElementById("caughtDate").value=caughtDateTime.date;filled.push("Caught Date: "+caughtDateTime.date);}
+if(caughtDateTime.time!==null){document.getElementById("caughtTime").value=caughtDateTime.time;filled.push("Caught Time: "+caughtDateTime.time);}
 if(pokemon){
 document.getElementById("pokemonSelect").value=String(pokemon.id);
 selectPokemon();
