@@ -176,10 +176,13 @@ button{cursor:pointer}
 </main>
 <script>
 const IMAGE_BASE="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/";
+const GO_ARTWORK_BASE="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokemon/";
 function getPokemonArtwork(pokemon){
 const id=pokemon&&(pokemon.pokemonId||pokemon.id);
-const base=pokemon&&pokemon.shiny?IMAGE_BASE+"shiny/":IMAGE_BASE;
-return base+String(id)+".png";
+const paddedId=String(id).padStart(3,"0");
+const goBase=GO_ARTWORK_BASE+"pokemon_icon_"+paddedId+"_00";
+if(pokemon&&pokemon.shiny)return goBase+"_shiny.png";
+return goBase+".png";
 }
 
 const regionalArtworkCache={};
