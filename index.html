@@ -702,18 +702,40 @@ if(variantArtworkPromiseCache[cacheKey])return variantArtworkPromiseCache[cacheK
 
 const id=String(pokemon.pokemonId||pokemon.id).padStart(3,"0");
 const base=GO_ARTWORK_BASE+"pokemon_icon_"+id+"_00";
-const suffixes={
-Shadow:["shadow"],
-Dynamax:["dynamax","dmax"],
-Gigantamax:["gmax","gigantamax"],
-Mega:["mega"],
-"Mega X":["mega_x","mega-x"],
-"Mega Y":["mega_y","mega-y"]
-};
 const goCandidates=[];
-(suffixes[variant]||[]).forEach(suffix=>{
+const pushGoForm=(formCode)=>{
+goCandidates.push(GO_ARTWORK_BASE+"pokemon_icon_"+id+"_"+formCode+(shiny?"_shiny":"")+".png");
+};
+const pushGoSuffix=(suffix)=>{
 goCandidates.push(base+"_"+suffix+(shiny?"_shiny":"")+".png");
-});
+};
+
+/*
+ * PokeMiners stores GO form artwork using numeric form codes, not
+ * human-readable suffixes such as "_mega" or "_shadow".
+ * Keep the lookup ordered so the exact GO artwork wins whenever it exists.
+ */
+if(variant==="Mega"){
+["51","52","53"].forEach(pushGoForm);
+}else if(variant==="Mega X"){
+["52","51"].forEach(pushGoForm);
+}else if(variant==="Mega Y"){
+["53","51"].forEach(pushGoForm);
+}else if(variant==="Shadow"){
+/* Shadow artwork is not exposed as a separate root Pokemon icon in
+ * the current PokeMiners set. Keep the base GO asset as the source and
+ * let the existing .shadow presentation class provide the GO shadow look.
+ */
+}else if(variant==="Dynamax"){
+["16"].forEach(pushGoForm);
+pushGoSuffix("dynamax");
+pushGoSuffix("dmax");
+}else if(variant==="Gigantamax"){
+["16"].forEach(pushGoForm);
+pushGoSuffix("gmax");
+pushGoSuffix("gigantamax");
+}
+
 if(goCandidates.length){
 const goUrl=await loadFirstAvailableArtwork(goCandidates);
 if(goUrl){
@@ -722,9 +744,11 @@ return goUrl;
 }
 }
 
-if(variant==="Shadow"||variant==="Dynamax")return getPokemonArtwork({...pokemon,shiny:!!shiny});
+/* Mega forms have authoritative form records in PokeAPI as a safe
+ * secondary source if a GO icon is missing.
+ */
 const slug=getVariantPokemonSlug(pokemon,variant);
-if(!slug)return getPokemonArtwork({...pokemon,shiny:!!shiny});
+if(slug){
 variantArtworkPromiseCache[cacheKey]=(async()=>{
 try{
 const response=await fetch("https://pokeapi.co/api/v2/pokemon/"+encodeURIComponent(slug));
@@ -740,6 +764,9 @@ return getPokemonArtwork({...pokemon,shiny:!!shiny});
 }
 })().finally(()=>{delete variantArtworkPromiseCache[cacheKey];});
 return variantArtworkPromiseCache[cacheKey];
+}
+
+return getPokemonArtwork({...pokemon,shiny:!!shiny});
 }
 
 async function updateVariantArtworkImage(imageElement,pokemon,variant,shiny){
