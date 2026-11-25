@@ -4,6 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script type="module">
+window.DexGoPaddleOCRPromise=(async()=>{
+try{
+const module=await import("https://cdn.jsdelivr.net/npm/@paddleocr/paddleocr-js/+esm");
+const ocr=await module.PaddleOCR.create({
+lang:"en",
+ocrVersion:"PP-OCRv6",
+ortOptions:{backend:"auto"}
+});
+return ocr;
+}catch(error){
+console.error("Dex Go PaddleOCR initialization error:",error);
+return null;
+}
+})();
+</script>
 <title>⚡ Dex Go</title>
 <style>
 *{box-sizing:border-box}
@@ -1072,8 +1088,17 @@ const bottom=Math.min(sourceHeight,Math.round(label.bottom+100));
 const width=right-left;
 const height=bottom-top;
 if(width<=0||height<=0)return "";
-const result=await Tesseract.recognize(image,"eng",{
-rectangle:{left,top,width,height},
+const canvas=document.createElement("canvas");
+canvas.width=width;
+canvas.height=height;
+const ctx=canvas.getContext("2d");
+ctx.drawImage(image,left,top,width,height,0,0,width,height);
+const blob=await new Promise(res=>canvas.toBlob(res,"image/png"));
+if(!blob)return "";
+const paddle=await runPaddleOCR(blob);
+if(paddle&&paddle.text)return normalizeOCRText(paddle.text);
+if(typeof Tesseract==="undefined")return "";
+const result=await Tesseract.recognize(blob,"eng",{
 tessedit_pageseg_mode:"6",
 tessedit_char_whitelist:whitelist,
 logger:()=>{}
@@ -1098,8 +1123,17 @@ const bottom=Math.min(sourceHeight,Math.round(sourceHeight*0.18));
 const width=right-left;
 const height=bottom-top;
 if(width<=0||height<=0)return "";
-const result=await Tesseract.recognize(image,"eng",{
-rectangle:{left,top,width,height},
+const canvas=document.createElement("canvas");
+canvas.width=width;
+canvas.height=height;
+const ctx=canvas.getContext("2d");
+ctx.drawImage(image,left,top,width,height,0,0,width,height);
+const blob=await new Promise(res=>canvas.toBlob(res,"image/png"));
+if(!blob)return "";
+const paddle=await runPaddleOCR(blob);
+if(paddle&&paddle.text)return normalizeOCRText(paddle.text);
+if(typeof Tesseract==="undefined")return "";
+const result=await Tesseract.recognize(blob,"eng",{
 tessedit_pageseg_mode:"7",
 tessedit_char_whitelist:"0123456789CPcp",
 logger:()=>{}
@@ -1316,6 +1350,68 @@ image.onerror=function(){resolve(null);};
 image.src=URL.createObjectURL(file);
 });
 }
+async function getPaddleOCR(){
+if(!window.DexGoPaddleOCRPromise)return null;
+return await window.DexGoPaddleOCRPromise;
+}
+
+function paddleItemsToOCRData(result){
+const items=Array.isArray(result&&result.items)?result.items:[];
+const words=items.map(item=>{
+const text=normalizeOCRText(item.text||"");
+const poly=Array.isArray(item.poly)?item.poly:[];
+const points=poly.filter(point=>Array.isArray(point)&&point.length>=2);
+if(!text||points.length===0)return null;
+const xs=points.map(point=>Number(point[0])||0);
+const ys=points.map(point=>Number(point[1])||0);
+return{
+text,
+left:Math.min(...xs),
+right:Math.max(...xs),
+top:Math.min(...ys),
+bottom:Math.max(...ys),
+confidence:Number(item.score)||0
+};
+}).filter(Boolean);
+return{
+text:items.map(item=>normalizeOCRText(item.text||"")).filter(Boolean).join(" "),
+words
+};
+}
+
+async function runPaddleOCR(file){
+const ocr=await getPaddleOCR();
+if(!ocr)return null;
+try{
+const results=await ocr.predict(file,{textRecScoreThresh:0.35});
+return paddleItemsToOCRData(results&&results[0]);
+}catch(error){
+console.error("Dex Go PaddleOCR scan error:",error);
+return null;
+}
+
+}
+
+async function runTesseractOCR(file){
+if(typeof Tesseract==="undefined")return null;
+const result=await Tesseract.recognize(file,"eng",{
+logger:message=>{
+if(message.status==="recognizing text"&&message.progress){
+showScreenshotMessage("Scanning screenshot... "+Math.round(message.progress*100)+"%");
+}
+}
+});
+return result&&result.data?result.data:null;
+}
+
+async function runScreenshotOCR(file){
+const paddle=await runPaddleOCR(file);
+if(paddle&&paddle.text){
+return paddle;
+}
+return await runTesseractOCR(file);
+}
+
 async function applyScreenshotRecognition(result,file){
 const text=result.text||"";
 const pokemon=await findPokemonFromImage(file,text);
@@ -1375,18 +1471,13 @@ return;
 const button=document.getElementById("scanScreenshotBtn");
 button.disabled=true;
 button.textContent="🔍 Scanning...";
-showScreenshotMessage("OCR is reading the screenshot. The first scan may take a little longer.");
+showScreenshotMessage("AI OCR is reading the screenshot. The first scan may take a little longer while the model loads.");
 showScreenshotResults("");
 try{
 if(typeof Tesseract==="undefined")throw new Error("OCR library failed to load.");
-const result=await Tesseract.recognize(fileInput.files[0],"eng",{
-logger:message=>{
-if(message.status==="recognizing text"&&message.progress){
-showScreenshotMessage("Scanning screenshot... "+Math.round(message.progress*100)+"%");
-}
-}
-});
-await applyScreenshotRecognition(result.data,fileInput.files[0]);
+const result=await runScreenshotOCR(fileInput.files[0]);
+if(!result)throw new Error("OCR library failed to load.");
+await applyScreenshotRecognition(result,fileInput.files[0]);
 }catch(error){
 console.error("Dex Go screenshot recognition error:",error);
 showScreenshotMessage("Could not scan this screenshot. Please try again with a clear image.");
