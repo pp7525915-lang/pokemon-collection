@@ -804,7 +804,9 @@ return match?Number(match[1]):null;
 function extractCPHP(text){
 const normalized=normalizeOCRText(text);
 let cp=extractNumberNearLabel(normalized,"CP");
-let hp=extractNumberNearLabel(normalized,"HP");
+let hp=null;
+const hpSlash=normalized.match(/\b(\d{1,4})\s*\/\s*(\d{1,4})\s*HP\b/i);
+if(hpSlash)hp=Number(hpSlash[1]);
 if(cp===null){
 const match=normalized.match(/\bCP\D{0,12}(\d{2,5})\b/i);
 if(match)cp=Number(match[1]);
@@ -821,18 +823,181 @@ const normalized=normalizeOCRText(text);
 let attack=null,defense=null,stamina=null;
 const attackMatch=normalized.match(/(?:attack|atk)\D{0,12}(\d{1,2})\b/i);
 const defenseMatch=normalized.match(/(?:defense|defence|def)\D{0,12}(\d{1,2})\b/i);
-const staminaMatch=normalized.match(/(?:stamina|hp)\D{0,12}(\d{1,2})\b/i);
+const staminaMatch=normalized.match(/(?:stamina)\D{0,12}(\d{1,2})\b/i);
 if(attackMatch)attack=limitIV(attackMatch[1]);
 if(defenseMatch)defense=limitIV(defenseMatch[1]);
 if(staminaMatch)stamina=limitIV(staminaMatch[1]);
 return{attack,defense,stamina};
 }
 
-function applyScreenshotRecognition(result){
+function extractMoveCandidates(text){
+const normalized=normalizeOCRText(text);
+const aliases={
+"tail":"Dragon Tail",
+"dragon tail":"Dragon Tail",
+"claw":"Dragon Claw",
+"dragon claw":"Dragon Claw",
+"swipe":"Breaking Swipe",
+"breaking swipe":"Breaking Swipe",
+"quake":"Earthquake",
+"earthquake":"Earthquake",
+"night slash":"Night Slash",
+"surf":"Surf",
+"counter":"Counter",
+"astonish":"Astonish",
+"iron tail":"Iron Tail"
+};
+const found=[];
+Object.keys(aliases).forEach(key=>{
+const escaped=key.replace(/\s+/g,"\\s+");
+if(new RegExp("\\b"+escaped+"\\b","i").test(normalized)&&!found.includes(aliases[key]))found.push(aliases[key]);
+});
+return found;
+}
+
+async function detectIVBarsFromImage(file,ocrData){
+return await new Promise(resolve=>{
+const image=new Image();
+image.onload=function(){
+const canvas=document.createElement("canvas");
+const maxWidth=1200;
+const scale=Math.min(1,maxWidth/image.naturalWidth);
+canvas.width=Math.max(1,Math.round(image.naturalWidth*scale));
+canvas.height=Math.max(1,Math.round(image.naturalHeight*scale));
+const ctx=canvas.getContext("2d",{willReadFrequently:true});
+ctx.drawImage(image,0,0,canvas.width,canvas.height);
+const data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+
+function pixelAt(x,y){
+const i=(y*canvas.width+x)*4;
+return{r:data[i],g:data[i+1],b:data[i+2]};
+}
+function isFilledBarPixel(p){
+const orange=p.r>175&&p.g>70&&p.g<190&&p.b<115&&p.r>p.g*1.25&&p.g>p.b*1.35;
+const red=p.r>170&&p.g>65&&p.g<175&&p.b>55&&p.b<155&&p.r>p.g*1.18&&p.r>p.b*1.08;
+return orange||red;
+}
+function isTrackGray(p){
+const max=Math.max(p.r,p.g,p.b),min=Math.min(p.r,p.g,p.b);
+return max-min<24&&max>=145&&max<=245;
+}
+function isBarPixel(p){return isFilledBarPixel(p)||isTrackGray(p);}
+
+function findBestBar(windowBox){
+let best=null;
+const y0=Math.max(0,Math.floor(windowBox.y0));
+const y1=Math.min(canvas.height-1,Math.ceil(windowBox.y1));
+const x0=Math.max(0,Math.floor(windowBox.x0));
+const x1=Math.min(canvas.width-1,Math.ceil(windowBox.x1));
+for(let y=y0;y<=y1;y++){
+let runStart=-1,lastBar=-1,gap=0,filledCount=0,filledStart=-1,filledEnd=-1;
+for(let x=x0;x<=x1;x++){
+const p=pixelAt(x,y);
+if(isBarPixel(p)){
+if(runStart<0)runStart=x;
+lastBar=x;
+gap=0;
+if(isFilledBarPixel(p)){
+filledCount++;
+if(filledStart<0)filledStart=x;
+filledEnd=x;
+}
+}else if(runStart>=0&&gap<4){
+gap++;
+}else{
+if(runStart>=0&&lastBar-runStart+1>=60&&filledCount>=3){
+const trackEnd=lastBar-gap;
+const trackWidth=trackEnd-runStart+1;
+const filledWidth=filledEnd>=filledStart?filledEnd-filledStart+1:0;
+if(trackWidth>=80){
+const score=filledCount*2+trackWidth;
+if(!best||score>best.score)best={x0:runStart,x1:trackEnd,y:y,trackWidth,filledWidth,filledCount,score};
+}
+}
+runStart=-1;lastBar=-1;gap=0;filledCount=0;filledStart=-1;filledEnd=-1;
+}
+}
+if(runStart>=0&&lastBar-runStart+1>=60&&filledCount>=3){
+const trackEnd=lastBar-gap;
+const trackWidth=trackEnd-runStart+1;
+const filledWidth=filledEnd>=filledStart?filledEnd-filledStart+1:0;
+if(trackWidth>=80){
+const score=filledCount*2+trackWidth;
+if(!best||score>best.score)best={x0:runStart,x1:trackEnd,y:y,trackWidth,filledWidth,filledCount,score};
+}
+}
+}
+return best;
+}
+
+const words=ocrData&&Array.isArray(ocrData.words)?ocrData.words:[];
+const labels={attack:null,defense:null,stamina:null};
+words.forEach(word=>{
+const text=String(word.text||"").toLowerCase().replace(/[^a-z]/g,"");
+if(!word.bbox)return;
+if(text==="attack"&&!labels.attack)labels.attack=word.bbox;
+if((text==="defense"||text==="defence")&&!labels.defense)labels.defense=word.bbox;
+if(text==="hp"&&!labels.stamina)labels.stamina=word.bbox;
+});
+
+function labelCandidates(box){
+if(!box)return[];
+const w=box.right-box.left;
+const h=box.bottom-box.top;
+return[
+{x0:box.left-w*0.15,x1:box.right+w*1.8,y0:box.top-h*0.4,y1:box.bottom+h*1.8},
+{x0:box.left-w*0.15,x1:box.right+w*0.9,y0:box.bottom-h*0.1,y1:box.bottom+h*3.5}
+];
+}
+
+const results=[];
+["attack","defense","stamina"].forEach(key=>{
+const candidates=labelCandidates(labels[key]);
+let best=null;
+candidates.forEach(box=>{
+const found=findBestBar(box);
+if(found){
+const distance=labels[key]?Math.abs(found.y-(labels[key].bottom)):0;
+const score=found.score-distance*0.5;
+if(!best||score>best.score)best={...found,score};
+}
+});
+if(best){
+let ratio=best.filledWidth>0?(best.filledWidth/best.trackWidth):0;
+ratio=Math.max(0,Math.min(1,ratio));
+const iv=Math.max(0,Math.min(15,Math.round(ratio*15)));
+const confidence=(best.trackWidth>=120?0.25:0)+(best.filledCount>=8?0.25:0)+(labels[key]?0.25:0)+(best.filledWidth===0||ratio>0.08?0.25:0);
+results.push({key,iv,confidence,bar:best});
+}
+});
+
+if(results.length===3&&results.every(item=>item.confidence>=0.75)){
+resolve({
+attack:results[0].iv,
+defense:results[1].iv,
+stamina:results[2].iv
+});
+return;
+}
+
+resolve(null);
+};
+image.onerror=function(){resolve(null);};
+image.src=URL.createObjectURL(file);
+});
+}
+async function applyScreenshotRecognition(result,file){
 const text=result.text||"";
 const pokemon=findPokemonFromOCR(text);
 const values=extractCPHP(text);
-const ivs=extractIVs(text);
+const ocrIVs=extractIVs(text);
+const barIVs=await detectIVBarsFromImage(file,result);
+const ivs={
+attack:barIVs?barIVs.attack:ocrIVs.attack,
+defense:barIVs?barIVs.defense:ocrIVs.defense,
+stamina:barIVs?barIVs.stamina:ocrIVs.stamina
+};
+const moves=extractMoveCandidates(text);
 let filled=[];
 if(pokemon){
 document.getElementById("pokemonSelect").value=String(pokemon.id);
@@ -844,6 +1009,17 @@ if(values.hp!==null){document.getElementById("hp").value=values.hp;filled.push("
 if(ivs.attack!==null){document.getElementById("attackIV").value=ivs.attack;filled.push("Attack IV: "+ivs.attack);}
 if(ivs.defense!==null){document.getElementById("defenseIV").value=ivs.defense;filled.push("Defense IV: "+ivs.defense);}
 if(ivs.stamina!==null){document.getElementById("staminaIV").value=ivs.stamina;filled.push("Stamina IV: "+ivs.stamina);}
+if(moves.length){
+document.getElementById("fastMove").value=moves[0];
+filled.push("Possible Fast Move: "+moves[0]);
+if(moves[1]){
+document.getElementById("chargedMove").value=moves[1];
+filled.push("Possible Charged Move: "+moves[1]);
+}
+}
+if(!barIVs){
+filled.push("IVs: bars not fully visible, so Dex Go did not guess individual IVs");
+}
 if(ivs.attack!==null||ivs.defense!==null||ivs.stamina!==null)showIVAppraisal();
 
 if(filled.length===0){
@@ -875,7 +1051,7 @@ showScreenshotMessage("Scanning screenshot... "+Math.round(message.progress*100)
 }
 }
 });
-applyScreenshotRecognition(result.data);
+await applyScreenshotRecognition(result.data,fileInput.files[0]);
 }catch(error){
 console.error("Dex Go screenshot recognition error:",error);
 showScreenshotMessage("Could not scan this screenshot. Please try again with a clear image.");
