@@ -818,11 +818,14 @@ function extractCaughtDateTime(text){
 const normalized=normalizeOCRText(text);
 let date=null;
 let time=null;
+let place=null;
+
 const datePatterns=[
 /\b(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})\b/,
 /\b(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})\b/,
 /\b(\d{1,2})\s+(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{2,4})\b/i
 ];
+
 for(const pattern of datePatterns){
 const match=normalized.match(pattern);
 if(!match)continue;
@@ -837,8 +840,7 @@ date=year+"-"+String(Number(match[2])).padStart(2,"0")+"-"+String(Number(match[1
 break;
 }
 const monthMap={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,sept:9,oct:10,nov:11,dec:12};
-const monthKey=match[2].toLowerCase().slice(0,4).replace("uary","").replace("ruary","").replace("rch","").replace("ril","").replace("une","").replace("uly","").replace("ust","").replace("tember","");
-const month=monthMap[monthKey]||monthMap[match[2].toLowerCase().slice(0,3)];
+const month=monthMap[match[2].toLowerCase().slice(0,3)];
 if(month){
 let year=Number(match[3]);
 if(year<100)year+=2000;
@@ -846,20 +848,43 @@ date=year+"-"+String(month).padStart(2,"0")+"-"+String(Number(match[1])).padStar
 break;
 }
 }
-const timeMatch=normalized.match(/\b(\d{1,2}):(\d{2})(?:\s*([AP]M))?\b/i);
-if(timeMatch){
-let hour=Number(timeMatch[1]);
-const minute=Number(timeMatch[2]);
-const meridiem=(timeMatch[3]||"").toUpperCase();
-if(minute<=59&&hour<=23){
+
+const timePatterns=[
+/\b(\d{1,2}):(\d{2})\s*([AP]M)\b/i,
+/\b(\d{1,2}):(\d{2})\b/,
+];
+for(const pattern of timePatterns){
+const match=normalized.match(pattern);
+if(!match)continue;
+let hour=Number(match[1]);
+const minute=Number(match[2]);
+const meridiem=(match[3]||"").toUpperCase();
+if(minute>59||hour>23)continue;
 if(meridiem==="PM"&&hour<12)hour+=12;
 if(meridiem==="AM"&&hour===12)hour=0;
+if(hour<=23){
 time=String(hour).padStart(2,"0")+":"+String(minute).padStart(2,"0");
+break;
 }
-}
-return{date,time};
 }
 
+const placePatterns=[
+/\b(?:caught|location|place)\s*[:\-]\s*([^|•\n]{2,60})/i,
+/\b(?:at|in)\s+([A-Z][A-Za-z .,'-]{2,50})\b/,
+];
+for(const pattern of placePatterns){
+const match=normalized.match(pattern);
+if(match){
+const candidate=match[1].trim().replace(/[.,;]+$/,"");
+if(candidate.length>=2&&!/^(the|pokemon|pokémon|cp|hp|attack|defense|stamina)$/i.test(candidate)){
+place=candidate;
+break;
+}
+}
+}
+
+return{date,time,place};
+}
 function extractCPHP(text){
 const normalized=normalizeOCRText(text);
 let cp=null;
@@ -1196,6 +1221,7 @@ const moves=extractMoveCandidates(text);
 let filled=[];
 if(caughtDateTime.date!==null){document.getElementById("caughtDate").value=caughtDateTime.date;filled.push("Caught Date: "+caughtDateTime.date);}
 if(caughtDateTime.time!==null){document.getElementById("caughtTime").value=caughtDateTime.time;filled.push("Caught Time: "+caughtDateTime.time);}
+if(caughtDateTime.place!==null){document.getElementById("caughtPlace").value=caughtDateTime.place;filled.push("Caught Place: "+caughtDateTime.place);}
 if(pokemon){
 document.getElementById("pokemonSelect").value=String(pokemon.id);
 selectPokemon();
