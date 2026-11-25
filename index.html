@@ -183,11 +183,21 @@ return base+String(id)+".png";
 }
 
 const regionalArtworkCache={};
+const regionalArtworkPromiseCache={};
 
 async function getRegionalArtwork(pokemon,form,shiny){
 if(!pokemon||!form||form==="Normal")return getPokemonArtwork({...pokemon,shiny:!!shiny});
 const cacheKey=String(pokemon.pokemonId||pokemon.id)+"|"+form+"|"+(shiny?"shiny":"normal");
 if(regionalArtworkCache[cacheKey])return regionalArtworkCache[cacheKey];
+if(regionalArtworkPromiseCache[cacheKey])return regionalArtworkPromiseCache[cacheKey];
+regionalArtworkPromiseCache[cacheKey]=getRegionalArtworkUncached(pokemon,form,shiny).then(url=>{
+if(url&&url!==getPokemonArtwork({...pokemon,shiny:!!shiny}))regionalArtworkCache[cacheKey]=url;
+return url;
+}).finally(()=>{delete regionalArtworkPromiseCache[cacheKey];});
+return regionalArtworkPromiseCache[cacheKey];
+}
+
+async function getRegionalArtworkUncached(pokemon,form,shiny){
 const regionSuffix={Alolan:"alola",Galarian:"galar",Hisuian:"hisui",Paldean:"paldea"}[form];
 if(!regionSuffix)return getPokemonArtwork({...pokemon,shiny:!!shiny});
 try{
