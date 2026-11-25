@@ -191,16 +191,11 @@ if(regionalArtworkCache[cacheKey])return regionalArtworkCache[cacheKey];
 const regionSuffix={Alolan:"alola",Galarian:"galar",Hisuian:"hisui",Paldean:"paldea"}[form];
 if(!regionSuffix)return getPokemonArtwork({...pokemon,shiny:!!shiny});
 try{
-const speciesId=Number(pokemon.pokemonId||pokemon.id);
-const speciesResponse=await fetch("https://pokeapi.co/api/v2/pokemon-species/"+speciesId);
-const speciesData=await speciesResponse.json();
-const regionalVariety=(speciesData.varieties||[]).find(item=>{
-const name=item&&item.pokemon&&item.pokemon.name||"";
-return name.endsWith("-"+regionSuffix)||name.includes("-"+regionSuffix+"-");
-});
-if(!regionalVariety)return getPokemonArtwork({...pokemon,shiny:!!shiny});
-const pokemonResponse=await fetch(regionalVariety.pokemon.url);
-const regionalData=await pokemonResponse.json();
+const baseName=String(pokemon.name||"").toLowerCase().trim();
+if(!baseName)return getPokemonArtwork({...pokemon,shiny:!!shiny});
+const regionalResponse=await fetch("https://pokeapi.co/api/v2/pokemon/"+encodeURIComponent(baseName+"-"+regionSuffix));
+if(!regionalResponse.ok)throw new Error("Regional Pokémon not found: "+baseName+"-"+regionSuffix);
+const regionalData=await regionalResponse.json();
 const artwork=regionalData.sprites&&regionalData.sprites.other&&regionalData.sprites.other["official-artwork"];
 const url=shiny?(artwork&&artwork.front_shiny):(artwork&&artwork.front_default);
 if(url){
