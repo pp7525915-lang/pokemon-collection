@@ -991,9 +991,9 @@ const values=extractCPHP(text);
 const ocrIVs=extractIVs(text);
 const barIVs=await detectIVBarsFromImage(file,result);
 const ivs={
-attack:barIVs?barIVs[0]:ocrIVs.attack,
-defense:barIVs?barIVs[1]:ocrIVs.defense,
-stamina:barIVs?barIVs[2]:ocrIVs.stamina
+attack:barIVs?barIVs.attack:ocrIVs.attack,
+defense:barIVs?barIVs.defense:ocrIVs.defense,
+stamina:barIVs?barIVs.stamina:ocrIVs.stamina
 };
 const moves=extractMoveCandidates(text);
 let filled=[];
