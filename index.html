@@ -1122,7 +1122,7 @@ if(text)outputs.push(text);
 }
 
 for(const text of outputs){
-const digitMatch=text.match(/\b(\d{2,5})\b/);
+const digitMatch=text.match(/(?:^|[^0-9])(\d{2,5})(?:$|[^0-9])/);
 if(!digitMatch)continue;
 const value=Number(digitMatch[1]);
 if(value>=10&&value<=5000&&!(value>=2016&&value<=2030)){
