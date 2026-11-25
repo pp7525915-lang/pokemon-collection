@@ -58,6 +58,7 @@ button{cursor:pointer}
 <div class="stat"><span class="stat-number" id="homeHundo">0</span>Hundos</div>
 <div class="stat"><span class="stat-number" id="homeProgressText">0%</span>Pokédex</div>
 </div><div class="progress"><div id="homeProgressBar" class="progress-bar"></div></div><div id="homeProgressLabel" class="progress-text">0 / 1025 Pokémon collected</div></div>
+<div class="panel"><h2>💾 Backup & Restore</h2><p>Save your Dex Go collection as a JSON backup or restore it later.</p><button class="primary-btn" type="button" onclick="exportCollection()">📤 Export Collection</button><input id="importCollectionFile" type="file" accept=".json,application/json" style="display:none" onchange="importCollection(event)"><button class="secondary-btn" type="button" onclick="document.getElementById('importCollectionFile').click()">📥 Import Collection</button><div id="backupMessage" class="message"></div></div>
 </section>
 <section id="add">
 <div class="panel">
@@ -208,6 +209,58 @@ preview.innerHTML=`<strong>IV: ${percentage}% (${total}/45)</strong><br><span st
 
 function getCollection(){return JSON.parse(localStorage.getItem("dexGoCollection")||"[]")}
 function saveCollection(collection){localStorage.setItem("dexGoCollection",JSON.stringify(collection))}
+
+function exportCollection(){
+const collection=getCollection();
+const backup={
+version:1,
+app:"Dex Go",
+exportedAt:new Date().toISOString(),
+collection:collection
+};
+const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
+const url=URL.createObjectURL(blob);
+const link=document.createElement("a");
+link.href=url;
+link.download="dex-go-backup-"+new Date().toISOString().slice(0,10)+".json";
+document.body.appendChild(link);
+link.click();
+link.remove();
+URL.revokeObjectURL(url);
+showBackupMessage("Collection exported successfully!");
+}
+
+function showBackupMessage(message){
+const box=document.getElementById("backupMessage");
+if(!box)return;
+box.textContent=message;
+box.style.display="block";
+setTimeout(()=>box.style.display="none",2500);
+}
+
+function importCollection(event){
+const file=event.target.files&&event.target.files[0];
+if(!file)return;
+const reader=new FileReader();
+reader.onload=function(){
+try{
+const parsed=JSON.parse(reader.result);
+const imported=Array.isArray(parsed)?parsed:parsed.collection;
+if(!Array.isArray(imported))throw new Error("Invalid backup format");
+if(!confirm("Import this backup and replace your current collection?"))return;
+saveCollection(imported);
+renderCollection();
+updateStats();
+showBackupMessage(imported.length+" Pokémon records restored successfully!");
+}catch(error){
+alert("Could not import this backup. Please choose a valid Dex Go JSON backup.");
+console.error("Dex Go import error:",error);
+}finally{
+event.target.value="";
+}
+};
+reader.readAsText(file);
+}
 
 function savePokemon(){
 if(!selectedPokemon){alert("Please select a Pokémon first.");return}
