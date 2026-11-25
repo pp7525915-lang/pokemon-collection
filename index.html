@@ -1069,10 +1069,66 @@ image.onerror=function(){resolve(null);};
 image.src=URL.createObjectURL(file);
 });
 }
+async function extractCPHPFromImage(file){
+return await new Promise(async resolve=>{
+try{
+const image=new Image();
+image.onload=async function(){
+const canvas=document.createElement("canvas");
+canvas.width=image.naturalWidth;
+canvas.height=image.naturalHeight;
+const ctx=canvas.getContext("2d");
+if(!ctx){resolve({cp:null,hp:null});return;}
+
+async function readCrop(x0,y0,x1,y1){
+const w=Math.max(1,Math.round(canvas.width*(x1-x0)));
+const h=Math.max(1,Math.round(canvas.height*(y1-y0)));
+const crop=document.createElement("canvas");
+crop.width=w*2;
+crop.height=h*2;
+const cropCtx=crop.getContext("2d");
+cropCtx.drawImage(image,
+Math.round(canvas.width*x0),Math.round(canvas.height*y0),w,h,
+0,0,crop.width,crop.height);
+const cropBlob=await new Promise(r=>crop.toBlob(r,"image/png"));
+const result=await Tesseract.recognize(cropBlob,"eng");
+return result.data.text||"";
+}
+
+const cpText=await readCrop(0.12,0.025,0.90,0.16);
+const hpText=await readCrop(0.10,0.38,0.92,0.53);
+
+let cp=null;
+let hp=null;
+
+const cpMatch=cpText.match(/(?:CP|C[Pp])s*[:#-]?s*(d{2,5})/i)
+||cpText.match(/(d{3,5})/);
+if(cpMatch)cp=Number(cpMatch[1]||cpMatch[0]);
+
+const hpSlash=hpText.match(/(d{1,4})s*/s*(d{1,4})s*(?:HP|H[Pp])?/i);
+if(hpSlash)hp=Number(hpSlash[1]);
+if(hp===null){
+const hpMatch=hpText.match(/(?:HP|H[Pp])s*[:#-]?s*(d{1,4})/i);
+if(hpMatch)hp=Number(hpMatch[1]);
+}
+
+resolve({cp,hp});
+};
+image.onerror=function(){resolve({cp:null,hp:null});};
+image.src=URL.createObjectURL(file);
+}catch(error){
+resolve({cp:null,hp:null});
+}
+});
+}
+
 async function applyScreenshotRecognition(result,file){
 const text=result.text||"";
 const pokemon=findPokemonFromOCR(text);
 const values=extractCPHP(text);
+const targetedValues=await extractCPHPFromImage(file);
+if(values.cp===null&&targetedValues.cp!==null)values.cp=targetedValues.cp;
+if(values.hp===null&&targetedValues.hp!==null)values.hp=targetedValues.hp;
 const ocrIVs=extractIVs(text);
 const barIVs=await detectIVBarsFromImage(file,result);
 const ivs={
