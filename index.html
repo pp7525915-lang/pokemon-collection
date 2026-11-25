@@ -874,12 +874,7 @@ for(const match of matches){
 const value=Number(match[1]);
 if(value>=10&&value<=5000)return value;
 }
-const after=nearby
-.filter(word=>word.left>=label.right-10&&word.left<=label.right+350)
-.flatMap(word=>word.text.match(/\d{2,5}/g)||[])
-.map(Number)
-.filter(value=>value>=10&&value<=5000);
-return after.length?after[0]:null;
+return null;
 }
 
 function readHPFromWords(label){
@@ -896,18 +891,7 @@ for(const match of labelMatches){
 const value=Number(match[1]);
 if(value>0&&value<=1000)return value;
 }
-const before=nearby
-.filter(word=>word.right<=label.left+10&&word.right>=label.left-350)
-.flatMap(word=>word.text.match(/\d{1,4}/g)||[])
-.map(Number)
-.filter(value=>value>0&&value<=1000);
-if(before.length)return before[0];
-const after=nearby
-.filter(word=>word.left>=label.right-10&&word.left<=label.right+350)
-.flatMap(word=>word.text.match(/\d{1,4}/g)||[])
-.map(Number)
-.filter(value=>value>0&&value<=1000);
-return after.length?after[0]:null;
+return null;
 }
 
 const cpLabel=words.find(isCPLabel);
@@ -1137,7 +1121,7 @@ image.src=URL.createObjectURL(file);
 async function applyScreenshotRecognition(result,file){
 const text=result.text||"";
 const pokemon=findPokemonFromOCR(text);
-const values=extractCPHP(text);
+const values={cp:null,hp:null};
 const targetedCPHP=await extractCPHPFromImage(file,result);
 if(values.cp===null&&targetedCPHP.cp!==null)values.cp=targetedCPHP.cp;
 if(values.hp===null&&targetedCPHP.hp!==null)values.hp=targetedCPHP.hp;
