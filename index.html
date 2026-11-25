@@ -177,8 +177,9 @@ button{cursor:pointer}
 <script>
 const IMAGE_BASE="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/";
 function getPokemonArtwork(pokemon){
+const id=pokemon&&(pokemon.pokemonId||pokemon.id);
 const base=pokemon&&pokemon.shiny?IMAGE_BASE+"shiny/":IMAGE_BASE;
-return base+String(pokemon.pokemonId)+".png";
+return base+String(id)+".png";
 }
 let pokemonList=[],selectedPokemon=null,editingId=null;
 
