@@ -39,7 +39,7 @@ button{cursor:pointer}
 .edit-btn{background:#dbeafe;color:#1d4ed8}
 .delete-btn{background:#fee2e2;color:#b91c1c}
 @media (min-width:600px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
-.add-browser{margin-bottom:18px}.browser-row{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px}.browser-row button{border:0;background:#e5e7eb;padding:9px 12px;border-radius:999px;font-weight:bold;white-space:nowrap}.browser-row button.active{background:#111827;color:white}.pokemon-browser-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.pokemon-browser-card{border:1px solid #e5e7eb;background:#f9fafb;border-radius:14px;padding:10px;text-align:center}.pokemon-browser-card img{width:90px;height:90px;object-fit:contain}.pokemon-browser-card strong{display:block;font-size:14px}.pokemon-browser-card span{display:block;font-size:12px;color:#6b7280;margin-top:3px}.browser-more{width:100%;margin-top:12px;padding:11px;border:0;border-radius:10px;background:#e5e7eb;font-weight:bold}@media(min-width:600px){.pokemon-browser-grid{grid-template-columns:repeat(5,1fr)}}  .collection-artwork{object-fit:contain;transition:transform .2s ease,filter .2s ease}.collection-artwork:hover{transform:scale(1.05)}.collection-artwork.shiny{filter:drop-shadow(0 0 8px rgba(250,204,21,.7))}.screenshot-scanner{margin-bottom:18px}.screenshot-scanner input[type="file"]{padding:10px;background:#f9fafb}.screenshot-scanner img{object-fit:contain}.screenshot-scanner button:disabled{opacity:.6;cursor:wait}</style>
+.add-browser{margin-bottom:18px}.browser-row{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px}.browser-row button{border:0;background:#e5e7eb;padding:9px 12px;border-radius:999px;font-weight:bold;white-space:nowrap}.browser-row button.active{background:#111827;color:white}.pokemon-browser-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.pokemon-browser-card{border:1px solid #e5e7eb;background:#f9fafb;border-radius:14px;padding:10px;text-align:center}.pokemon-browser-card img{width:90px;height:90px;object-fit:contain}.pokemon-browser-card strong{display:block;font-size:14px}.pokemon-browser-card span{display:block;font-size:12px;color:#6b7280;margin-top:3px}.browser-more{width:100%;margin-top:12px;padding:11px;border:0;border-radius:10px;background:#e5e7eb;font-weight:bold}@media(min-width:600px){.pokemon-browser-grid{grid-template-columns:repeat(5,1fr)}}  .collection-artwork{object-fit:contain;transition:transform .2s ease,filter .2s ease}.collection-artwork:hover{transform:scale(1.05)}.collection-artwork.shiny{filter:drop-shadow(0 0 8px rgba(250,204,21,.7))}.collection-artwork.shadow{filter:brightness(.55) saturate(.65) drop-shadow(0 0 8px rgba(80,80,80,.8))}.collection-artwork.dynamax{filter:drop-shadow(0 0 10px rgba(220,30,30,.65))}.collection-artwork.gigantamax{filter:drop-shadow(0 0 10px rgba(220,30,30,.65)) scale(1.04)}.screenshot-scanner{margin-bottom:18px}.screenshot-scanner input[type="file"]{padding:10px;background:#f9fafb}.screenshot-scanner img{object-fit:contain}.screenshot-scanner button:disabled{opacity:.6;cursor:wait}</style>
 </head>
 <body>
 <header><h1>⚡ Dex Go</h1><p>Pokémon GO Collection Tracker</p></header>
@@ -98,7 +98,7 @@ button{cursor:pointer}
 <label for="caughtDate">Caught Date</label><input id="caughtDate" type="date">
 <label for="caughtPlace">Caught Place</label><input id="caughtPlace" type="text" placeholder="Example: Surat, India">
 <label for="pokemonType">Type</label><input id="pokemonType" type="text" placeholder="Auto-detected from Pokémon" readonly>
-<label for="pokemonForm">Form</label><select id="pokemonForm"><option value="Normal">Normal Form</option></select>
+<label for="pokemonForm">Form</label><select id="pokemonForm"><option value="Normal">Normal Form</option></select><label for="pokemonVariant">Variant</label><select id="pokemonVariant"><option value="Normal">Normal Variant</option><option value="Shadow">🌑 Shadow</option><option value="Dynamax">🔴 Dynamax</option><option value="Gigantamax">🔴 Gigantamax</option></select>
 <div class="stats-grid"><div><label for="shiny">✨ Shiny</label><select id="shiny"><option value="false">No</option><option value="true">Yes</option></select></div><div><label for="lucky">🍀 Lucky</label><select id="lucky"><option value="false">No</option><option value="true">Yes</option></select></div></div>
 <label>IVs</label>
 <div class="stats-grid">
@@ -350,6 +350,7 @@ caughtDate:document.getElementById("caughtDate").value,
 caughtPlace:document.getElementById("caughtPlace").value.trim(),
 type:document.getElementById("pokemonType").value.trim(),
 form:document.getElementById("pokemonForm").value,
+variant:document.getElementById("pokemonVariant").value,
 shiny:document.getElementById("shiny").value==="true",
 lucky:document.getElementById("lucky").value==="true",
 attackIV:attack,defenseIV:defense,staminaIV:stamina,ivPercent:calculateIV(attack,defense,stamina)
@@ -377,6 +378,7 @@ document.getElementById("cp").value="";document.getElementById("hp").value="";
 ["fastMove","chargedMove","costume","event","background","caughtPlace","pokemonType"].forEach(id=>document.getElementById(id).value="");
 document.getElementById("caughtDate").value="";
 document.getElementById("pokemonForm").innerHTML="<option value=\"Normal\">Normal Form</option>";
+document.getElementById("pokemonVariant").innerHTML="<option value=\"Normal\">Normal Variant</option><option value=\"Shadow\">🌑 Shadow</option><option value=\"Dynamax\">🔴 Dynamax</option><option value=\"Gigantamax\">🔴 Gigantamax</option>";
 document.getElementById("shiny").value="false";
 document.getElementById("lucky").value="false";
 document.getElementById("pokemonDetails").style.display="none";
@@ -401,7 +403,7 @@ document.getElementById("caughtDate").value=pokemon.caughtDate||"";
 document.getElementById("pokemonType").value=pokemon.type||"";
 setFormOptions(pokemon.pokemonId,pokemon.form||"Normal");
 document.getElementById("shiny").value=pokemon.shiny?"true":"false";
-renderSelectedPokemonPreview();
+setVariantOptions(pokemon.pokemonId,pokemon.variant||"Normal").then(()=>renderSelectedPokemonPreview());
 document.getElementById("lucky").value=pokemon.lucky?"true":"false";
 document.getElementById("attackIV").value=limitIV(pokemon.attackIV);
 document.getElementById("defenseIV").value=limitIV(pokemon.defenseIV);
@@ -479,7 +481,7 @@ const filters=getCollectionFilters();
 const filteredCollection=collection.filter(pokemon=>{
 const generation=getGenerationInfo(pokemon.pokemonId);
 const stars=getAppraisalStarCount(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV);
-const searchableText=[pokemon.name,pokemon.pokemonId,pokemon.fastMove,pokemon.chargedMove,pokemon.costume,pokemon.event,pokemon.background,pokemon.type,pokemon.form].join(" ").toLowerCase();
+const searchableText=[pokemon.name,pokemon.pokemonId,pokemon.fastMove,pokemon.chargedMove,pokemon.costume,pokemon.event,pokemon.background,pokemon.type,pokemon.form,pokemon.variant].join(" ").toLowerCase();
 if(filters.search&&!searchableText.includes(filters.search))return false;
 if(filters.iv!=="all"&&Number(filters.iv)!==stars)return false;
 if(filters.generation!=="all"&&Number(filters.generation)!==generation.number)return false;
@@ -503,7 +505,7 @@ const image=getPokemonArtwork(pokemon);
 const stars=getAppraisalStars(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV);
 const total=getIVTotal(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV);
 const card=document.createElement("div");card.className="panel";card.style.marginBottom="15px";
-card.innerHTML=`<div style="display:flex;align-items:center;gap:15px;"><div style="text-align:center;min-width:100px;"><img class="collection-artwork${pokemon.shiny?" shiny":""}" data-regional-artwork="true" src="${image}" alt="${formatPokemonName(pokemon.name)}${pokemon.shiny?" shiny":""}" width="100" height="100" loading="lazy"><div style="font-size:12px;color:#6b7280;margin-top:2px;">${pokemon.form&&pokemon.form!=="Normal"?pokemon.form+" artwork":pokemon.shiny?"✨ Shiny artwork":"Official artwork"}</div></div><div style="flex:1;"><h3 style="margin:0;">#${String(pokemon.pokemonId).padStart(3,"0")} ${formatPokemonName(pokemon.name)}</h3><p style="margin:6px 0;">CP: ${pokemon.cp||0} &nbsp; | &nbsp; HP: ${pokemon.hp||0}</p><p style="margin:6px 0;">IV: ${calculateIV(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV)}% (${total}/45)</p>
+card.innerHTML=`<div style="display:flex;align-items:center;gap:15px;"><div style="text-align:center;min-width:100px;"><img class="collection-artwork${pokemon.shiny?" shiny ":" "}${pokemon.variant&&pokemon.variant!=="Normal"?pokemon.variant.toLowerCase().replace(/[^a-z0-9]+/g,"-"):""}" data-regional-artwork="true" src="${image}" alt="${formatPokemonName(pokemon.name)}${pokemon.shiny?" shiny":""}" width="100" height="100" loading="lazy"><div style="font-size:12px;color:#6b7280;margin-top:2px;">${pokemon.variant&&pokemon.variant!=="Normal"?pokemon.variant+" artwork":pokemon.form&&pokemon.form!=="Normal"?pokemon.form+" artwork":pokemon.shiny?"✨ Shiny artwork":"Official artwork"}</div></div><div style="flex:1;"><h3 style="margin:0;">#${String(pokemon.pokemonId).padStart(3,"0")} ${formatPokemonName(pokemon.name)}</h3><p style="margin:6px 0;">CP: ${pokemon.cp||0} &nbsp; | &nbsp; HP: ${pokemon.hp||0}</p><p style="margin:6px 0;">IV: ${calculateIV(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV)}% (${total}/45)</p>
 ${pokemon.fastMove||pokemon.chargedMove?`<p style="margin:6px 0;">🥊 Moves: ${pokemon.fastMove||"-"} / ${pokemon.chargedMove||"-"}</p>`:""}
 ${pokemon.costume?`<p style="margin:6px 0;">👕 Costume: ${pokemon.costume}</p>`:""}
 ${pokemon.event?`<p style="margin:6px 0;">🎉 Event: ${pokemon.event}</p>`:""}
@@ -512,10 +514,14 @@ ${pokemon.caughtDate?`<p style="margin:6px 0;">📅 Caught: ${pokemon.caughtDate
 ${pokemon.caughtPlace?`<p style="margin:6px 0;">📍 Place: ${pokemon.caughtPlace}</p>`:""}
 ${pokemon.type?`<p style="margin:6px 0;">🔹 Type: ${pokemon.type}</p>`:""}
 ${pokemon.form&&pokemon.form!=="Normal"?`<p style="margin:6px 0;">🌀 Form: ${pokemon.form}</p>`:""}
+${pokemon.variant&&pokemon.variant!=="Normal"?`<p style="margin:6px 0;">🎭 Variant: ${pokemon.variant}</p>`:""}
 <p style="margin:6px 0;">${pokemon.shiny?"✨ Shiny ":""}${pokemon.lucky?"🍀 Lucky":""}</p><p style="font-size:22px;margin:6px 0;">${stars||"0★"}</p></div></div>
 <div class="collection-actions"><button type="button" class="edit-btn" onclick="editPokemon(${pokemon.id})">✏️ Edit</button><button type="button" class="delete-btn" onclick="deletePokemon(${pokemon.id})">🗑️ Delete</button></div>`;
 collectionList.appendChild(card);
-if(pokemon.form&&pokemon.form!=="Normal"){
+if(pokemon.variant&&pokemon.variant!=="Normal"){
+const variantImage=card.querySelector("[data-regional-artwork]");
+updateVariantArtworkImage(variantImage,pokemon,pokemon.variant,pokemon.shiny);
+}else if(pokemon.form&&pokemon.form!=="Normal"){
 const regionalImage=card.querySelector("[data-regional-artwork]");
 updateRegionalArtworkImage(regionalImage,pokemon,pokemon.form,pokemon.shiny);
 }
@@ -614,6 +620,91 @@ select.appendChild(option);
 });
 if(!forms.includes(selectedForm))selectedForm="Normal";
 select.value=selectedForm;
+}
+
+const variantArtworkCache={};
+const variantArtworkPromiseCache={};
+const variantSpeciesCache={};
+
+async function getVariantSpecies(pokemonId){
+const key=String(pokemonId);
+if(variantSpeciesCache[key])return variantSpeciesCache[key];
+try{
+const response=await fetch("https://pokeapi.co/api/v2/pokemon-species/"+key);
+if(!response.ok)throw new Error("Species not found: "+key);
+const data=await response.json();
+variantSpeciesCache[key]=data;
+return data;
+}catch(error){
+console.error("Dex Go variant species error:",error);
+return null;
+}
+}
+
+async function setVariantOptions(pokemonId,selectedVariant="Normal"){
+const select=document.getElementById("pokemonVariant");
+if(!select)return;
+const options=["Normal","Shadow","Dynamax"];
+try{
+const species=await getVariantSpecies(pokemonId);
+const names=(species&&species.varieties||[]).map(item=>String(item&&item.pokemon&&item.pokemon.name||"").toLowerCase());
+if(names.some(name=>name.endsWith("-gmax")))options.push("Gigantamax");
+if(names.some(name=>name.endsWith("-mega")))options.push("Mega");
+if(names.some(name=>name.endsWith("-mega-x")))options.push("Mega X");
+if(names.some(name=>name.endsWith("-mega-y")))options.push("Mega Y");
+}catch(error){
+console.error("Dex Go variant options error:",error);
+}
+select.innerHTML="";
+options.forEach(variant=>{
+const option=document.createElement("option");
+option.value=variant;
+option.textContent=variant==="Normal"?"Normal Variant":variant;
+select.appendChild(option);
+});
+select.value=options.includes(selectedVariant)?selectedVariant:"Normal";
+}
+
+function getVariantPokemonSlug(pokemon,variant){
+if(!pokemon||!variant||variant==="Normal")return null;
+const baseName=String(pokemon.name||"").toLowerCase().trim();
+if(!baseName)return null;
+if(variant==="Mega")return baseName+"-mega";
+if(variant==="Mega X")return baseName+"-mega-x";
+if(variant==="Mega Y")return baseName+"-mega-y";
+if(variant==="Gigantamax")return baseName+"-gmax";
+return null;
+}
+
+async function getVariantArtwork(pokemon,variant,shiny){
+if(!pokemon||!variant||variant==="Normal")return getPokemonArtwork({...pokemon,shiny:!!shiny});
+const cacheKey=String(pokemon.pokemonId||pokemon.id)+"|"+variant+"|"+(shiny?"shiny":"normal");
+if(variantArtworkCache[cacheKey])return variantArtworkCache[cacheKey];
+if(variantArtworkPromiseCache[cacheKey])return variantArtworkPromiseCache[cacheKey];
+if(variant==="Shadow"||variant==="Dynamax")return getPokemonArtwork({...pokemon,shiny:!!shiny});
+const slug=getVariantPokemonSlug(pokemon,variant);
+if(!slug)return getPokemonArtwork({...pokemon,shiny:!!shiny});
+variantArtworkPromiseCache[cacheKey]=(async()=>{
+try{
+const response=await fetch("https://pokeapi.co/api/v2/pokemon/"+encodeURIComponent(slug));
+if(!response.ok)throw new Error("Variant Pokémon not found: "+slug);
+const data=await response.json();
+const artwork=data.sprites&&data.sprites.other&&data.sprites.other["official-artwork"];
+const url=shiny?(artwork&&artwork.front_shiny):(artwork&&artwork.front_default);
+if(url)variantArtworkCache[cacheKey]=url;
+return url||getPokemonArtwork({...pokemon,shiny:!!shiny});
+}catch(error){
+console.error("Dex Go variant artwork error:",error);
+return getPokemonArtwork({...pokemon,shiny:!!shiny});
+}
+})().finally(()=>{delete variantArtworkPromiseCache[cacheKey];});
+return variantArtworkPromiseCache[cacheKey];
+}
+
+async function updateVariantArtworkImage(imageElement,pokemon,variant,shiny){
+if(!imageElement||!pokemon||!variant||variant==="Normal")return;
+const url=await getVariantArtwork(pokemon,variant,shiny);
+if(url)imageElement.src=url;
 }
 
 
@@ -762,10 +853,14 @@ return;
 }
 const isShiny=document.getElementById("shiny").value==="true";
 const form=document.getElementById("pokemonForm").value||"Normal";
+const variant=document.getElementById("pokemonVariant").value||"Normal";
 const previewPokemon={...selectedPokemon,shiny:isShiny};
 const image=getPokemonArtwork(previewPokemon);
-document.getElementById("selectedPokemonPreview").innerHTML=`<div class="panel" style="margin-top:15px;text-align:center;"><img id="selectedPokemonArtwork" src="${image}" alt="${formatPokemonName(selectedPokemon.name)}${isShiny?" shiny":""}" width="150" height="150"><h3>${formatPokemonName(selectedPokemon.name)}</h3><p>Pokédex #${String(selectedPokemon.id).padStart(3,"0")}</p><p style="font-size:13px;color:#6b7280;">${form==="Normal"?(isShiny?"✨ Shiny artwork":"Official artwork"):form+" artwork"+(isShiny?" ✨ Shiny":"")}</p></div>`;
-if(form!=="Normal")await updateRegionalArtworkImage(document.getElementById("selectedPokemonArtwork"),selectedPokemon,form,isShiny);
+const artworkClass=variant.toLowerCase().replace(/[^a-z0-9]+/g,"-");
+const artworkLabel=variant!=="Normal"?variant+" artwork":form!=="Normal"?form+" artwork":isShiny?"✨ Shiny artwork":"Official artwork";
+document.getElementById("selectedPokemonPreview").innerHTML=`<div class="panel" style="margin-top:15px;text-align:center;"><img id="selectedPokemonArtwork" class="collection-artwork ${isShiny?"shiny ":""}${artworkClass}" src="${image}" alt="${formatPokemonName(selectedPokemon.name)}${isShiny?" shiny":""}${variant!=="Normal"?" "+variant:""}" width="150" height="150"><h3>${formatPokemonName(selectedPokemon.name)}</h3><p>Pokédex #${String(selectedPokemon.id).padStart(3,"0")}</p><p style="font-size:13px;color:#6b7280;">${artworkLabel}${isShiny?" ✨ Shiny":""}</p></div>`;
+if(variant!=="Normal")await updateVariantArtworkImage(document.getElementById("selectedPokemonArtwork"),selectedPokemon,variant,isShiny);
+else if(form!=="Normal")await updateRegionalArtworkImage(document.getElementById("selectedPokemonArtwork"),selectedPokemon,form,isShiny);
 }
 
 function selectPokemon(){
@@ -774,6 +869,7 @@ if(!id){selectedPokemon=null;renderSelectedPokemonPreview();return}
 selectedPokemon=pokemonList.find(pokemon=>pokemon.id===id);
 if(!selectedPokemon)return;
 setFormOptions(selectedPokemon.id,"Normal");
+setVariantOptions(selectedPokemon.id,"Normal").then(()=>renderSelectedPokemonPreview());
 document.getElementById("pokemonType").value="Loading...";
 fetch("https://pokeapi.co/api/v2/pokemon/"+selectedPokemon.id).then(response=>response.json()).then(data=>{if(selectedPokemon&&selectedPokemon.id===id){document.getElementById("pokemonType").value=data.types.map(item=>formatPokemonName(item.type.name)).join(", ");renderPokemonDetails(data);}}).catch(()=>{document.getElementById("pokemonType").value="";document.getElementById("pokemonDetails").style.display="none";});
 renderSelectedPokemonPreview();
@@ -783,6 +879,7 @@ pokemonSearch.addEventListener("input",filterPokemon);
 pokemonSelect.addEventListener("change",selectPokemon);
 document.getElementById("shiny").addEventListener("change",renderSelectedPokemonPreview);
 document.getElementById("pokemonForm").addEventListener("change",renderSelectedPokemonPreview);
+document.getElementById("pokemonVariant").addEventListener("change",renderSelectedPokemonPreview);
 loadPokedex();
 initPokemonBrowser();
 
