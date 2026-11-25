@@ -132,6 +132,10 @@ main{padding:12px}
 .home-special-card{padding:13px}
 }
 @media(min-width:900px){main{max-width:1000px}.home-hero{min-height:260px}.home-hero h2{font-size:34px}}
+
+/* Fix Home section structure */
+.home-overview-stats{margin-top:0}
+.home-special,.home-progress-snapshot{margin-top:16px}
 </style>
 </head>
 <body>
@@ -172,17 +176,17 @@ main{padding:12px}
 <div id="homeFeaturedCollection"></div>
 </div>
 
+<div class="home-overview-stats">
 <div class="stats-grid">
-<div class="stat home-stat-card"><span class="stat-number" id="homeTotal">0</span>Total</div><div class="home-special">
-<div class="home-section-title"><h2>✨ Special Collection</h2><p>Your rare &amp; standout catches</p></div><div class="home-progress-snapshot">
-<div class="home-section-title"><h2>📈 Collection Progress</h2><p>See how your Pokédex is growing</p></div>
-<div class="home-progress-grid">
-<div class="home-progress-item"><div class="home-progress-item-top"><span>Pokédex</span><span id="homeProgressSnapshotPercent">0%</span></div><div class="home-progress-track"><div id="homeProgressSnapshotBar" class="home-progress-fill"></div></div><small id="homeProgressSnapshotText">0 / 1025 Pokémon collected</small></div>
-<div class="home-progress-item"><div class="home-progress-item-top"><span>Missing</span><span id="homeMissingSnapshot">1025</span></div><div class="home-progress-track"><div id="homeMissingSnapshotBar" class="home-progress-fill"></div></div><small>Pokémon still missing from your Pokédex</small></div>
-<div class="home-progress-item"><div class="home-progress-item-top"><span>Generations</span><span id="homeGenerationSnapshot">0 / 9</span></div><div class="home-progress-track"><div id="homeGenerationSnapshotBar" class="home-progress-fill"></div></div><small id="homeGenerationSnapshotText">Complete a generation to fill this bar</small></div>
+<div class="stat home-stat-card"><span class="stat-number" id="homeTotal">0</span>Total</div>
+<div class="stat home-stat-card"><span class="stat-number" id="homeUnique">0</span>Unique</div>
+<div class="stat home-stat-card"><span class="stat-number" id="homeHundo">0</span>Hundos</div>
+<div class="stat home-stat-card"><span class="stat-number" id="homeProgressText">0%</span>Pokédex</div>
 </div>
 </div>
 
+<div class="home-special">
+<div class="home-section-title"><h2>✨ Special Collection</h2><p>Your rare &amp; standout catches</p></div>
 <div class="home-special-grid">
 <div class="home-special-card"><span class="home-special-icon">✨</span><span class="home-special-number" id="homeShiny">0</span><span class="home-special-label">Shiny</span></div>
 <div class="home-special-card"><span class="home-special-icon">🍀</span><span class="home-special-number" id="homeLucky">0</span><span class="home-special-label">Lucky</span></div>
@@ -191,9 +195,13 @@ main{padding:12px}
 </div>
 </div>
 
-<div class="stat home-stat-card"><span class="stat-number" id="homeUnique">0</span>Unique</div>
-<div class="stat home-stat-card"><span class="stat-number" id="homeHundo">0</span>Hundos</div>
-<div class="stat home-stat-card"><span class="stat-number" id="homeProgressText">0%</span>Pokédex</div>
+<div class="home-progress-snapshot">
+<div class="home-section-title"><h2>📈 Collection Progress</h2><p>See how your Pokédex is growing</p></div>
+<div class="home-progress-grid">
+<div class="home-progress-item"><div class="home-progress-item-top"><span>Pokédex</span><span id="homeProgressSnapshotPercent">0%</span></div><div class="home-progress-track"><div id="homeProgressSnapshotBar" class="home-progress-fill"></div></div><small id="homeProgressSnapshotText">0 / 1025 Pokémon collected</small></div>
+<div class="home-progress-item"><div class="home-progress-item-top"><span>Missing</span><span id="homeMissingSnapshot">1025</span></div><div class="home-progress-track"><div id="homeMissingSnapshotBar" class="home-progress-fill"></div></div><small>Pokémon still missing from your Pokédex</small></div>
+<div class="home-progress-item"><div class="home-progress-item-top"><span>Generations</span><span id="homeGenerationSnapshot">0 / 9</span></div><div class="home-progress-track"><div id="homeGenerationSnapshotBar" class="home-progress-fill"></div></div><small id="homeGenerationSnapshotText">Complete a generation to fill this bar</small></div>
+</div>
 </div>
 
 
