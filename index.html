@@ -1090,6 +1090,41 @@ if(value>=10&&value<=5000)cp=value;
 }
 }
 
+async function recognizeTopCPRegion(){
+const left=Math.max(0,Math.round(sourceWidth*0.20));
+const top=Math.max(0,Math.round(sourceHeight*0.03));
+const right=Math.min(sourceWidth,Math.round(sourceWidth*0.80));
+const bottom=Math.min(sourceHeight,Math.round(sourceHeight*0.18));
+const width=right-left;
+const height=bottom-top;
+if(width<=0||height<=0)return "";
+const result=await Tesseract.recognize(image,"eng",{
+rectangle:{left,top,width,height},
+tessedit_pageseg_mode:"7",
+tessedit_char_whitelist:"0123456789CPcp",
+logger:()=>{}
+});
+return normalizeOCRText(result.data.text||"");
+}
+
+if(cp===null){
+const topCPRegion=await recognizeTopCPRegion();
+const explicitCPMatch=topCPRegion.match(/(?:CP|C[Pp])\s*[:#-]?\s*(\d{2,5})\b/i);
+if(explicitCPMatch){
+const value=Number(explicitCPMatch[1]);
+if(value>=10&&value<=5000)cp=value;
+}else{
+const numberMatches=[...topCPRegion.matchAll(/\b(\d{2,5})\b/g)];
+for(const match of numberMatches){
+const value=Number(match[1]);
+if(value>=10&&value<=5000&&!(value>=2016&&value<=2030)){
+cp=value;
+break;
+}
+}
+}
+}
+
 if(hp===null&&hpLabel){
 const hpRegion=await recognizeLabelRegion(hpLabel,"0123456789/HPhp");
 const slashMatch=hpRegion.match(/\b(\d{1,4})\s*\/\s*(\d{1,4})\s*(?:HP|H[Pp])?\b/i);
