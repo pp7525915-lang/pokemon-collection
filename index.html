@@ -872,14 +872,16 @@ function pixelAt(x,y){
 const i=(y*canvas.width+x)*4;
 return{r:data[i],g:data[i+1],b:data[i+2]};
 }
-function isOrange(p){
-return p.r>175&&p.g>70&&p.g<190&&p.b<115&&p.r>p.g*1.25&&p.g>p.b*1.35;
+function isFilledBarPixel(p){
+const orange=p.r>175&&p.g>70&&p.g<190&&p.b<115&&p.r>p.g*1.25&&p.g>p.b*1.35;
+const red=p.r>170&&p.g>65&&p.g<175&&p.b>55&&p.b<155&&p.r>p.g*1.18&&p.r>p.b*1.08;
+return orange||red;
 }
 function isTrackGray(p){
 const max=Math.max(p.r,p.g,p.b),min=Math.min(p.r,p.g,p.b);
 return max-min<24&&max>=145&&max<=245;
 }
-function isBarPixel(p){return isOrange(p)||isTrackGray(p);}
+function isBarPixel(p){return isFilledBarPixel(p)||isTrackGray(p);}
 
 function findBestBar(windowBox){
 let best=null;
@@ -888,28 +890,28 @@ const y1=Math.min(canvas.height-1,Math.ceil(windowBox.y1));
 const x0=Math.max(0,Math.floor(windowBox.x0));
 const x1=Math.min(canvas.width-1,Math.ceil(windowBox.x1));
 for(let y=y0;y<=y1;y++){
-let runStart=-1,lastBar=-1,gap=0,orangeCount=0,orangeStart=-1,orangeEnd=-1;
+let runStart=-1,lastBar=-1,gap=0,filledCount=0,filledStart=-1,filledEnd=-1;
 for(let x=x0;x<=x1;x++){
 const p=pixelAt(x,y);
 if(isBarPixel(p)){
 if(runStart<0)runStart=x;
 lastBar=x;
 gap=0;
-if(isOrange(p)){
-orangeCount++;
-if(orangeStart<0)orangeStart=x;
-orangeEnd=x;
+if(isFilledBarPixel(p)){
+filledCount++;
+if(filledStart<0)filledStart=x;
+filledEnd=x;
 }
 }else if(runStart>=0&&gap<4){
 gap++;
 }else{
-if(runStart>=0&&lastBar-runStart+1>=60&&orangeCount>=3){
+if(runStart>=0&&lastBar-runStart+1>=60&&filledCount>=3){
 const trackEnd=lastBar-gap;
 const trackWidth=trackEnd-runStart+1;
-const orangeWidth=orangeEnd>=orangeStart?orangeEnd-orangeStart+1:0;
+const filledWidth=filledEnd>=filledStart?filledEnd-filledStart+1:0;
 if(trackWidth>=80){
-const score=orangeCount*2+trackWidth;
-if(!best||score>best.score)best={x0:runStart,x1:trackEnd,y:y,trackWidth,orangeWidth,orangeCount,score};
+const score=filledCount*2+trackWidth;
+if(!best||score>best.score)best={x0:runStart,x1:trackEnd,y:y,trackWidth,filledWidth,filledCount,score};
 }
 }
 runStart=-1;lastBar=-1;gap=0;orangeCount=0;orangeStart=-1;orangeEnd=-1;
@@ -961,10 +963,10 @@ if(!best||score>best.score)best={...found,score};
 }
 });
 if(best){
-let ratio=best.orangeWidth>0?(best.orangeWidth/best.trackWidth):0;
+let ratio=best.filledWidth>0?(best.filledWidth/best.trackWidth):0;
 ratio=Math.max(0,Math.min(1,ratio));
 const iv=Math.max(0,Math.min(15,Math.round(ratio*15)));
-const confidence=(best.trackWidth>=120?0.25:0)+(best.orangeCount>=8?0.25:0)+(labels[key]?0.25:0)+(best.orangeWidth===0||ratio>0.08?0.25:0);
+const confidence=(best.trackWidth>=120?0.25:0)+(best.filledCount>=8?0.25:0)+(labels[key]?0.25:0)+(best.filledWidth===0||ratio>0.08?0.25:0);
 results.push({key,iv,confidence,bar:best});
 }
 });
