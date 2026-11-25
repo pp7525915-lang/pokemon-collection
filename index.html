@@ -1091,20 +1091,62 @@ if(value>=10&&value<=5000)cp=value;
 }
 
 async function recognizeTopCPRegion(){
-const left=Math.max(0,Math.round(sourceWidth*0.20));
-const top=Math.max(0,Math.round(sourceHeight*0.03));
-const right=Math.min(sourceWidth,Math.round(sourceWidth*0.80));
-const bottom=Math.min(sourceHeight,Math.round(sourceHeight*0.18));
-const width=right-left;
-const height=bottom-top;
-if(width<=0||height<=0)return "";
-const result=await Tesseract.recognize(image,"eng",{
-rectangle:{left,top,width,height},
+const left=Math.max(0,Math.round(sourceWidth*0.26));
+const top=Math.max(0,Math.round(sourceHeight*0.045));
+const right=Math.min(sourceWidth,Math.round(sourceWidth*0.74));
+const bottom=Math.min(sourceHeight,Math.round(sourceHeight*0.12));
+const cropWidth=right-left;
+const cropHeight=bottom-top;
+if(cropWidth<=0||cropHeight<=0)return "";
+
+const cropCanvas=document.createElement("canvas");
+const scale=4;
+cropCanvas.width=cropWidth*scale;
+cropCanvas.height=cropHeight*scale;
+const cropCtx=cropCanvas.getContext("2d",{willReadFrequently:true});
+cropCtx.imageSmoothingEnabled=false;
+cropCtx.drawImage(image,left,top,cropWidth,cropHeight,0,0,cropCanvas.width,cropCanvas.height);
+
+const variants=[];
+variants.push(cropCanvas);
+
+const imageData=cropCtx.getImageData(0,0,cropCanvas.width,cropCanvas.height);
+const pixels=imageData.data;
+const thresholdCanvas=document.createElement("canvas");
+thresholdCanvas.width=cropCanvas.width;
+thresholdCanvas.height=cropCanvas.height;
+const thresholdCtx=thresholdCanvas.getContext("2d");
+const thresholdData=thresholdCtx.createImageData(cropCanvas.width,cropCanvas.height);
+
+for(let i=0;i<pixels.length;i+=4){
+const r=pixels[i];
+const g=pixels[i+1];
+const b=pixels[i+2];
+const brightness=(r+g+b)/3;
+const maxChannel=Math.max(r,g,b);
+const minChannel=Math.min(r,g,b);
+const nearWhite=maxChannel>185&&brightness>145&&(maxChannel-minChannel)<90;
+const value=nearWhite?255:0;
+thresholdData.data[i]=value;
+thresholdData.data[i+1]=value;
+thresholdData.data[i+2]=value;
+thresholdData.data[i+3]=255;
+}
+thresholdCtx.putImageData(thresholdData,0,0);
+variants.push(thresholdCanvas);
+
+for(const variant of variants){
+const blob=await new Promise(resolve=>variant.toBlob(resolve,"image/png"));
+if(!blob)continue;
+const result=await Tesseract.recognize(blob,"eng",{
 tessedit_pageseg_mode:"7",
 tessedit_char_whitelist:"0123456789CPcp",
 logger:()=>{}
 });
-return normalizeOCRText(result.data.text||"");
+const text=normalizeOCRText(result.data.text||"");
+if(text)return text;
+}
+return "";
 }
 
 if(cp===null){
