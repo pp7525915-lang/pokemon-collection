@@ -893,8 +893,9 @@ async function detectIVBarsFromImage(file,ocrData){
 return await new Promise(resolve=>{
 const image=new Image();
 image.onload=function(){
+try{
 const canvas=document.createElement("canvas");
-const maxWidth=1200;
+const maxWidth=1400;
 const scale=Math.min(1,maxWidth/image.naturalWidth);
 canvas.width=Math.max(1,Math.round(image.naturalWidth*scale));
 canvas.height=Math.max(1,Math.round(image.naturalHeight*scale));
@@ -906,63 +907,16 @@ function pixelAt(x,y){
 const i=(y*canvas.width+x)*4;
 return{r:data[i],g:data[i+1],b:data[i+2]};
 }
-function isFilledBarPixel(p){
-const orange=p.r>175&&p.g>70&&p.g<190&&p.b<115&&p.r>p.g*1.25&&p.g>p.b*1.35;
-const red=p.r>170&&p.g>65&&p.g<175&&p.b>55&&p.b<155&&p.r>p.g*1.18&&p.r>p.b*1.08;
-return orange||red;
+function isFilled(p){
+const warm=p.r>150&&p.g>45&&p.g<210&&p.b<150&&p.r>p.g*1.15&&p.g>p.b*1.15;
+return warm;
 }
-function isTrackGray(p){
+function isTrack(p){
 const max=Math.max(p.r,p.g,p.b),min=Math.min(p.r,p.g,p.b);
-return max-min<24&&max>=145&&max<=245;
+const neutral=max-min<32;
+return (neutral&&max>=70&&max<=245)||(p.r<120&&p.g<120&&p.b<120);
 }
-function isBarPixel(p){return isFilledBarPixel(p)||isTrackGray(p);}
-
-function findBestBar(windowBox){
-let best=null;
-const y0=Math.max(0,Math.floor(windowBox.y0));
-const y1=Math.min(canvas.height-1,Math.ceil(windowBox.y1));
-const x0=Math.max(0,Math.floor(windowBox.x0));
-const x1=Math.min(canvas.width-1,Math.ceil(windowBox.x1));
-for(let y=y0;y<=y1;y++){
-let runStart=-1,lastBar=-1,gap=0,filledCount=0,filledStart=-1,filledEnd=-1;
-for(let x=x0;x<=x1;x++){
-const p=pixelAt(x,y);
-if(isBarPixel(p)){
-if(runStart<0)runStart=x;
-lastBar=x;
-gap=0;
-if(isFilledBarPixel(p)){
-filledCount++;
-if(filledStart<0)filledStart=x;
-filledEnd=x;
-}
-}else if(runStart>=0&&gap<4){
-gap++;
-}else{
-if(runStart>=0&&lastBar-runStart+1>=60&&filledCount>=3){
-const trackEnd=lastBar-gap;
-const trackWidth=trackEnd-runStart+1;
-const filledWidth=filledEnd>=filledStart?filledEnd-filledStart+1:0;
-if(trackWidth>=80){
-const score=filledCount*2+trackWidth;
-if(!best||score>best.score)best={x0:runStart,x1:trackEnd,y:y,trackWidth,filledWidth,filledCount,score};
-}
-}
-runStart=-1;lastBar=-1;gap=0;filledCount=0;filledStart=-1;filledEnd=-1;
-}
-}
-if(runStart>=0&&lastBar-runStart+1>=60&&filledCount>=3){
-const trackEnd=lastBar-gap;
-const trackWidth=trackEnd-runStart+1;
-const filledWidth=filledEnd>=filledStart?filledEnd-filledStart+1:0;
-if(trackWidth>=80){
-const score=filledCount*2+trackWidth;
-if(!best||score>best.score)best={x0:runStart,x1:trackEnd,y:y,trackWidth,filledWidth,filledCount,score};
-}
-}
-}
-return best;
-}
+function isBarLike(p){return isFilled(p)||isTrack(p);}
 
 const words=ocrData&&Array.isArray(ocrData.words)?ocrData.words:[];
 const labels={attack:null,defense:null,stamina:null};
@@ -971,50 +925,97 @@ const text=String(word.text||"").toLowerCase().replace(/[^a-z]/g,"");
 if(!word.bbox)return;
 if(text==="attack"&&!labels.attack)labels.attack=word.bbox;
 if((text==="defense"||text==="defence")&&!labels.defense)labels.defense=word.bbox;
-if(text==="hp"&&!labels.stamina)labels.stamina=word.bbox;
+if((text==="hp"||text==="stamina")&&!labels.stamina)labels.stamina=word.bbox;
 });
 
-function labelCandidates(box){
-if(!box)return[];
-const w=box.right-box.left;
-const h=box.bottom-box.top;
-return[
-{x0:box.left-w*0.15,x1:box.right+w*1.8,y0:box.top-h*0.4,y1:box.bottom+h*1.8},
-{x0:box.left-w*0.15,x1:box.right+w*0.9,y0:box.bottom-h*0.1,y1:box.bottom+h*3.5}
+function findBar(box){
+if(!box)return null;
+const labelWidth=box.right-box.left;
+const labelHeight=box.bottom-box.top;
+const regions=[
+{x0:box.right-labelWidth*0.05,x1:box.right+labelWidth*4.5,y0:box.top-labelHeight*0.8,y1:box.bottom+labelHeight*2.2},
+{x0:box.left-labelWidth*0.1,x1:box.right+labelWidth*6,y0:box.bottom,y1:box.bottom+labelHeight*4}
 ];
+let best=null;
+
+regions.forEach(region=>{
+const x0=Math.max(0,Math.floor(region.x0));
+const x1=Math.min(canvas.width-1,Math.ceil(region.x1));
+const y0=Math.max(0,Math.floor(region.y0));
+const y1=Math.min(canvas.height-1,Math.ceil(region.y1));
+
+for(let y=y0;y<=y1;y++){
+let runs=[];
+let runStart=-1;
+let last=-1;
+let warmCount=0;
+for(let x=x0;x<=x1;x++){
+const p=pixelAt(x,y);
+if(isBarLike(p)){
+if(runStart<0)runStart=x;
+last=x;
+if(isFilled(p))warmCount++;
+}else if(runStart>=0){
+if(last-runStart+1>=70)runs.push({x0:runStart,x1:last,warmCount});
+runStart=-1;
+last=-1;
+warmCount=0;
+}
+}
+if(runStart>=0&&last-runStart+1>=70)runs.push({x0:runStart,x1:last,warmCount});
+
+runs.forEach(run=>{
+const width=run.x1-run.x0+1;
+if(width<70)return;
+const warmRatio=run.warmCount/width;
+const score=width+(warmRatio>0.05?80:0);
+if(!best||score>best.score)best={...run,width,warmRatio,y,score};
+});
+}
+});
+
+if(!best)return null;
+
+let filledWidth=0;
+let filledPixels=0;
+const sampleY=Math.max(0,Math.min(canvas.height-1,best.y));
+for(let x=best.x0;x<=best.x1;x++){
+if(isFilled(pixelAt(x,sampleY)))filledPixels++;
+}
+if(filledPixels===0){
+const bandStart=Math.max(0,best.y-2);
+const bandEnd=Math.min(canvas.height-1,best.y+2);
+for(let y=bandStart;y<=bandEnd;y++){
+let rowFilled=0;
+for(let x=best.x0;x<=best.x1;x++)if(isFilled(pixelAt(x,y)))rowFilled++;
+if(rowFilled>filledPixels)filledPixels=rowFilled;
+}
+}
+filledWidth=filledPixels;
+
+const ratio=Math.max(0,Math.min(1,filledWidth/best.width));
+const iv=Math.max(0,Math.min(15,Math.round(ratio*15)));
+const confidence=(best.width>=110?0.35:0)+(best.width>=180?0.15:0)+(labels?0.25:0)+(filledPixels>=3||ratio===0?0.25:0);
+return{iv,confidence,bar:best};
 }
 
 const results=[];
 ["attack","defense","stamina"].forEach(key=>{
-const candidates=labelCandidates(labels[key]);
-let best=null;
-candidates.forEach(box=>{
-const found=findBestBar(box);
-if(found){
-const distance=labels[key]?Math.abs(found.y-(labels[key].bottom)):0;
-const score=found.score-distance*0.5;
-if(!best||score>best.score)best={...found,score};
-}
-});
-if(best){
-let ratio=best.filledWidth>0?(best.filledWidth/best.trackWidth):0;
-ratio=Math.max(0,Math.min(1,ratio));
-const iv=Math.max(0,Math.min(15,Math.round(ratio*15)));
-const confidence=(best.trackWidth>=120?0.25:0)+(best.filledCount>=8?0.25:0)+(labels[key]?0.25:0)+(best.filledWidth===0||ratio>0.08?0.25:0);
-results.push({key,iv,confidence,bar:best});
-}
+const found=findBar(labels[key]);
+if(found)results.push({key,...found});
 });
 
 if(results.length===3&&results.every(item=>item.confidence>=0.75)){
-resolve({
-attack:results[0].iv,
-defense:results[1].iv,
-stamina:results[2].iv
-});
+const byKey={};
+results.forEach(item=>byKey[item.key]=item.iv);
+resolve({attack:byKey.attack,defense:byKey.defense,stamina:byKey.stamina});
 return;
 }
-
 resolve(null);
+}catch(error){
+console.error("Dex Go IV bar detection error:",error);
+resolve(null);
+}
 };
 image.onerror=function(){resolve(null);};
 image.src=URL.createObjectURL(file);
