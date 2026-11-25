@@ -218,16 +218,18 @@ app:"Dex Go",
 exportedAt:new Date().toISOString(),
 collection:collection
 };
-const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
+const json=JSON.stringify(backup,null,2);
+const blob=new Blob([json],{type:"application/json"});
 const url=URL.createObjectURL(blob);
 const link=document.createElement("a");
 link.href=url;
 link.download="dex-go-backup-"+new Date().toISOString().slice(0,10)+".json";
+link.style.display="none";
 document.body.appendChild(link);
 link.click();
 link.remove();
-URL.revokeObjectURL(url);
-showBackupMessage("Collection exported successfully!");
+setTimeout(()=>URL.revokeObjectURL(url),1000);
+showBackupMessage("Backup download started. Check your Downloads folder.");
 }
 
 function showBackupMessage(message){
