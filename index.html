@@ -108,7 +108,31 @@ button{cursor:pointer}
 .home-hero-art{width:210px;height:210px;right:10px;bottom:-18px}
 .home-quick-actions{grid-template-columns:repeat(4,1fr)}
 }
-.add-browser{margin-bottom:18px}.browser-row{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px}.browser-row button{border:0;background:#e5e7eb;padding:9px 12px;border-radius:999px;font-weight:bold;white-space:nowrap}.browser-row button.active{background:#111827;color:white}.pokemon-browser-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.pokemon-browser-card{border:1px solid #e5e7eb;background:#f9fafb;border-radius:14px;padding:10px;text-align:center}.pokemon-browser-card img{width:90px;height:90px;object-fit:contain}.pokemon-browser-card strong{display:block;font-size:14px}.pokemon-browser-card span{display:block;font-size:12px;color:#6b7280;margin-top:3px}.browser-more{width:100%;margin-top:12px;padding:11px;border:0;border-radius:10px;background:#e5e7eb;font-weight:bold}@media(min-width:600px){.pokemon-browser-grid{grid-template-columns:repeat(5,1fr)}}  .collection-artwork{object-fit:contain;transition:transform .2s ease,filter .2s ease}.collection-artwork:hover{transform:scale(1.05)}.collection-artwork.shiny{filter:drop-shadow(0 0 8px rgba(250,204,21,.7))}.collection-artwork.shadow{filter:brightness(.5) saturate(.6) drop-shadow(0 0 8px rgba(80,80,80,.8)) drop-shadow(0 0 14px rgba(145,45,220,.65))}.collection-artwork.dynamax{filter:drop-shadow(0 0 10px rgba(220,30,30,.65))}.collection-artwork.gigantamax{filter:drop-shadow(0 0 10px rgba(220,30,30,.65)) scale(1.04)}.screenshot-scanner{margin-bottom:18px}.screenshot-scanner input[type="file"]{padding:10px;background:#f9fafb}.screenshot-scanner img{object-fit:contain}.screenshot-scanner button:disabled{opacity:.6;cursor:wait}</style>
+.add-browser{margin-bottom:18px}.browser-row{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px}.browser-row button{border:0;background:#e5e7eb;padding:9px 12px;border-radius:999px;font-weight:bold;white-space:nowrap}.browser-row button.active{background:#111827;color:white}.pokemon-browser-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.pokemon-browser-card{border:1px solid #e5e7eb;background:#f9fafb;border-radius:14px;padding:10px;text-align:center}.pokemon-browser-card img{width:90px;height:90px;object-fit:contain}.pokemon-browser-card strong{display:block;font-size:14px}.pokemon-browser-card span{display:block;font-size:12px;color:#6b7280;margin-top:3px}.browser-more{width:100%;margin-top:12px;padding:11px;border:0;border-radius:10px;background:#e5e7eb;font-weight:bold}@media(min-width:600px){.pokemon-browser-grid{grid-template-columns:repeat(5,1fr)}}  .collection-artwork{object-fit:contain;transition:transform .2s ease,filter .2s ease}.collection-artwork:hover{transform:scale(1.05)}.collection-artwork.shiny{filter:drop-shadow(0 0 8px rgba(250,204,21,.7))}.collection-artwork.shadow{filter:brightness(.5) saturate(.6) drop-shadow(0 0 8px rgba(80,80,80,.8)) drop-shadow(0 0 14px rgba(145,45,220,.65))}.collection-artwork.dynamax{filter:drop-shadow(0 0 10px rgba(220,30,30,.65))}.collection-artwork.gigantamax{filter:drop-shadow(0 0 10px rgba(220,30,30,.65)) scale(1.04)}.screenshot-scanner{margin-bottom:18px}.screenshot-scanner input[type="file"]{padding:10px;background:#f9fafb}.screenshot-scanner img{object-fit:contain}.screenshot-scanner button:disabled{opacity:.6;cursor:wait}
+/* Home Step 6 final polish */
+.home-hero{min-height:230px}
+.home-action{transition:transform .15s ease,box-shadow .15s ease;border:1px solid #e5e7eb}
+.home-action:hover{transform:translateY(-2px);box-shadow:0 7px 18px rgba(0,0,0,.08)}
+.home-stat-card{min-height:92px;display:flex;flex-direction:column;justify-content:center}
+.home-featured-card,.home-insight-card,.home-special-card,.home-progress-item{overflow:hidden}
+@media(max-width:599px){
+main{padding:12px}
+.home-hero{padding:18px;min-height:250px}
+.home-hero h2{font-size:25px;max-width:70%}
+.home-hero p{max-width:72%;font-size:14px}
+.home-hero-art{width:125px;height:125px;right:-2px;bottom:-8px}
+.home-progress-card{margin-top:12px}
+.home-section-title{align-items:flex-start;flex-direction:column;gap:3px}
+.home-section-title p{font-size:11px}
+.home-quick-actions{gap:8px}
+.home-action{padding:13px 11px}
+.home-action span{font-size:20px}
+.home-featured-card img{width:105px;height:105px}
+.home-insight-card img{width:95px;height:95px}
+.home-special-card{padding:13px}
+}
+@media(min-width:900px){main{max-width:1000px}.home-hero{min-height:260px}.home-hero h2{font-size:34px}}
+</style>
 </head>
 <body>
 <header><h1>⚡ Dex Go</h1><p>Pokémon GO Collection Tracker</p></header>
