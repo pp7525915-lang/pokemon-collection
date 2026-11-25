@@ -96,7 +96,6 @@ button{cursor:pointer}
 <label for="event">Event</label><input id="event" type="text" placeholder="Example: Community Day 2026">
 <label for="background">Background</label><input id="background" type="text" placeholder="Example: New York City">
 <label for="caughtDate">Caught Date</label><input id="caughtDate" type="date">
-<label for="caughtTime">Caught Time</label><input id="caughtTime" type="time">
 <label for="caughtPlace">Caught Place</label><input id="caughtPlace" type="text" placeholder="Example: Surat, India">
 <label for="pokemonType">Type</label><input id="pokemonType" type="text" placeholder="Auto-detected from Pokémon" readonly>
 <label for="pokemonForm">Form</label><select id="pokemonForm"><option value="Normal">Normal Form</option></select>
@@ -300,7 +299,6 @@ cp:document.getElementById("cp").value,hp:document.getElementById("hp").value,
 fastMove:document.getElementById("fastMove").value.trim(),chargedMove:document.getElementById("chargedMove").value.trim(),
 costume:document.getElementById("costume").value.trim(),event:document.getElementById("event").value.trim(),background:document.getElementById("background").value.trim(),
 caughtDate:document.getElementById("caughtDate").value,
-caughtTime:document.getElementById("caughtTime").value,
 caughtPlace:document.getElementById("caughtPlace").value.trim(),
 type:document.getElementById("pokemonType").value.trim(),
 form:document.getElementById("pokemonForm").value,
@@ -330,7 +328,6 @@ document.getElementById("selectedPokemonPreview").innerHTML="";
 document.getElementById("cp").value="";document.getElementById("hp").value="";
 ["fastMove","chargedMove","costume","event","background","caughtPlace","pokemonType"].forEach(id=>document.getElementById(id).value="");
 document.getElementById("caughtDate").value="";
-document.getElementById("caughtTime").value="";
 document.getElementById("pokemonForm").innerHTML="<option value=\"Normal\">Normal Form</option>";
 document.getElementById("shiny").value="false";
 document.getElementById("lucky").value="false";
@@ -354,7 +351,6 @@ document.getElementById("cp").value=pokemon.cp||"";
 document.getElementById("hp").value=pokemon.hp||"";
 ["fastMove","chargedMove","costume","event","background","caughtPlace"].forEach(id=>document.getElementById(id).value=pokemon[id]||"");
 document.getElementById("caughtDate").value=pokemon.caughtDate||"";
-document.getElementById("caughtTime").value=pokemon.caughtTime||"";
 document.getElementById("pokemonType").value=pokemon.type||"";
 setFormOptions(pokemon.pokemonId,pokemon.form||"Normal");
 document.getElementById("shiny").value=pokemon.shiny?"true":"false";
@@ -465,7 +461,6 @@ ${pokemon.costume?`<p style="margin:6px 0;">👕 Costume: ${pokemon.costume}</p>
 ${pokemon.event?`<p style="margin:6px 0;">🎉 Event: ${pokemon.event}</p>`:""}
 ${pokemon.background?`<p style="margin:6px 0;">🖼️ Background: ${pokemon.background}</p>`:""}
 ${pokemon.caughtDate?`<p style="margin:6px 0;">📅 Caught: ${pokemon.caughtDate}</p>`:""}
-${pokemon.caughtTime?`<p style="margin:6px 0;">🕐 Time: ${pokemon.caughtTime}</p>`:""}
 ${pokemon.caughtPlace?`<p style="margin:6px 0;">📍 Place: ${pokemon.caughtPlace}</p>`:""}
 ${pokemon.type?`<p style="margin:6px 0;">🔹 Type: ${pokemon.type}</p>`:""}
 ${pokemon.form&&pokemon.form!=="Normal"?`<p style="margin:6px 0;">🌀 Form: ${pokemon.form}</p>`:""}
@@ -1195,7 +1190,6 @@ stamina:barIVs?barIVs.stamina:ocrIVs.stamina
 const moves=extractMoveCandidates(text);
 let filled=[];
 if(caughtDateTime.date!==null){document.getElementById("caughtDate").value=caughtDateTime.date;filled.push("Caught Date: "+caughtDateTime.date);}
-if(caughtDateTime.time!==null){document.getElementById("caughtTime").value=caughtDateTime.time;filled.push("Caught Time: "+caughtDateTime.time);}
 if(pokemon){
 document.getElementById("pokemonSelect").value=String(pokemon.id);
 selectPokemon();
