@@ -59,6 +59,14 @@ button{cursor:pointer}
 .home-section-title p{margin:0;font-size:12px;color:#6b7280}
 .home-stat-card{background:linear-gradient(180deg,#fff 0%,#f8fafc 100%);border:1px solid #e5e7eb}
 .home-backup{margin-top:4px}
+.home-special{margin-top:16px}
+.home-special-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.home-special-card{border:1px solid #e5e7eb;border-radius:16px;background:white;padding:15px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+.home-special-icon{font-size:25px;display:block;margin-bottom:5px}
+.home-special-number{font-size:24px;font-weight:bold;display:block}
+.home-special-label{font-size:12px;color:#6b7280}
+@media(min-width:600px){.home-special-grid{grid-template-columns:repeat(4,1fr)}}
+
 .home-featured{margin-top:16px}
 .home-featured-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .home-featured-card{border:1px solid #e5e7eb;border-radius:18px;background:linear-gradient(180deg,#fff 0%,#f8fafc 100%);padding:12px;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.06)}
@@ -119,7 +127,16 @@ button{cursor:pointer}
 </div>
 
 <div class="stats-grid">
-<div class="stat home-stat-card"><span class="stat-number" id="homeTotal">0</span>Total</div>
+<div class="stat home-stat-card"><span class="stat-number" id="homeTotal">0</span>Total</div><div class="home-special">
+<div class="home-section-title"><h2>✨ Special Collection</h2><p>Your rare &amp; standout catches</p></div>
+<div class="home-special-grid">
+<div class="home-special-card"><span class="home-special-icon">✨</span><span class="home-special-number" id="homeShiny">0</span><span class="home-special-label">Shiny</span></div>
+<div class="home-special-card"><span class="home-special-icon">🍀</span><span class="home-special-number" id="homeLucky">0</span><span class="home-special-label">Lucky</span></div>
+<div class="home-special-card"><span class="home-special-icon">⭐⭐⭐⭐</span><span class="home-special-number" id="homeFourStar">0</span><span class="home-special-label">4★ Pokémon</span></div>
+<div class="home-special-card"><span class="home-special-icon">🎭</span><span class="home-special-number" id="homeVariants">0</span><span class="home-special-label">Variants</span></div>
+</div>
+</div>
+
 <div class="stat home-stat-card"><span class="stat-number" id="homeUnique">0</span>Unique</div>
 <div class="stat home-stat-card"><span class="stat-number" id="homeHundo">0</span>Hundos</div>
 <div class="stat home-stat-card"><span class="stat-number" id="homeProgressText">0%</span>Pokédex</div>
@@ -630,6 +647,8 @@ const unique=uniqueIds.length;
 const hundos=collection.filter(pokemon=>Number(pokemon.attackIV)===15&&Number(pokemon.defenseIV)===15&&Number(pokemon.staminaIV)===15).length;
 const shinyCount=collection.filter(pokemon=>pokemon.shiny===true).length;
 const luckyCount=collection.filter(pokemon=>pokemon.lucky===true).length;
+const fourStarCount=collection.filter(pokemon=>getAppraisalStarCount(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV)===4).length;
+const variantCount=collection.filter(pokemon=>(pokemon.variant&&pokemon.variant!=="Normal")||(pokemon.form&&pokemon.form!=="Normal")).length;
 const starCounts=[0,0,0,0,0];
 collection.forEach(pokemon=>{starCounts[getAppraisalStarCount(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV)]++;});
 const missing=1025-unique;
@@ -654,6 +673,8 @@ document.getElementById("statsProgressBar").style.width=progress+"%";
 if(document.getElementById("homeShiny"))document.getElementById("homeShiny").textContent=shinyCount;
 document.getElementById("statsShiny").textContent=shinyCount;
 if(document.getElementById("homeLucky"))document.getElementById("homeLucky").textContent=luckyCount;
+if(document.getElementById("homeFourStar"))document.getElementById("homeFourStar").textContent=fourStarCount;
+if(document.getElementById("homeVariants"))document.getElementById("homeVariants").textContent=variantCount;
 document.getElementById("statsLucky").textContent=luckyCount;
 renderRankings(collection);
 renderHomeFeaturedCollection(collection);
