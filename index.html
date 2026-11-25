@@ -764,7 +764,7 @@ const isShiny=document.getElementById("shiny").value==="true";
 const form=document.getElementById("pokemonForm").value||"Normal";
 const previewPokemon={...selectedPokemon,shiny:isShiny};
 const image=getPokemonArtwork(previewPokemon);
-document.getElementById("selectedPokemonPreview").innerHTML=`<div class="panel" style="margin-top:15px;text-align:center;"><img id="selectedPokemonArtwork" src="${image}" alt="${formatPokemonName(selectedPokemon.name)}${isShiny?" shiny":""}" width="150" height="150"><h3>${formatPokemonName(selectedPokemon.name)}</h3><p>Pokédex #${String(selectedPokemon.id).padStart(3,"0")}</p><p style="font-size:13px;color:#6b7280;">${form==="Normal"?(isShiny?"✨ Shiny artwork":"Official artwork"):form+" artwork"${isShiny?" ✨ Shiny":""}}</p></div>`;
+document.getElementById("selectedPokemonPreview").innerHTML=`<div class="panel" style="margin-top:15px;text-align:center;"><img id="selectedPokemonArtwork" src="${image}" alt="${formatPokemonName(selectedPokemon.name)}${isShiny?" shiny":""}" width="150" height="150"><h3>${formatPokemonName(selectedPokemon.name)}</h3><p>Pokédex #${String(selectedPokemon.id).padStart(3,"0")}</p><p style="font-size:13px;color:#6b7280;">${form==="Normal"?(isShiny?"✨ Shiny artwork":"Official artwork"):form+" artwork"+(isShiny?" ✨ Shiny":"")}</p></div>`;
 if(form!=="Normal")await updateRegionalArtworkImage(document.getElementById("selectedPokemonArtwork"),selectedPokemon,form,isShiny);
 }
 
