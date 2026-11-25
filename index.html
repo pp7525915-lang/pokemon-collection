@@ -700,29 +700,28 @@ const cacheKey=String(pokemon.pokemonId||pokemon.id)+"|"+variant+"|"+(shiny?"shi
 if(variantArtworkCache[cacheKey])return variantArtworkCache[cacheKey];
 if(variantArtworkPromiseCache[cacheKey])return variantArtworkPromiseCache[cacheKey];
 
-const id=String(pokemon.pokemonId||pokemon.id).padStart(3,"0");
-const base=GO_ARTWORK_BASE+"pokemon_icon_"+id+"_00";
-const suffixes={
-Shadow:["shadow"],
-Dynamax:["dynamax","dmax"],
-Gigantamax:["gmax","gigantamax"],
-Mega:["mega"],
-"Mega X":["mega_x","mega-x"],
-"Mega Y":["mega_y","mega-y"]
+const id=String(pokemon.pokemonId||pokemon.id);
+const addressableBase="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokemon/Addressable%20Assets/pm"+id;
+const goCandidates={
+Mega:[addressableBase+".fMEGA.icon.png",addressableBase+".fMEGA.s.icon.png"],
+"Mega X":[addressableBase+".fMEGA_X.icon.png",addressableBase+".fMEGA_X.s.icon.png"],
+"Mega Y":[addressableBase+".fMEGA_Y.icon.png",addressableBase+".fMEGA_Y.s.icon.png"],
+Gigantamax:[addressableBase+".fGIGANTAMAX.icon.png",addressableBase+".fGIGANTAMAX.s.icon.png"]
 };
-const goCandidates=[];
-(suffixes[variant]||[]).forEach(suffix=>{
-goCandidates.push(base+"_"+suffix+(shiny?"_shiny":"")+".png");
-});
-if(goCandidates.length){
-const goUrl=await loadFirstAvailableArtwork(goCandidates);
+const variantCandidates=goCandidates[variant];
+if(variantCandidates){
+const candidates=shiny?[variantCandidates[1],variantCandidates[0]]:[variantCandidates[0],variantCandidates[1]];
+const goUrl=await loadFirstAvailableArtwork(candidates);
 if(goUrl){
 variantArtworkCache[cacheKey]=goUrl;
 return goUrl;
 }
 }
 
-if(variant==="Shadow"||variant==="Dynamax")return getPokemonArtwork({...pokemon,shiny:!!shiny});
+if(variant==="Shadow"||variant==="Dynamax"){
+return getPokemonArtwork({...pokemon,shiny:!!shiny});
+}
+
 const slug=getVariantPokemonSlug(pokemon,variant);
 if(!slug)return getPokemonArtwork({...pokemon,shiny:!!shiny});
 variantArtworkPromiseCache[cacheKey]=(async()=>{
