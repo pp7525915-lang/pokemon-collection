@@ -907,108 +907,102 @@ function pixelAt(x,y){
 const i=(y*canvas.width+x)*4;
 return{r:data[i],g:data[i+1],b:data[i+2]};
 }
-function isFilled(p){
-const warm=p.r>150&&p.g>45&&p.g<210&&p.b<150&&p.r>p.g*1.15&&p.g>p.b*1.15;
-return warm;
+function isIVBarColor(p){
+return p.r>145&&p.r>p.g+35&&p.r>p.b+25&&p.g<215&&p.b<205;
 }
-function isTrack(p){
-const max=Math.max(p.r,p.g,p.b),min=Math.min(p.r,p.g,p.b);
-const neutral=max-min<32;
-return (neutral&&max>=70&&max<=245)||(p.r<120&&p.g<120&&p.b<120);
-}
-function isBarLike(p){return isFilled(p)||isTrack(p);}
 
-const words=ocrData&&Array.isArray(ocrData.words)?ocrData.words:[];
-const labels={attack:null,defense:null,stamina:null};
-words.forEach(word=>{
-const text=String(word.text||"").toLowerCase().replace(/[^a-z]/g,"");
-if(!word.bbox)return;
-if(text==="attack"&&!labels.attack)labels.attack=word.bbox;
-if((text==="defense"||text==="defence")&&!labels.defense)labels.defense=word.bbox;
-if((text==="hp"||text==="stamina")&&!labels.stamina)labels.stamina=word.bbox;
+const rowCounts=new Array(canvas.height).fill(0);
+for(let y=0;y<canvas.height;y++){
+let count=0;
+for(let x=0;x<canvas.width;x++)if(isIVBarColor(pixelAt(x,y)))count++;
+rowCounts[y]=count;
+}
+
+const rowGroups=[];
+let groupStart=-1;
+for(let y=0;y<canvas.height;y++){
+if(rowCounts[y]>=50){
+if(groupStart<0)groupStart=y;
+}else if(groupStart>=0){
+if(y-groupStart>=2)rowGroups.push({start:groupStart,end:y-1});
+groupStart=-1;
+}
+}
+if(groupStart>=0)rowGroups.push({start:groupStart,end:canvas.height-1});
+
+function getRunsForRow(y){
+const runs=[];
+let startX=-1;
+for(let x=0;x<canvas.width;x++){
+if(isIVBarColor(pixelAt(x,y))){
+if(startX<0)startX=x;
+}else if(startX>=0){
+if(x-startX>=18)runs.push({x0:startX,x1:x-1,width:x-startX,center:(startX+x-1)/2});
+startX=-1;
+}
+}
+if(startX>=0&&canvas.width-startX>=18){
+runs.push({x0:startX,x1:canvas.width-1,width:canvas.width-startX,center:(startX+canvas.width-1)/2});
+}
+return runs;
+}
+
+const candidates=rowGroups.map(group=>{
+let bestRow=group.start;
+for(let y=group.start+1;y<=group.end;y++){
+if(rowCounts[y]>rowCounts[bestRow])bestRow=y;
+}
+return{...group,y:bestRow,runs:getRunsForRow(bestRow)};
+}).filter(item=>item.runs.length>=3);
+
+let bestSet=null;
+for(let i=0;i<candidates.length-2;i++){
+for(let j=i+1;j<candidates.length-1;j++){
+for(let k=j+1;k<candidates.length;k++){
+const rows=[candidates[i],candidates[j],candidates[k]];
+const spacing1=rows[1].y-rows[0].y;
+const spacing2=rows[2].y-rows[1].y;
+if(spacing1<15||spacing1>80||spacing2<15||spacing2>80)continue;
+
+const referenceRuns=rows[0].runs.slice(0,3);
+if(referenceRuns.length<3)continue;
+
+const selected=[];
+let valid=true;
+for(const row of rows){
+const aligned=referenceRuns.map(reference=>{
+return row.runs.reduce((best,run)=>{
+const distance=Math.abs(run.center-reference.center);
+return !best||distance<best.distance?{run,distance}:best;
+},null);
+});
+if(aligned.some(item=>!item||item.distance>15)){valid=false;break;}
+selected.push(aligned.map(item=>item.run));
+}
+if(!valid)continue;
+
+const segmentWidths=selected.flat().map(run=>run.width);
+const referenceWidth=segmentWidths.slice().sort((a,b)=>a-b)[Math.floor(segmentWidths.length/2)];
+const totalScore=selected.reduce((sum,runs)=>sum+runs.reduce((s,run)=>s+run.width,0),0);
+const score=totalScore-(Math.abs(spacing1-spacing2)*2);
+if(!bestSet||score>bestSet.score)bestSet={rows,selected,referenceWidth,score};
+}
+}
+}
+
+if(!bestSet){
+resolve(null);
+return;
+}
+
+const values=bestSet.selected.map(runs=>{
+const raw=runs.reduce((sum,run)=>sum+run.width,0)/bestSet.referenceWidth*5;
+return Math.max(0,Math.min(15,Math.round(raw)));
 });
 
-function findBar(box){
-if(!box)return null;
-const labelWidth=box.right-box.left;
-const labelHeight=box.bottom-box.top;
-const regions=[
-{x0:box.right-labelWidth*0.05,x1:box.right+labelWidth*4.5,y0:box.top-labelHeight*0.8,y1:box.bottom+labelHeight*2.2},
-{x0:box.left-labelWidth*0.1,x1:box.right+labelWidth*6,y0:box.bottom,y1:box.bottom+labelHeight*4}
-];
-let best=null;
-
-regions.forEach(region=>{
-const x0=Math.max(0,Math.floor(region.x0));
-const x1=Math.min(canvas.width-1,Math.ceil(region.x1));
-const y0=Math.max(0,Math.floor(region.y0));
-const y1=Math.min(canvas.height-1,Math.ceil(region.y1));
-
-for(let y=y0;y<=y1;y++){
-let runs=[];
-let runStart=-1;
-let last=-1;
-let warmCount=0;
-for(let x=x0;x<=x1;x++){
-const p=pixelAt(x,y);
-if(isBarLike(p)){
-if(runStart<0)runStart=x;
-last=x;
-if(isFilled(p))warmCount++;
-}else if(runStart>=0){
-if(last-runStart+1>=70)runs.push({x0:runStart,x1:last,warmCount});
-runStart=-1;
-last=-1;
-warmCount=0;
-}
-}
-if(runStart>=0&&last-runStart+1>=70)runs.push({x0:runStart,x1:last,warmCount});
-
-runs.forEach(run=>{
-const width=run.x1-run.x0+1;
-if(width<70)return;
-const warmRatio=run.warmCount/width;
-const score=width+(warmRatio>0.05?80:0);
-if(!best||score>best.score)best={...run,width,warmRatio,y,score};
-});
-}
-});
-
-if(!best)return null;
-
-let filledWidth=0;
-let filledPixels=0;
-const sampleY=Math.max(0,Math.min(canvas.height-1,best.y));
-for(let x=best.x0;x<=best.x1;x++){
-if(isFilled(pixelAt(x,sampleY)))filledPixels++;
-}
-if(filledPixels===0){
-const bandStart=Math.max(0,best.y-2);
-const bandEnd=Math.min(canvas.height-1,best.y+2);
-for(let y=bandStart;y<=bandEnd;y++){
-let rowFilled=0;
-for(let x=best.x0;x<=best.x1;x++)if(isFilled(pixelAt(x,y)))rowFilled++;
-if(rowFilled>filledPixels)filledPixels=rowFilled;
-}
-}
-filledWidth=filledPixels;
-
-const ratio=Math.max(0,Math.min(1,filledWidth/best.width));
-const iv=Math.max(0,Math.min(15,Math.round(ratio*15)));
-const confidence=(best.width>=110?0.35:0)+(best.width>=180?0.15:0)+(labels[key]?0.25:0)+(filledPixels>=3||ratio===0?0.25:0);
-return{iv,confidence,bar:best};
-}
-
-const results=[];
-["attack","defense","stamina"].forEach(key=>{
-const found=findBar(labels[key]);
-if(found)results.push({key,...found});
-});
-
-if(results.length===3&&results.every(item=>item.confidence>=0.75)){
-const byKey={};
-results.forEach(item=>byKey[item.key]=item.iv);
-resolve({attack:byKey.attack,defense:byKey.defense,stamina:byKey.stamina});
+const confidence=values.length===3&&bestSet.referenceWidth>=25?0.95:0;
+if(confidence>=0.75){
+resolve({attack:values[0],defense:values[1],stamina:values[2]});
 return;
 }
 resolve(null);
