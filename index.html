@@ -110,23 +110,9 @@ button{cursor:pointer}
 .home-insight-empty{grid-column:1/-1;padding:18px;border:1px dashed #d1d5db;border-radius:16px;text-align:center;color:#6b7280;background:#f9fafb}
 @media(min-width:600px){.home-insights-grid{grid-template-columns:repeat(4,1fr)}.home-insight-card img{width:120px;height:120px}}
 .home-backup{margin-top:4px}
-.home-special{margin-top:16px}
-.home-progress-snapshot{margin-top:16px}
-.home-progress-grid{display:grid;gap:10px}
-.home-progress-item{padding:14px;border:1px solid #e5e7eb;border-radius:16px;background:white}
-.home-progress-item-top{display:flex;justify-content:space-between;gap:8px;font-weight:bold}
-.home-progress-item-top span:last-child{color:#6b7280;font-size:12px}
-.home-progress-track{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin-top:9px}
-.home-progress-fill{height:100%;width:0;background:#2563eb;border-radius:999px;transition:width .3s ease}
-.home-progress-item small{display:block;margin-top:6px;color:#6b7280}
-@media(min-width:600px){.home-progress-grid{grid-template-columns:repeat(3,1fr)}}
 
-.home-special-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.home-special-card{border:1px solid #e5e7eb;border-radius:16px;background:white;padding:15px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
-.home-special-icon{font-size:25px;display:block;margin-bottom:5px}
-.home-special-number{font-size:24px;font-weight:bold;display:block}
-.home-special-label{font-size:12px;color:#6b7280}
-@media(min-width:600px){.home-special-grid{grid-template-columns:repeat(4,1fr)}}
+
+
 
 .home-featured{margin-top:16px}
 .home-featured-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
@@ -240,11 +226,6 @@ main{padding:12px}
 </div>
 
 <div class="home-section-title"><h2>Collection Overview</h2><p>Live from your saved collection</p></div>
-<div class="home-featured">
-<div class="home-section-title"><h2>✨ Featured Collection</h2><p>Your latest catches</p></div>
-<div id="homeFeaturedCollection"></div>
-</div>
-
 <div class="home-overview-stats">
 <div class="stats-grid">
 <div class="stat home-stat-card"><span class="stat-number" id="homeTotal">0</span>Total</div>
@@ -254,30 +235,16 @@ main{padding:12px}
 </div>
 </div>
 
-<div class="home-special">
-<div class="home-section-title"><h2>✨ Special Collection</h2><p>Your rare &amp; standout catches</p></div>
-<div class="home-special-grid">
-<div class="home-special-card"><span class="home-special-icon">✨</span><span class="home-special-number" id="homeShiny">0</span><span class="home-special-label">Shiny</span></div>
-<div class="home-special-card"><span class="home-special-icon">🍀</span><span class="home-special-number" id="homeLucky">0</span><span class="home-special-label">Lucky</span></div>
-<div class="home-special-card"><span class="home-special-icon">⭐⭐⭐⭐</span><span class="home-special-number" id="homeFourStar">0</span><span class="home-special-label">4★ Pokémon</span></div>
-<div class="home-special-card"><span class="home-special-icon">🎭</span><span class="home-special-number" id="homeVariants">0</span><span class="home-special-label">Variants</span></div>
+<div class="home-featured">
+<div class="home-section-title"><h2>✨ Featured Collection</h2><p>Your latest catches</p></div>
+<div id="homeFeaturedCollection"></div>
 </div>
-</div>
-
-<div class="home-progress-snapshot">
-<div class="home-section-title"><h2>📈 Collection Progress</h2><p>See how your Pokédex is growing</p></div>
-<div class="home-progress-grid">
-<div class="home-progress-item"><div class="home-progress-item-top"><span>Pokédex</span><span id="homeProgressSnapshotPercent">0%</span></div><div class="home-progress-track"><div id="homeProgressSnapshotBar" class="home-progress-fill"></div></div><small id="homeProgressSnapshotText">0 / 1025 Pokémon collected</small></div>
-<div class="home-progress-item"><div class="home-progress-item-top"><span>Missing</span><span id="homeMissingSnapshot">1025</span></div><div class="home-progress-track"><div id="homeMissingSnapshotBar" class="home-progress-fill"></div></div><small>Pokémon still missing from your Pokédex</small></div>
-<div class="home-progress-item"><div class="home-progress-item-top"><span>Generations</span><span id="homeGenerationSnapshot">0 / 9</span></div><div class="home-progress-track"><div id="homeGenerationSnapshotBar" class="home-progress-fill"></div></div><small id="homeGenerationSnapshotText">Complete a generation to fill this bar</small></div>
-</div>
-</div>
-
 
 <div class="home-insights">
 <div class="home-section-title"><h2>⚡ Quick Insights</h2><p>Your collection highlights</p></div>
 <div id="homeQuickInsights" class="home-insights-grid"></div>
 </div>
+
 <div class="panel home-backup"><div class="home-section-title"><h2>💾 Backup & Restore</h2><p>Keep your collection safe</p></div><p>Save your Dex Go collection as a JSON backup or restore it later.</p><button class="primary-btn" type="button" onclick="exportCollection()">📤 Export Collection</button><input id="importCollectionFile" type="file" accept=".json,application/json" style="display:none" onchange="importCollection(event)"><button class="secondary-btn" type="button" onclick="document.getElementById('importCollectionFile').click()">📥 Import Collection</button><div id="backupMessage" class="message"></div></div>
 </section>
 <section id="add">
