@@ -874,12 +874,7 @@ for(const match of matches){
 const value=Number(match[1]);
 if(value>=10&&value<=5000)return value;
 }
-const after=nearby
-.filter(word=>word.left>=label.right-10&&word.left<=label.right+350)
-.flatMap(word=>word.text.match(/\d{2,5}/g)||[])
-.map(Number)
-.filter(value=>value>=10&&value<=5000);
-return after.length?after[0]:null;
+return null;
 }
 
 function readHPFromWords(label){
