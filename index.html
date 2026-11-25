@@ -1091,10 +1091,10 @@ if(value>=10&&value<=5000)cp=value;
 }
 
 async function recognizeTopCPRegion(){
-const left=Math.max(0,Math.round(sourceWidth*0.28));
-const top=Math.max(0,Math.round(sourceHeight*0.045));
-const right=Math.min(sourceWidth,Math.round(sourceWidth*0.72));
-const bottom=Math.min(sourceHeight,Math.round(sourceHeight*0.10));
+const left=Math.max(0,Math.round(sourceWidth*0.31));
+const top=Math.max(0,Math.round(sourceHeight*0.052));
+const right=Math.min(sourceWidth,Math.round(sourceWidth*0.68));
+const bottom=Math.min(sourceHeight,Math.round(sourceHeight*0.096));
 const cropWidth=right-left;
 const cropHeight=bottom-top;
 if(cropWidth<=0||cropHeight<=0)return "";
