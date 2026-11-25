@@ -1091,20 +1091,45 @@ if(value>=10&&value<=5000)cp=value;
 }
 
 async function recognizeTopCPRegion(){
-const left=Math.max(0,Math.round(sourceWidth*0.20));
-const top=Math.max(0,Math.round(sourceHeight*0.03));
-const right=Math.min(sourceWidth,Math.round(sourceWidth*0.80));
-const bottom=Math.min(sourceHeight,Math.round(sourceHeight*0.18));
-const width=right-left;
-const height=bottom-top;
-if(width<=0||height<=0)return "";
-const result=await Tesseract.recognize(image,"eng",{
-rectangle:{left,top,width,height},
-tessedit_pageseg_mode:"7",
+const left=Math.max(0,Math.round(sourceWidth*0.31));
+const top=Math.max(0,Math.round(sourceHeight*0.052));
+const right=Math.min(sourceWidth,Math.round(sourceWidth*0.68));
+const bottom=Math.min(sourceHeight,Math.round(sourceHeight*0.096));
+const cropWidth=right-left;
+const cropHeight=bottom-top;
+if(cropWidth<=0||cropHeight<=0)return "";
+
+const cropCanvas=document.createElement("canvas");
+const scale=6;
+cropCanvas.width=cropWidth*scale;
+cropCanvas.height=cropHeight*scale;
+const cropCtx=cropCanvas.getContext("2d");
+cropCtx.imageSmoothingEnabled=true;
+cropCtx.drawImage(image,left,top,cropWidth,cropHeight,0,0,cropCanvas.width,cropCanvas.height);
+
+const blob=await new Promise(resolve=>cropCanvas.toBlob(resolve,"image/png"));
+if(!blob)return "";
+
+const outputs=[];
+for(const psm of ["8","13"]){
+const result=await Tesseract.recognize(blob,"eng",{
+tessedit_pageseg_mode:psm,
 tessedit_char_whitelist:"0123456789CPcp",
 logger:()=>{}
 });
-return normalizeOCRText(result.data.text||"");
+const text=normalizeOCRText(result.data.text||"");
+if(text)outputs.push(text);
+}
+
+for(const text of outputs){
+const digitMatch=text.match(/(?:^|[^0-9])(\d{2,5})(?:$|[^0-9])/);
+if(!digitMatch)continue;
+const value=Number(digitMatch[1]);
+if(value>=10&&value<=5000&&!(value>=2016&&value<=2030)){
+return "CP "+value;
+}
+}
+return outputs[0]||"";
 }
 
 if(cp===null){
