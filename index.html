@@ -38,7 +38,7 @@ button{cursor:pointer}
 .edit-btn{background:#dbeafe;color:#1d4ed8}
 .delete-btn{background:#fee2e2;color:#b91c1c}
 @media (min-width:600px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
-.add-browser{margin-bottom:18px}.browser-row{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px}.browser-row button{border:0;background:#e5e7eb;padding:9px 12px;border-radius:999px;font-weight:bold;white-space:nowrap}.browser-row button.active{background:#111827;color:white}.pokemon-browser-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.pokemon-browser-card{border:1px solid #e5e7eb;background:#f9fafb;border-radius:14px;padding:10px;text-align:center}.pokemon-browser-card img{width:90px;height:90px;object-fit:contain}.pokemon-browser-card strong{display:block;font-size:14px}.pokemon-browser-card span{display:block;font-size:12px;color:#6b7280;margin-top:3px}.browser-more{width:100%;margin-top:12px;padding:11px;border:0;border-radius:10px;background:#e5e7eb;font-weight:bold}@media(min-width:600px){.pokemon-browser-grid{grid-template-columns:repeat(5,1fr)}}</style>
+.add-browser{margin-bottom:18px}.browser-row{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px}.browser-row button{border:0;background:#e5e7eb;padding:9px 12px;border-radius:999px;font-weight:bold;white-space:nowrap}.browser-row button.active{background:#111827;color:white}.pokemon-browser-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.pokemon-browser-card{border:1px solid #e5e7eb;background:#f9fafb;border-radius:14px;padding:10px;text-align:center}.pokemon-browser-card img{width:90px;height:90px;object-fit:contain}.pokemon-browser-card strong{display:block;font-size:14px}.pokemon-browser-card span{display:block;font-size:12px;color:#6b7280;margin-top:3px}.browser-more{width:100%;margin-top:12px;padding:11px;border:0;border-radius:10px;background:#e5e7eb;font-weight:bold}@media(min-width:600px){.pokemon-browser-grid{grid-template-columns:repeat(5,1fr)}} .screenshot-scanner{margin-bottom:18px}.screenshot-scanner input[type="file"]{padding:10px;background:#f9fafb}.screenshot-scanner img{object-fit:contain}</style>
 </head>
 <body>
 <header><h1>⚡ Dex Go</h1><p>Pokémon GO Collection Tracker</p></header>
@@ -62,7 +62,18 @@ button{cursor:pointer}
 </section>
 <section id="add">
 <div class="panel">
-<h2>Add Pokémon</h2><div class="panel add-browser">
+<h2>Add Pokémon</h2><div class="panel screenshot-scanner">
+<h2>📷 Scan Pokémon Screenshot</h2>
+<p class="progress-text">Upload a Pokémon GO screenshot. Screenshot recognition will be added next.</p>
+<label for="pokemonScreenshot">Choose Screenshot</label>
+<input id="pokemonScreenshot" type="file" accept="image/*">
+<div id="screenshotPreview" style="display:none;margin-top:12px;text-align:center;">
+<img id="screenshotPreviewImage" alt="Selected Pokémon GO screenshot" style="max-width:100%;max-height:400px;border-radius:12px;">
+</div>
+<button id="scanScreenshotBtn" class="secondary-btn" type="button" onclick="scanPokemonScreenshot()">🔍 Scan Screenshot</button>
+<div id="screenshotMessage" class="message"></div>
+</div>
+<div class="panel add-browser">
 <h2>🔎 Browse Pokémon</h2>
 <p class="progress-text">Choose a region or type, then tap a Pokémon to add it.</p>
 <label>Regions</label>
@@ -708,6 +719,6 @@ if(element){element.addEventListener("input",filterCollection);element.addEventL
 
 renderCollection();
 updateStats();
-</script>
+\nfunction previewPokemonScreenshot(event){\nconst file=event.target.files&&event.target.files[0];\nconst preview=document.getElementById("screenshotPreview");\nconst image=document.getElementById("screenshotPreviewImage");\nif(!file){preview.style.display="none";image.removeAttribute("src");return;}\nif(!file.type.startsWith("image/")){event.target.value="";preview.style.display="none";showScreenshotMessage("Please choose an image screenshot.");return;}\nconst reader=new FileReader();\nreader.onload=function(){image.src=reader.result;preview.style.display="block";showScreenshotMessage("Screenshot selected. Ready to scan.");};\nreader.readAsDataURL(file);\n}\n\nfunction showScreenshotMessage(message){\nconst box=document.getElementById("screenshotMessage");\nif(!box)return;\nbox.textContent=message;\nbox.style.display="block";\n}\n\nfunction scanPokemonScreenshot(){\nconst fileInput=document.getElementById("pokemonScreenshot");\nif(!fileInput||!fileInput.files||!fileInput.files[0]){showScreenshotMessage("Please choose a screenshot first.");return;}\nshowScreenshotMessage("Screenshot scan is ready for the next recognition step.");\n}\n\ndocument.getElementById("pokemonScreenshot").addEventListener("change",previewPokemonScreenshot);\n</script>
 </body>
 </html>
