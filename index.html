@@ -176,10 +176,13 @@ button{cursor:pointer}
 </main>
 <script>
 const IMAGE_BASE="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/";
+const GO_ARTWORK_BASE="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokemon/";
 function getPokemonArtwork(pokemon){
 const id=pokemon&&(pokemon.pokemonId||pokemon.id);
-const base=pokemon&&pokemon.shiny?IMAGE_BASE+"shiny/":IMAGE_BASE;
-return base+String(id)+".png";
+const paddedId=String(id).padStart(3,"0");
+const goBase=GO_ARTWORK_BASE+"pokemon_icon_"+paddedId+"_00";
+if(pokemon&&pokemon.shiny)return goBase+"_shiny.png";
+return goBase+".png";
 }
 
 const regionalArtworkCache={};
@@ -676,11 +679,49 @@ if(variant==="Gigantamax")return baseName+"-gmax";
 return null;
 }
 
+function loadFirstAvailableArtwork(urls){
+return new Promise(resolve=>{
+let index=0;
+function tryNext(){
+if(index>=urls.length){resolve(null);return;}
+const url=urls[index++];
+const image=new Image();
+image.onload=()=>resolve(url);
+image.onerror=tryNext;
+image.src=url;
+}
+tryNext();
+});
+}
+
 async function getVariantArtwork(pokemon,variant,shiny){
 if(!pokemon||!variant||variant==="Normal")return getPokemonArtwork({...pokemon,shiny:!!shiny});
 const cacheKey=String(pokemon.pokemonId||pokemon.id)+"|"+variant+"|"+(shiny?"shiny":"normal");
 if(variantArtworkCache[cacheKey])return variantArtworkCache[cacheKey];
 if(variantArtworkPromiseCache[cacheKey])return variantArtworkPromiseCache[cacheKey];
+
+const id=String(pokemon.pokemonId||pokemon.id).padStart(3,"0");
+const base=GO_ARTWORK_BASE+"pokemon_icon_"+id+"_00";
+const suffixes={
+Shadow:["shadow"],
+Dynamax:["dynamax","dmax"],
+Gigantamax:["gmax","gigantamax"],
+Mega:["mega"],
+"Mega X":["mega_x","mega-x"],
+"Mega Y":["mega_y","mega-y"]
+};
+const goCandidates=[];
+(suffixes[variant]||[]).forEach(suffix=>{
+goCandidates.push(base+"_"+suffix+(shiny?"_shiny":"")+".png");
+});
+if(goCandidates.length){
+const goUrl=await loadFirstAvailableArtwork(goCandidates);
+if(goUrl){
+variantArtworkCache[cacheKey]=goUrl;
+return goUrl;
+}
+}
+
 if(variant==="Shadow"||variant==="Dynamax")return getPokemonArtwork({...pokemon,shiny:!!shiny});
 const slug=getVariantPokemonSlug(pokemon,variant);
 if(!slug)return getPokemonArtwork({...pokemon,shiny:!!shiny});
