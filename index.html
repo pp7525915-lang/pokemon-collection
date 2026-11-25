@@ -778,7 +778,7 @@ return text
 }
 
 function escapeRegExp(str){
-return str.replace(/[.*+?^$\\{\\}()|[\\]\\\\]/g,"\\\\$&");
+return str.replace(/[.*+?^${}()|[\\]\\\\]/g,"\\return str.replace(/[.*+?^$\\{\\}()|[\\]\\\\]/g,"\\\\$&");");
 }
 
 function levenshteinDistance(a,b){
@@ -803,9 +803,9 @@ return dp[m][n];
 }
 
 function hasWholePhraseMatch(cleanedText,formattedName){
-const words=formattedName.split(/\\s+/).map(w=>w.trim()).filter(Boolean);
+const words=formattedName.split(/\s+/).map(w=>w.trim()).filter(Boolean);
 if(words.length===0)return false;
-const phrasePattern=words.map(w=>escapeRegExp(w)).join("\\\\s+");
+const phrasePattern=words.map(w=>escapeRegExp(w)).join("\\s+");
 return new RegExp("(?:^|[^a-z0-9])"+phrasePattern+"(?:$|[^a-z0-9])","i").test(cleanedText);
 }
 
