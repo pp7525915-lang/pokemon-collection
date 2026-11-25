@@ -460,6 +460,8 @@ ${pokemon.fastMove||pokemon.chargedMove?`<p style="margin:6px 0;">🥊 Moves: ${
 ${pokemon.costume?`<p style="margin:6px 0;">👕 Costume: ${pokemon.costume}</p>`:""}
 ${pokemon.event?`<p style="margin:6px 0;">🎉 Event: ${pokemon.event}</p>`:""}
 ${pokemon.background?`<p style="margin:6px 0;">🖼️ Background: ${pokemon.background}</p>`:""}
+${pokemon.caughtDate?`<p style="margin:6px 0;">📅 Caught: ${pokemon.caughtDate}</p>`:""}
+${pokemon.caughtPlace?`<p style="margin:6px 0;">📍 Place: ${pokemon.caughtPlace}</p>`:""}
 ${pokemon.type?`<p style="margin:6px 0;">🔹 Type: ${pokemon.type}</p>`:""}
 ${pokemon.form&&pokemon.form!=="Normal"?`<p style="margin:6px 0;">🌀 Form: ${pokemon.form}</p>`:""}
 <p style="margin:6px 0;">${pokemon.shiny?"✨ Shiny ":""}${pokemon.lucky?"🍀 Lucky":""}</p><p style="font-size:22px;margin:6px 0;">${stars||"0★"}</p></div></div>
