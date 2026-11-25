@@ -819,9 +819,9 @@ return{cp,hp};
 function extractIVs(text){
 const normalized=normalizeOCRText(text);
 let attack=null,defense=null,stamina=null;
-const attackMatch=normalized.match(/(:?attack|atk)\D{0,12}(\d{1,2})\b/i);
-const defenseMatch=normalized.match(/(:?defense|defence|def)\D{0,12}(\d{1,2})\b/i);
-const staminaMatch=normalized.match(/(:?stamina|hp)\D{0,12}(\d{1,2})\b/i);
+const attackMatch=normalized.match(/(?:attack|atk)\D{0,12}(\d{1,2})\b/i);
+const defenseMatch=normalized.match(/(?:defense|defence|def)\D{0,12}(\d{1,2})\b/i);
+const staminaMatch=normalized.match(/(?:stamina|hp)\D{0,12}(\d{1,2})\b/i);
 if(attackMatch)attack=limitIV(attackMatch[1]);
 if(defenseMatch)defense=limitIV(defenseMatch[1]);
 if(staminaMatch)stamina=limitIV(staminaMatch[1]);
