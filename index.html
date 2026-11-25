@@ -38,7 +38,7 @@ button{cursor:pointer}
 .edit-btn{background:#dbeafe;color:#1d4ed8}
 .delete-btn{background:#fee2e2;color:#b91c1c}
 @media (min-width:600px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
-</style>
+.add-browser{margin-bottom:18px}.browser-row{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px}.browser-row button{border:0;background:#e5e7eb;padding:9px 12px;border-radius:999px;font-weight:bold;white-space:nowrap}.browser-row button.active{background:#111827;color:white}.pokemon-browser-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.pokemon-browser-card{border:1px solid #e5e7eb;background:#f9fafb;border-radius:14px;padding:10px;text-align:center}.pokemon-browser-card img{width:90px;height:90px;object-fit:contain}.pokemon-browser-card strong{display:block;font-size:14px}.pokemon-browser-card span{display:block;font-size:12px;color:#6b7280;margin-top:3px}.browser-more{width:100%;margin-top:12px;padding:11px;border:0;border-radius:10px;background:#e5e7eb;font-weight:bold}@media(min-width:600px){.pokemon-browser-grid{grid-template-columns:repeat(5,1fr)}}</style>
 </head>
 <body>
 <header><h1>⚡ Dex Go</h1><p>Pokémon GO Collection Tracker</p></header>
@@ -62,7 +62,18 @@ button{cursor:pointer}
 </section>
 <section id="add">
 <div class="panel">
-<h2>Add Pokémon</h2>
+<h2>Add Pokémon</h2><div class="panel add-browser">
+<h2>🔎 Browse Pokémon</h2>
+<p class="progress-text">Choose a region or type, then tap a Pokémon to add it.</p>
+<label>Regions</label>
+<div id="browserRegionRow" class="browser-row"></div>
+<label>Types</label>
+<div id="browserTypeRow" class="browser-row"></div>
+<label for="browserSearch">Search Browser</label>
+<input id="browserSearch" type="text" placeholder="Name or Pokédex #">
+<div id="pokemonBrowserGrid" class="pokemon-browser-grid"></div>
+<button id="browserMoreBtn" class="browser-more" type="button" onclick="showMoreBrowserPokemon()">Load More</button>
+</div>
 <label for="pokemonSearch">Search Pokémon</label><input id="pokemonSearch" type="text" placeholder="Example: Pikachu">
 <label for="pokemonSelect">Select Pokémon</label><select id="pokemonSelect"><option value="">Loading Pokémon...</option></select>
 <div id="selectedPokemonPreview"></div><div id="pokemonDetails" class="message"></div>
@@ -586,6 +597,91 @@ pokemonSelect.appendChild(group);
 });
 }
 
+const browserRegions=[
+["all","All Regions"],["1","Kanto"],["2","Johto"],["3","Hoenn"],["4","Sinnoh"],
+["5","Unova"],["6","Kalos"],["7","Alola"],["8","Galar"],["9","Paldea"]
+];
+const browserTypes=["all","Normal","Fire","Water","Grass","Electric","Ice","Fighting","Poison","Ground","Flying","Psychic","Bug","Rock","Ghost","Dragon","Dark","Steel","Fairy"];
+let browserRegion="all",browserType="all",browserSearch="",browserVisibleCount=60,browserTypeIds={};
+
+function initPokemonBrowser(){
+const regionRow=document.getElementById("browserRegionRow");
+const typeRow=document.getElementById("browserTypeRow");
+if(!regionRow||!typeRow)return;
+regionRow.innerHTML="";
+browserRegions.forEach(([value,label])=>{
+const button=document.createElement("button");
+button.type="button";button.textContent=label;button.dataset.value=value;
+if(value==="all")button.classList.add("active");
+button.onclick=()=>setBrowserRegion(value);
+regionRow.appendChild(button);
+});
+typeRow.innerHTML="";
+browserTypes.forEach(type=>{
+const button=document.createElement("button");
+button.type="button";button.textContent=type==="all"?"All Types":type;button.dataset.value=type;
+if(type==="all")button.classList.add("active");
+button.onclick=()=>setBrowserType(type);
+typeRow.appendChild(button);
+});
+document.getElementById("browserSearch").addEventListener("input",event=>{
+browserSearch=event.target.value.toLowerCase().trim();browserVisibleCount=60;renderPokemonBrowser();
+});
+renderPokemonBrowser();
+}
+
+function setBrowserRegion(region){
+browserRegion=region;browserVisibleCount=60;
+document.querySelectorAll("#browserRegionRow button").forEach(button=>button.classList.toggle("active",button.dataset.value===region));
+renderPokemonBrowser();
+}
+
+async function setBrowserType(type){
+browserType=type;browserVisibleCount=60;
+document.querySelectorAll("#browserTypeRow button").forEach(button=>button.classList.toggle("active",button.dataset.value===type));
+if(type!=="all"&&!browserTypeIds[type]){
+try{
+const response=await fetch("https://pokeapi.co/api/v2/type/"+type.toLowerCase());
+const data=await response.json();
+browserTypeIds[type]=new Set(data.pokemon.map(item=>Number(item.pokemon.url.split("/").filter(Boolean).pop())));
+}catch(error){browserTypeIds[type]=new Set();}
+}
+renderPokemonBrowser();
+}
+
+function renderPokemonBrowser(){
+const grid=document.getElementById("pokemonBrowserGrid");
+const more=document.getElementById("browserMoreBtn");
+if(!grid)return;
+let list=pokemonList.filter(pokemon=>{
+if(browserRegion!=="all"&&String(getGenerationInfo(pokemon.id).number)!==browserRegion)return false;
+if(browserType!=="all"&&(!browserTypeIds[browserType]||!browserTypeIds[browserType].has(pokemon.id)))return false;
+if(browserSearch&&!((pokemon.name+" "+pokemon.id).toLowerCase().includes(browserSearch)))return false;
+return true;
+});
+const visible=list.slice(0,browserVisibleCount);
+grid.innerHTML="";
+visible.forEach(pokemon=>{
+const card=document.createElement("button");
+card.type="button";card.className="pokemon-browser-card";
+card.innerHTML='<img src="'+IMAGE_BASE+pokemon.id+'.png" alt="'+formatPokemonName(pokemon.name)+'"><strong>#'+String(pokemon.id).padStart(3,"0")+'</strong><span>'+formatPokemonName(pokemon.name)+'</span>';
+card.onclick=()=>selectPokemonFromBrowser(pokemon.id);
+grid.appendChild(card);
+});
+if(more)more.style.display=list.length>browserVisibleCount?"block":"none";
+if(list.length===0)grid.innerHTML='<div class="panel" style="grid-column:1/-1;margin:0"><p>No Pokémon found.</p></div>';
+}
+
+function showMoreBrowserPokemon(){
+browserVisibleCount+=60;renderPokemonBrowser();
+}
+
+function selectPokemonFromBrowser(id){
+document.getElementById("pokemonSelect").value=String(id);
+selectPokemon();
+document.getElementById("add").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
 function filterPokemon(){
 const search=pokemonSearch.value.toLowerCase().trim();
 fillPokemonSelect(pokemonList.filter(pokemon=>pokemon.name.toLowerCase().includes(search)||String(pokemon.id).includes(search)));
@@ -606,6 +702,7 @@ document.getElementById("selectedPokemonPreview").innerHTML=`<div class="panel" 
 pokemonSearch.addEventListener("input",filterPokemon);
 pokemonSelect.addEventListener("change",selectPokemon);
 loadPokedex();
+initPokemonBrowser();
 
 ["attackIV","defenseIV","staminaIV"].forEach(id=>document.getElementById(id).addEventListener("input",showIVAppraisal));
 
