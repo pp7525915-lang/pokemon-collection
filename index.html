@@ -39,6 +39,31 @@ button{cursor:pointer}
 .edit-btn{background:#dbeafe;color:#1d4ed8}
 .delete-btn{background:#fee2e2;color:#b91c1c}
 @media (min-width:600px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
+.home-hero{position:relative;overflow:hidden;display:grid;grid-template-columns:1fr;gap:12px;background:linear-gradient(135deg,#111827 0%,#1e3a8a 58%,#2563eb 100%);color:white;padding:22px;border-radius:22px;box-shadow:0 8px 24px rgba(37,99,235,.22)}
+.home-hero::after{content:"";position:absolute;width:220px;height:220px;right:-70px;top:-80px;border-radius:50%;background:rgba(255,255,255,.09)}
+.home-hero-copy{position:relative;z-index:1}
+.home-kicker{display:inline-block;font-size:12px;font-weight:bold;letter-spacing:.08em;text-transform:uppercase;opacity:.8;margin-bottom:7px}
+.home-hero h2{font-size:30px;margin:0 0 6px}
+.home-hero p{margin:0;color:rgba(255,255,255,.82);line-height:1.5}
+.home-hero-art{position:absolute;right:4px;bottom:-14px;width:150px;height:150px;object-fit:contain;filter:drop-shadow(0 10px 18px rgba(0,0,0,.3));opacity:.96}
+.home-progress-card{margin-top:4px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);border-radius:15px;padding:12px}
+.home-progress-card .progress{background:rgba(255,255,255,.22);margin:8px 0 5px}
+.home-progress-card .progress-bar{background:#fff}
+.home-progress-card .progress-text{color:rgba(255,255,255,.78)}
+.home-quick-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.home-action{border:0;border-radius:16px;padding:15px;background:white;box-shadow:0 4px 14px rgba(0,0,0,.07);font-weight:bold;text-align:left;color:#111827}
+.home-action span{display:block;font-size:22px;margin-bottom:5px}
+.home-action small{display:block;color:#6b7280;font-weight:normal;margin-top:3px}
+.home-section-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px}
+.home-section-title h2{margin:0;font-size:19px}
+.home-section-title p{margin:0;font-size:12px;color:#6b7280}
+.home-stat-card{background:linear-gradient(180deg,#fff 0%,#f8fafc 100%);border:1px solid #e5e7eb}
+.home-backup{margin-top:4px}
+@media(min-width:600px){
+.home-hero{grid-template-columns:1fr 190px;min-height:245px;align-items:center;padding:28px}
+.home-hero-art{width:210px;height:210px;right:10px;bottom:-18px}
+.home-quick-actions{grid-template-columns:repeat(4,1fr)}
+}
 .add-browser{margin-bottom:18px}.browser-row{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px}.browser-row button{border:0;background:#e5e7eb;padding:9px 12px;border-radius:999px;font-weight:bold;white-space:nowrap}.browser-row button.active{background:#111827;color:white}.pokemon-browser-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.pokemon-browser-card{border:1px solid #e5e7eb;background:#f9fafb;border-radius:14px;padding:10px;text-align:center}.pokemon-browser-card img{width:90px;height:90px;object-fit:contain}.pokemon-browser-card strong{display:block;font-size:14px}.pokemon-browser-card span{display:block;font-size:12px;color:#6b7280;margin-top:3px}.browser-more{width:100%;margin-top:12px;padding:11px;border:0;border-radius:10px;background:#e5e7eb;font-weight:bold}@media(min-width:600px){.pokemon-browser-grid{grid-template-columns:repeat(5,1fr)}}  .collection-artwork{object-fit:contain;transition:transform .2s ease,filter .2s ease}.collection-artwork:hover{transform:scale(1.05)}.collection-artwork.shiny{filter:drop-shadow(0 0 8px rgba(250,204,21,.7))}.collection-artwork.shadow{filter:brightness(.5) saturate(.6) drop-shadow(0 0 8px rgba(80,80,80,.8)) drop-shadow(0 0 14px rgba(145,45,220,.65))}.collection-artwork.dynamax{filter:drop-shadow(0 0 10px rgba(220,30,30,.65))}.collection-artwork.gigantamax{filter:drop-shadow(0 0 10px rgba(220,30,30,.65)) scale(1.04)}.screenshot-scanner{margin-bottom:18px}.screenshot-scanner input[type="file"]{padding:10px;background:#f9fafb}.screenshot-scanner img{object-fit:contain}.screenshot-scanner button:disabled{opacity:.6;cursor:wait}</style>
 </head>
 <body>
@@ -52,14 +77,36 @@ button{cursor:pointer}
 </nav>
 <main>
 <section id="home" class="active">
-<div class="panel"><h2>Welcome to Dex Go ⚡</h2><p>Track your Pokémon GO collection, IVs, CP, HP and more.</p></div>
-<div class="panel"><h2>Collection Overview</h2><div class="stats-grid">
-<div class="stat"><span class="stat-number" id="homeTotal">0</span>Total</div>
-<div class="stat"><span class="stat-number" id="homeUnique">0</span>Unique</div>
-<div class="stat"><span class="stat-number" id="homeHundo">0</span>Hundos</div>
-<div class="stat"><span class="stat-number" id="homeProgressText">0%</span>Pokédex</div>
-</div><div class="progress"><div id="homeProgressBar" class="progress-bar"></div></div><div id="homeProgressLabel" class="progress-text">0 / 1025 Pokémon collected</div></div>
-<div class="panel"><h2>💾 Backup & Restore</h2><p>Save your Dex Go collection as a JSON backup or restore it later.</p><button class="primary-btn" type="button" onclick="exportCollection()">📤 Export Collection</button><input id="importCollectionFile" type="file" accept=".json,application/json" style="display:none" onchange="importCollection(event)"><button class="secondary-btn" type="button" onclick="document.getElementById('importCollectionFile').click()">📥 Import Collection</button><div id="backupMessage" class="message"></div></div>
+<div class="home-hero">
+<div class="home-hero-copy">
+<span class="home-kicker">Your Pokémon Collection</span>
+<h2>Welcome back to Dex Go ⚡</h2>
+<p>Track your Pokémon, build your Pokédex and keep every special catch in one place.</p>
+<div class="home-progress-card">
+<strong>Pokédex Progress</strong>
+<div class="progress"><div id="homeProgressBar" class="progress-bar"></div></div>
+<div id="homeProgressLabel" class="progress-text">0 / 1025 Pokémon collected</div>
+</div>
+</div>
+<img class="home-hero-art" src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokemon/pokemon_icon_025_00.png" alt="Pikachu">
+</div>
+
+<div class="home-quick-actions">
+<button class="home-action" type="button" onclick="showSection('add',document.querySelectorAll('nav button')[1])"><span>➕</span>Add Pokémon<small>Add a new catch</small></button>
+<button class="home-action" type="button" onclick="showSection('collection',document.querySelectorAll('nav button')[2])"><span>📖</span>My Pokémon<small>View your collection</small></button>
+<button class="home-action" type="button" onclick="showSection('stats',document.querySelectorAll('nav button')[3])"><span>📊</span>Stats<small>See your progress</small></button>
+<button class="home-action" type="button" onclick="showSection('ranking',document.querySelectorAll('nav button')[4])"><span>🏆</span>Ranking<small>See your best catches</small></button>
+</div>
+
+<div class="home-section-title"><h2>Collection Overview</h2><p>Live from your saved collection</p></div>
+<div class="stats-grid">
+<div class="stat home-stat-card"><span class="stat-number" id="homeTotal">0</span>Total</div>
+<div class="stat home-stat-card"><span class="stat-number" id="homeUnique">0</span>Unique</div>
+<div class="stat home-stat-card"><span class="stat-number" id="homeHundo">0</span>Hundos</div>
+<div class="stat home-stat-card"><span class="stat-number" id="homeProgressText">0%</span>Pokédex</div>
+</div>
+
+<div class="panel home-backup"><div class="home-section-title"><h2>💾 Backup & Restore</h2><p>Keep your collection safe</p></div><p>Save your Dex Go collection as a JSON backup or restore it later.</p><button class="primary-btn" type="button" onclick="exportCollection()">📤 Export Collection</button><input id="importCollectionFile" type="file" accept=".json,application/json" style="display:none" onchange="importCollection(event)"><button class="secondary-btn" type="button" onclick="document.getElementById('importCollectionFile').click()">📥 Import Collection</button><div id="backupMessage" class="message"></div></div>
 </section>
 <section id="add">
 <div class="panel">
