@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <title>⚡ Dex Go</title>
 <style>
 *{box-sizing:border-box}
@@ -38,7 +39,7 @@ button{cursor:pointer}
 .edit-btn{background:#dbeafe;color:#1d4ed8}
 .delete-btn{background:#fee2e2;color:#b91c1c}
 @media (min-width:600px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
-.add-browser{margin-bottom:18px}.browser-row{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px}.browser-row button{border:0;background:#e5e7eb;padding:9px 12px;border-radius:999px;font-weight:bold;white-space:nowrap}.browser-row button.active{background:#111827;color:white}.pokemon-browser-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.pokemon-browser-card{border:1px solid #e5e7eb;background:#f9fafb;border-radius:14px;padding:10px;text-align:center}.pokemon-browser-card img{width:90px;height:90px;object-fit:contain}.pokemon-browser-card strong{display:block;font-size:14px}.pokemon-browser-card span{display:block;font-size:12px;color:#6b7280;margin-top:3px}.browser-more{width:100%;margin-top:12px;padding:11px;border:0;border-radius:10px;background:#e5e7eb;font-weight:bold}@media(min-width:600px){.pokemon-browser-grid{grid-template-columns:repeat(5,1fr)}} .screenshot-scanner{margin-bottom:18px}.screenshot-scanner input[type="file"]{padding:10px;background:#f9fafb}.screenshot-scanner img{object-fit:contain}</style>
+.add-browser{margin-bottom:18px}.browser-row{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px}.browser-row button{border:0;background:#e5e7eb;padding:9px 12px;border-radius:999px;font-weight:bold;white-space:nowrap}.browser-row button.active{background:#111827;color:white}.pokemon-browser-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.pokemon-browser-card{border:1px solid #e5e7eb;background:#f9fafb;border-radius:14px;padding:10px;text-align:center}.pokemon-browser-card img{width:90px;height:90px;object-fit:contain}.pokemon-browser-card strong{display:block;font-size:14px}.pokemon-browser-card span{display:block;font-size:12px;color:#6b7280;margin-top:3px}.browser-more{width:100%;margin-top:12px;padding:11px;border:0;border-radius:10px;background:#e5e7eb;font-weight:bold}@media(min-width:600px){.pokemon-browser-grid{grid-template-columns:repeat(5,1fr)}} .screenshot-scanner{margin-bottom:18px}.screenshot-scanner input[type="file"]{padding:10px;background:#f9fafb}.screenshot-scanner img{object-fit:contain}.screenshot-scanner button:disabled{opacity:.6;cursor:wait}</style>
 </head>
 <body>
 <header><h1>⚡ Dex Go</h1><p>Pokémon GO Collection Tracker</p></header>
@@ -64,7 +65,7 @@ button{cursor:pointer}
 <div class="panel">
 <h2>Add Pokémon</h2><div class="panel screenshot-scanner">
 <h2>📷 Scan Pokémon Screenshot</h2>
-<p class="progress-text">Upload a Pokémon GO screenshot. Screenshot recognition will be added next.</p>
+<p class="progress-text">Upload a Pokémon GO screenshot and Dex Go will try to detect the Pokémon, CP, HP and IVs.</p>
 <label for="pokemonScreenshot">Choose Screenshot</label>
 <input id="pokemonScreenshot" type="file" accept="image/*">
 <div id="screenshotPreview" style="display:none;margin-top:12px;text-align:center;">
@@ -72,6 +73,7 @@ button{cursor:pointer}
 </div>
 <button id="scanScreenshotBtn" class="secondary-btn" type="button" onclick="scanPokemonScreenshot()">🔍 Scan Screenshot</button>
 <div id="screenshotMessage" class="message"></div>
+<div id="screenshotResults" class="message"></div>
 </div>
 <div class="panel add-browser">
 <h2>🔎 Browse Pokémon</h2>
@@ -719,6 +721,172 @@ if(element){element.addEventListener("input",filterCollection);element.addEventL
 
 renderCollection();
 updateStats();
-\nfunction previewPokemonScreenshot(event){\nconst file=event.target.files&&event.target.files[0];\nconst preview=document.getElementById("screenshotPreview");\nconst image=document.getElementById("screenshotPreviewImage");\nif(!file){preview.style.display="none";image.removeAttribute("src");return;}\nif(!file.type.startsWith("image/")){event.target.value="";preview.style.display="none";showScreenshotMessage("Please choose an image screenshot.");return;}\nconst reader=new FileReader();\nreader.onload=function(){image.src=reader.result;preview.style.display="block";showScreenshotMessage("Screenshot selected. Ready to scan.");};\nreader.readAsDataURL(file);\n}\n\nfunction showScreenshotMessage(message){\nconst box=document.getElementById("screenshotMessage");\nif(!box)return;\nbox.textContent=message;\nbox.style.display="block";\n}\n\nfunction scanPokemonScreenshot(){\nconst fileInput=document.getElementById("pokemonScreenshot");\nif(!fileInput||!fileInput.files||!fileInput.files[0]){showScreenshotMessage("Please choose a screenshot first.");return;}\nshowScreenshotMessage("Screenshot scan is ready for the next recognition step.");\n}\n\ndocument.getElementById("pokemonScreenshot").addEventListener("change",previewPokemonScreenshot);\n</script>
+
+function previewPokemonScreenshot(event){
+const file=event.target.files&&event.target.files[0];
+const preview=document.getElementById("screenshotPreview");
+const image=document.getElementById("screenshotPreviewImage");
+if(!file){
+preview.style.display="none";
+image.removeAttribute("src");
+showScreenshotMessage("");
+return;
+}
+if(!file.type.startsWith("image/")){
+event.target.value="";
+preview.style.display="none";
+showScreenshotMessage("Please choose an image screenshot.");
+return;
+}
+const reader=new FileReader();
+reader.onload=function(){
+image.src=reader.result;
+preview.style.display="block";
+showScreenshotMessage("Screenshot selected. Ready to scan.");
+};
+reader.readAsDataURL(file);
+}
+
+function showScreenshotMessage(message){
+const box=document.getElementById("screenshotMessage");
+if(!box)return;
+box.textContent=message;
+box.style.display=message?"block":"none";
+}
+
+function showScreenshotResults(message){
+const box=document.getElementById("screenshotResults");
+if(!box)return;
+box.textContent=message;
+box.style.display=message?"block":"none";
+}
+
+function normalizeOCRText(text){
+return text
+.replace(/[|]/g,"I")
+.replace(/[“”‘’]/g,"")
+.replace(/\s+/g," ")
+.trim();
+}
+
+function findPokemonFromOCR(text){
+const normalized=normalizeOCRText(text).toLowerCase();
+if(!pokemonList||pokemonList.length===0)return null;
+let best=null;
+let bestScore=0;
+pokemonList.forEach(pokemon=>{
+const name=formatPokemonName(pokemon.name).toLowerCase();
+const compact=name.replace(/[^a-z0-9]/g,"");
+const compactText=normalized.replace(/[^a-z0-9]/g," ");
+if(normalized.includes(name)||compactText.includes(compact)){
+best=pokemon;
+bestScore=1;
+return;
+}
+const words=normalized.split(/[^a-z0-9]+/).filter(Boolean);
+const nameWords=name.split(/\s+/);
+const matches=nameWords.filter(word=>words.some(ocrWord=>ocrWord===word||ocrWord.includes(word)||word.includes(ocrWord))).length;
+const score=matches/nameWords.length;
+if(score>bestScore&&score>=0.6){
+best=pokemon;
+bestScore=score;
+}
+});
+return best;
+}
+
+function extractNumberNearLabel(text,label){
+const pattern=new RegExp(label+"\\s*[:#-]?\\s*(\\d{1,4})","i");
+const match=text.match(pattern);
+return match?Number(match[1]):null;
+}
+
+function extractCPHP(text){
+const normalized=normalizeOCRText(text);
+let cp=extractNumberNearLabel(normalized,"CP");
+let hp=extractNumberNearLabel(normalized,"HP");
+if(cp===null){
+const match=normalized.match(/\bCP\D{0,12}(\d{2,5})\b/i);
+if(match)cp=Number(match[1]);
+}
+if(hp===null){
+const match=normalized.match(/\bHP\D{0,12}(\d{1,4})\b/i);
+if(match)hp=Number(match[1]);
+}
+return{cp,hp};
+}
+
+function extractIVs(text){
+const normalized=normalizeOCRText(text);
+let attack=null,defense=null,stamina=null;
+const attackMatch=normalized.match(/(?:attack|atk)\D{0,12}(\d{1,2})\b/i);
+const defenseMatch=normalized.match(/(?:defense|defence|def)\D{0,12}(\d{1,2})\b/i);
+const staminaMatch=normalized.match(/(?:stamina|hp)\D{0,12}(\d{1,2})\b/i);
+if(attackMatch)attack=limitIV(attackMatch[1]);
+if(defenseMatch)defense=limitIV(defenseMatch[1]);
+if(staminaMatch)stamina=limitIV(staminaMatch[1]);
+return{attack,defense,stamina};
+}
+
+function applyScreenshotRecognition(result){
+const text=result.text||"";
+const pokemon=findPokemonFromOCR(text);
+const values=extractCPHP(text);
+const ivs=extractIVs(text);
+let filled=[];
+if(pokemon){
+document.getElementById("pokemonSelect").value=String(pokemon.id);
+selectPokemon();
+filled.push("Pokémon: "+formatPokemonName(pokemon.name));
+}
+if(values.cp!==null){document.getElementById("cp").value=values.cp;filled.push("CP: "+values.cp);}
+if(values.hp!==null){document.getElementById("hp").value=values.hp;filled.push("HP: "+values.hp);}
+if(ivs.attack!==null){document.getElementById("attackIV").value=ivs.attack;filled.push("Attack IV: "+ivs.attack);}
+if(ivs.defense!==null){document.getElementById("defenseIV").value=ivs.defense;filled.push("Defense IV: "+ivs.defense);}
+if(ivs.stamina!==null){document.getElementById("staminaIV").value=ivs.stamina;filled.push("Stamina IV: "+ivs.stamina);}
+if(ivs.attack!==null||ivs.defense!==null||ivs.stamina!==null)showIVAppraisal();
+
+if(filled.length===0){
+showScreenshotMessage("Scan finished, but no supported Pokémon details were detected. Try a clearer Pokémon GO screenshot.");
+showScreenshotResults("");
+return;
+}
+showScreenshotMessage("Scan complete. Please review the detected values before saving.");
+showScreenshotResults("Detected: "+filled.join(" • "));
+}
+
+async function scanPokemonScreenshot(){
+const fileInput=document.getElementById("pokemonScreenshot");
+if(!fileInput||!fileInput.files||!fileInput.files[0]){
+showScreenshotMessage("Please choose a screenshot first.");
+return;
+}
+const button=document.getElementById("scanScreenshotBtn");
+button.disabled=true;
+button.textContent="🔍 Scanning...";
+showScreenshotMessage("OCR is reading the screenshot. The first scan may take a little longer.");
+showScreenshotResults("");
+try{
+if(typeof Tesseract==="undefined")throw new Error("OCR library failed to load.");
+const result=await Tesseract.recognize(fileInput.files[0],"eng",{
+logger:message=>{
+if(message.status==="recognizing text"&&message.progress){
+showScreenshotMessage("Scanning screenshot... "+Math.round(message.progress*100)+"%");
+}
+}
+});
+applyScreenshotRecognition(result.data);
+}catch(error){
+console.error("Dex Go screenshot recognition error:",error);
+showScreenshotMessage("Could not scan this screenshot. Please try again with a clear image.");
+showScreenshotResults("");
+}finally{
+button.disabled=false;
+button.textContent="🔍 Scan Screenshot";
+}
+}
+
+document.getElementById("pokemonScreenshot").addEventListener("change",previewPokemonScreenshot);
+</script>
 </body>
 </html>
