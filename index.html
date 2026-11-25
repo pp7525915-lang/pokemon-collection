@@ -855,70 +855,141 @@ if(new RegExp("\\b"+escaped+"\\b","i").test(normalized)&&!found.includes(aliases
 return found;
 }
 
-async function detectIVBarsFromImage(file){
+async function detectIVBarsFromImage(file,ocrData){
 return await new Promise(resolve=>{
 const image=new Image();
 image.onload=function(){
 const canvas=document.createElement("canvas");
-const maxWidth=900;
+const maxWidth=1200;
 const scale=Math.min(1,maxWidth/image.naturalWidth);
-canvas.width=Math.round(image.naturalWidth*scale);
-canvas.height=Math.round(image.naturalHeight*scale);
+canvas.width=Math.max(1,Math.round(image.naturalWidth*scale));
+canvas.height=Math.max(1,Math.round(image.naturalHeight*scale));
 const ctx=canvas.getContext("2d",{willReadFrequently:true});
 ctx.drawImage(image,0,0,canvas.width,canvas.height);
 const data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
-const yStart=Math.floor(canvas.height*0.70);
-const yEnd=Math.floor(canvas.height*0.94);
-const xStart=Math.floor(canvas.width*0.08);
-const xEnd=Math.floor(canvas.width*0.95);
-const rowGroups=[];
-let active=[];
-for(let y=yStart;y<yEnd;y++){
-let count=0;
-for(let x=xStart;x<xEnd;x++){
-const i=(y*canvas.width+x)*4;
-const r=data[i],g=data[i+1],b=data[i+2];
-const redBar=r>185&&r>g*1.35&&r>b*1.2&&g<155;
-const orangeBar=r>190&&g>75&&g<180&&b<100&&r>g*1.25;
-if(redBar||orangeBar)count++;
-}
-if(count>canvas.width*0.35){
-if(!active.length||y-active[active.length-1]<=2)active.push(y);
-else{rowGroups.push(active);active=[y];}
-}
-}
-if(active.length)rowGroups.push(active);
 
-const values=[];
-rowGroups.slice(0,3).forEach(group=>{
-const y=Math.round(group.reduce((a,b)=>a+b,0)/group.length);
-let minX=Infinity,maxX=-Infinity,count=0;
-for(let x=xStart;x<xEnd;x++){
+function pixelAt(x,y){
 const i=(y*canvas.width+x)*4;
-const r=data[i],g=data[i+1],b=data[i+2];
-const redBar=r>185&&r>g*1.35&&r>b*1.2&&g<155;
-const orangeBar=r>190&&g>75&&g<180&&b<100&&r>g*1.25;
-if(redBar||orangeBar){minX=Math.min(minX,x);maxX=Math.max(maxX,x);count++;}
+return{r:data[i],g:data[i+1],b:data[i+2]};
 }
-if(count>0&&maxX>minX){
-const span=maxX-minX+1;
-const coverage=count/span;
-if(coverage>0.75)values.push(Math.max(0,Math.min(15,Math.round(coverage*15))));
+function isOrange(p){
+return p.r>175&&p.g>70&&p.g<190&&p.b<115&&p.r>p.g*1.25&&p.g>p.b*1.35;
+}
+function isTrackGray(p){
+const max=Math.max(p.r,p.g,p.b),min=Math.min(p.r,p.g,p.b);
+return max-min<24&&max>=145&&max<=245;
+}
+function isBarPixel(p){return isOrange(p)||isTrackGray(p);}
+
+function findBestBar(windowBox){
+let best=null;
+const y0=Math.max(0,Math.floor(windowBox.y0));
+const y1=Math.min(canvas.height-1,Math.ceil(windowBox.y1));
+const x0=Math.max(0,Math.floor(windowBox.x0));
+const x1=Math.min(canvas.width-1,Math.ceil(windowBox.x1));
+for(let y=y0;y<=y1;y++){
+let runStart=-1,lastBar=-1,gap=0,orangeCount=0,orangeStart=-1,orangeEnd=-1;
+for(let x=x0;x<=x1;x++){
+const p=pixelAt(x,y);
+if(isBarPixel(p)){
+if(runStart<0)runStart=x;
+lastBar=x;
+gap=0;
+if(isOrange(p)){
+orangeCount++;
+if(orangeStart<0)orangeStart=x;
+orangeEnd=x;
+}
+}else if(runStart>=0&&gap<4){
+gap++;
+}else{
+if(runStart>=0&&lastBar-runStart+1>=60&&orangeCount>=3){
+const trackEnd=lastBar-gap;
+const trackWidth=trackEnd-runStart+1;
+const orangeWidth=orangeEnd>=orangeStart?orangeEnd-orangeStart+1:0;
+if(trackWidth>=80){
+const score=orangeCount*2+trackWidth;
+if(!best||score>best.score)best={x0:runStart,x1:trackEnd,y:y,trackWidth,orangeWidth,orangeCount,score};
+}
+}
+runStart=-1;lastBar=-1;gap=0;orangeCount=0;orangeStart=-1;orangeEnd=-1;
+}
+}
+if(runStart>=0&&lastBar-runStart+1>=60&&orangeCount>=3){
+const trackEnd=lastBar-gap;
+const trackWidth=trackEnd-runStart+1;
+const orangeWidth=orangeEnd>=orangeStart?orangeEnd-orangeStart+1:0;
+if(trackWidth>=80){
+const score=orangeCount*2+trackWidth;
+if(!best||score>best.score)best={x0:runStart,x1:trackEnd,y:y,trackWidth,orangeWidth,orangeCount,score};
+}
+}
+}
+return best;
+}
+
+const words=ocrData&&Array.isArray(ocrData.words)?ocrData.words:[];
+const labels={attack:null,defense:null,stamina:null};
+words.forEach(word=>{
+const text=String(word.text||"").toLowerCase().replace(/[^a-z]/g,"");
+if(!word.bbox)return;
+if(text==="attack"&&!labels.attack)labels.attack=word.bbox;
+if((text==="defense"||text==="defence")&&!labels.defense)labels.defense=word.bbox;
+if(text==="hp"&&!labels.stamina)labels.stamina=word.bbox;
+});
+
+function labelCandidates(box){
+if(!box)return[];
+const w=box.right-box.left;
+const h=box.bottom-box.top;
+return[
+{x0:box.left-w*0.15,x1:box.right+w*1.8,y0:box.top-h*0.4,y1:box.bottom+h*1.8},
+{x0:box.left-w*0.15,x1:box.right+w*0.9,y0:box.bottom-h*0.1,y1:box.bottom+h*3.5}
+];
+}
+
+const results=[];
+["attack","defense","stamina"].forEach(key=>{
+const candidates=labelCandidates(labels[key]);
+let best=null;
+candidates.forEach(box=>{
+const found=findBestBar(box);
+if(found){
+const distance=labels[key]?Math.abs(found.y-(labels[key].bottom)):0;
+const score=found.score-distance*0.5;
+if(!best||score>best.score)best={...found,score};
 }
 });
-resolve(values.length===3?values:null);
+if(best){
+let ratio=best.orangeWidth>0?(best.orangeWidth/best.trackWidth):0;
+ratio=Math.max(0,Math.min(1,ratio));
+const iv=Math.max(0,Math.min(15,Math.round(ratio*15)));
+const confidence=(best.trackWidth>=120?0.25:0)+(best.orangeCount>=8?0.25:0)+(labels[key]?0.25:0)+(best.orangeWidth===0||ratio>0.08?0.25:0);
+results.push({key,iv,confidence,bar:best});
+}
+});
+
+if(results.length===3&&results.every(item=>item.confidence>=0.75)){
+resolve({
+attack:results[0].iv,
+defense:results[1].iv,
+stamina:results[2].iv
+});
+return;
+}
+
+resolve(null);
 };
 image.onerror=function(){resolve(null);};
 image.src=URL.createObjectURL(file);
 });
 }
-
 async function applyScreenshotRecognition(result,file){
 const text=result.text||"";
 const pokemon=findPokemonFromOCR(text);
 const values=extractCPHP(text);
 const ocrIVs=extractIVs(text);
-const barIVs=await detectIVBarsFromImage(file);
+const barIVs=await detectIVBarsFromImage(file,result);
 const ivs={
 attack:barIVs?barIVs[0]:ocrIVs.attack,
 defense:barIVs?barIVs[1]:ocrIVs.defense,
