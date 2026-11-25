@@ -47,6 +47,7 @@ button{cursor:pointer}
 <button onclick="showSection('add',this)">Add Pokémon</button>
 <button onclick="showSection('collection',this)">My Pokémon</button>
 <button onclick="showSection('stats',this)">Stats</button>
+<button onclick="showSection('ranking',this)">🏆 Ranking</button>
 </nav>
 <main>
 <section id="home" class="active">
@@ -139,11 +140,13 @@ button{cursor:pointer}
 </div></div>
 <div class="panel"><h2>Pokédex Completion</h2><div class="progress"><div id="statsProgressBar" class="progress-bar"></div></div><div id="statsProgressText" class="progress-text">0 / 1025 Pokémon collected — 0%</div></div>
 <div class="panel"><h2>Generation Progress</h2><div id="generationStats" class="generation-stats"></div></div>
-<div class="panel"><h2>Ranking & Best Pokémon 🏆</h2><p class="progress-text">Top Pokémon from your collection, separate from the main stats.</p><div id="rankingStats" class="generation-stats"></div></div>
 <div class="panel"><h2>Other Stats</h2><div class="stats-grid">
 <div class="stat"><span class="stat-number" id="statsShiny">0</span>Shiny</div>
 <div class="stat"><span class="stat-number" id="statsLucky">0</span>Lucky</div>
-</div><p class="progress-text">Shiny and Lucky tracking will be added when those fields are stored.</p></div>
+</div></div>
+</section>
+<section id="ranking">
+<div class="panel"><h2>🏆 Ranking</h2><p class="progress-text">Your best and rarest Pokémon, ranked from your collection.</p><div id="rankingStats" class="generation-stats"></div></div>
 </section>
 </main>
 <script>
