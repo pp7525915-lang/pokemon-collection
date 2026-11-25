@@ -980,155 +980,16 @@ stamina:results[2].iv
 return;
 }
 
-// Fallback for screenshots where OCR misses the appraisal labels.
-// The GO appraisal bars form three short, closely spaced horizontal rows.
-const fallbackRows=[];
-const scanX0=Math.floor(canvas.width*0.08);
-const scanX1=Math.floor(canvas.width*0.58);
-const scanY0=Math.floor(canvas.height*0.55);
-const scanY1=Math.floor(canvas.height*0.92);
-
-for(let y=scanY0;y<=scanY1;y++){
-let filled=0;
-for(let x=scanX0;x<=scanX1;x++){
-if(isFilledBarPixel(pixelAt(x,y)))filled++;
-}
-if(filled>=50)fallbackRows.push(y);
-}
-
-const rowGroups=[];
-fallbackRows.forEach(y=>{
-const last=rowGroups[rowGroups.length-1];
-if(last&&y-last[last.length-1]<=4)last.push(y);
-else rowGroups.push([y]);
-});
-
-const barRows=rowGroups
-.filter(group=>group.length>=2)
-.map(group=>Math.round(group.reduce((sum,y)=>sum+y,0)/group.length))
-.filter((y,index,arr)=>index===0||y-arr[index-1]>=12)
-.slice(0,3);
-
-if(barRows.length===3){
-const fallback=[];
-barRows.forEach(y=>{
-let best=null;
-let runStart=-1,lastBar=-1,gap=0,filledCount=0;
-
-for(let x=scanX0;x<=scanX1;x++){
-const p=pixelAt(x,y);
-if(isBarPixel(p)){
-if(runStart<0)runStart=x;
-lastBar=x;
-gap=0;
-if(isFilledBarPixel(p))filledCount++;
-}else if(runStart>=0&&gap<4){
-gap++;
-}else{
-if(runStart>=0&&lastBar-runStart+1>=80&&filledCount>=50){
-const trackEnd=lastBar-gap;
-const trackWidth=trackEnd-runStart+1;
-const score=filledCount*2+trackWidth;
-if(!best||score>best.score)best={trackWidth,filledCount,score};
-}
-runStart=-1;
-lastBar=-1;
-gap=0;
-filledCount=0;
-}
-}
-
-if(runStart>=0&&lastBar-runStart+1>=80&&filledCount>=50){
-const trackEnd=lastBar-gap;
-const trackWidth=trackEnd-runStart+1;
-const score=filledCount*2+trackWidth;
-if(!best||score>best.score)best={trackWidth,filledCount,score};
-}
-
-if(best)fallback.push(best);
-});
-
-if(fallback.length===3){
-const trackWidth=Math.max(...fallback.map(item=>item.trackWidth));
-const values=fallback.map(item=>Math.max(0,Math.min(15,
-Math.round((item.filledCount/trackWidth)*15)
-)));
-if(values.every(value=>value>=0&&value<=15)){
-resolve({
-attack:values[0],
-defense:values[1],
-stamina:values[2]
-});
-return;
-}
-}
-
 resolve(null);
 };
 image.onerror=function(){resolve(null);};
 image.src=URL.createObjectURL(file);
 });
 }
-async function extractCPHPFromImage(file){
-return await new Promise(async resolve=>{
-try{
-const image=new Image();
-image.onload=async function(){
-const canvas=document.createElement("canvas");
-canvas.width=image.naturalWidth;
-canvas.height=image.naturalHeight;
-const ctx=canvas.getContext("2d");
-if(!ctx){resolve({cp:null,hp:null});return;}
-
-async function readCrop(x0,y0,x1,y1){
-const w=Math.max(1,Math.round(canvas.width*(x1-x0)));
-const h=Math.max(1,Math.round(canvas.height*(y1-y0)));
-const crop=document.createElement("canvas");
-crop.width=w*2;
-crop.height=h*2;
-const cropCtx=crop.getContext("2d");
-cropCtx.drawImage(image,
-Math.round(canvas.width*x0),Math.round(canvas.height*y0),w,h,
-0,0,crop.width,crop.height);
-const cropBlob=await new Promise(r=>crop.toBlob(r,"image/png"));
-const result=await Tesseract.recognize(cropBlob,"eng");
-return result.data.text||"";
-}
-
-const cpText=await readCrop(0.12,0.025,0.90,0.16);
-const hpText=await readCrop(0.10,0.38,0.92,0.53);
-
-let cp=null;
-let hp=null;
-
-const cpMatch=cpText.match(/(?:CP|C[Pp])\s*[:#-]?\s*(\d{2,5})/i)
-||cpText.match(/\b(\d{3,5})\b/);
-if(cpMatch)cp=Number(cpMatch[1]||cpMatch[0]);
-
-const hpSlash=hpText.match(/\b(\d{1,4})\s*\/\s*(\d{1,4})\s*(?:HP|H[Pp])?\b/i);
-if(hpSlash)hp=Number(hpSlash[1]);
-if(hp===null){
-const hpMatch=hpText.match(/\b(?:HP|H[Pp])\s*[:#-]?\s*(\d{1,4})\b/i);
-if(hpMatch)hp=Number(hpMatch[1]);
-}
-
-resolve({cp,hp});
-};
-image.onerror=function(){resolve({cp:null,hp:null});};
-image.src=URL.createObjectURL(file);
-}catch(error){
-resolve({cp:null,hp:null});
-}
-});
-}
-
 async function applyScreenshotRecognition(result,file){
 const text=result.text||"";
 const pokemon=findPokemonFromOCR(text);
 const values=extractCPHP(text);
-const targetedValues=await extractCPHPFromImage(file);
-if(values.cp===null&&targetedValues.cp!==null)values.cp=targetedValues.cp;
-if(values.hp===null&&targetedValues.hp!==null)values.hp=targetedValues.hp;
 const ocrIVs=extractIVs(text);
 const barIVs=await detectIVBarsFromImage(file,result);
 const ivs={
