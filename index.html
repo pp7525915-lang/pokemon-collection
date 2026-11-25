@@ -31,6 +31,20 @@ body.dark .home-progress-card{background:rgba(15,23,42,.35)}
 body.dark .screenshot-scanner input[type="file"]{background:#1f2937;color:var(--text)}
 body.dark .home-hero{box-shadow:0 8px 24px rgba(0,0,0,.35)}
 body.dark .message{background:#052e16;color:#bbf7d0}
+
+/* Menu */
+.menu-toggle{border:0;background:#e5e7eb;padding:11px 16px;border-radius:10px;font-weight:bold;white-space:nowrap}
+.menu-toggle.active{background:#111827;color:white}
+.menu-panel{display:none;position:relative;background:var(--surface);border-bottom:1px solid var(--border);box-shadow:0 8px 18px rgba(0,0,0,.08);padding:12px;z-index:20}
+.menu-panel.open{display:block}
+.menu-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-width:900px;margin:auto}
+.menu-item{border:1px solid var(--border);background:var(--surface-soft);color:var(--text);border-radius:14px;padding:13px;text-align:left;font-weight:bold;cursor:pointer}
+.menu-item small{display:block;color:var(--muted);font-weight:normal;margin-top:3px}
+.menu-item:hover{border-color:var(--primary);transform:translateY(-1px)}
+.menu-item.coming-soon{cursor:default;opacity:.75}
+@media(min-width:600px){.menu-grid{grid-template-columns:repeat(3,1fr);max-width:1000px}}
+body.dark .menu-toggle{background:#1f2937;color:#e5e7eb}
+body.dark .menu-toggle.active{background:#3b82f6;color:white}
 .theme-toggle{position:absolute;right:12px;top:12px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:white;border-radius:999px;padding:8px 11px;font-size:16px;cursor:pointer}
 header{position:relative}
 header{background:#111827;color:white;padding:18px;text-align:center}
@@ -189,7 +203,19 @@ main{padding:12px}
 <button onclick="showSection('collection',this)">My Pokémon</button>
 <button onclick="showSection('stats',this)">Stats</button>
 <button onclick="showSection('ranking',this)">🏆 Ranking</button>
+<button id="menuToggle" class="menu-toggle" type="button" onclick="toggleMenu()" aria-expanded="false">☰ Menu</button>
 </nav>
+<div id="menuPanel" class="menu-panel" aria-hidden="true">
+<div class="menu-grid">
+<button class="menu-item" type="button" onclick="openMenuSection('add');scrollToElement('addBrowser')">📚 Pokédex<small>Browse Pokémon</small></button>
+<button class="menu-item" type="button" onclick="openMenuSection('home');scrollToElement('backupMessage')">💾 Backup &amp; Restore<small>Save or restore your collection</small></button>
+<button class="menu-item" type="button" onclick="openMenuSection('add');scrollToElement('pokemonForm')">🎨 Artwork &amp; Variants<small>Forms, shiny &amp; variants</small></button>
+<button class="menu-item" type="button" onclick="openMenuSection('add');scrollToElement('screenshotScanner')">🔍 Screenshot Scanner<small>Scan a Pokémon GO screenshot</small></button>
+<button class="menu-item" type="button" onclick="toggleTheme();closeMenu()">⚙️ Settings<small>Theme &amp; appearance</small></button>
+<button class="menu-item coming-soon" type="button" disabled>🛠️ More Tools<small>Coming as Dex Go grows</small></button>
+<button class="menu-item coming-soon" type="button" disabled>ℹ️ About Dex Go<small>Coming soon</small></button>
+</div>
+</div>
 <main>
 <section id="home" class="active">
 <div class="home-hero">
@@ -368,6 +394,39 @@ main{padding:12px}
 </section>
 </main>
 <script>
+function toggleMenu(){
+const panel=document.getElementById("menuPanel");
+const button=document.getElementById("menuToggle");
+if(!panel||!button)return;
+const open=!panel.classList.contains("open");
+panel.classList.toggle("open",open);
+button.classList.toggle("active",open);
+button.setAttribute("aria-expanded",String(open));
+panel.setAttribute("aria-hidden",String(!open));
+}
+function closeMenu(){
+const panel=document.getElementById("menuPanel");
+const button=document.getElementById("menuToggle");
+if(!panel||!button)return;
+panel.classList.remove("open");
+button.classList.remove("active");
+button.setAttribute("aria-expanded","false");
+panel.setAttribute("aria-hidden","true");
+}
+function scrollToElement(id){
+setTimeout(()=>{
+const element=document.getElementById(id);
+if(element)element.scrollIntoView({behavior:"smooth",block:"start"});
+},80);
+}
+function openMenuSection(sectionId){
+const navButtons=document.querySelectorAll("nav button");
+const targetIndex={home:0,add:1,collection:2,stats:3,ranking:4}[sectionId];
+if(targetIndex===undefined)return;
+showSection(sectionId,navButtons[targetIndex]);
+closeMenu();
+}
+
 function applyTheme(theme){
 const isDark=theme==="dark";
 document.body.classList.toggle("dark",isDark);
