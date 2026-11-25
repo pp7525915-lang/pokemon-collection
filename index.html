@@ -796,7 +796,7 @@ return best;
 }
 
 function extractNumberNearLabel(text,label){
-const pattern=new RegExp(label+"\\s*[:#-]?\\s*(\\d{1,4})","i");
+const pattern=new RegExp(label+"\\s*[:#-]?\\s*(\d{1,4})","i");
 const match=text.match(pattern);
 return match?Number(match[1]):null;
 }
@@ -1101,14 +1101,14 @@ const hpText=await readCrop(0.10,0.38,0.92,0.53);
 let cp=null;
 let hp=null;
 
-const cpMatch=cpText.match(/(?:CP|C[Pp])\\s*[:#-]?\\s*(\\d{2,5})/i)
-||cpText.match(/\\b(\\d{3,5})\\b/);
+const cpMatch=cpText.match(/(?:CP|C[Pp])\\s*[:#-]?\\s*(\d{2,5})/i)
+||cpText.match(/\\b(\d{3,5})\\b/);
 if(cpMatch)cp=Number(cpMatch[1]||cpMatch[0]);
 
-const hpSlash=hpText.match(/\\b(\\d{1,4})\\s*\\/\\s*(\\d{1,4})\\s*(?:HP|H[Pp])?\\b/i);
+const hpSlash=hpText.match(/\\b(\d{1,4})\\s*\/\\s*(\d{1,4})\\s*(?:HP|H[Pp])?\\b/i);
 if(hpSlash)hp=Number(hpSlash[1]);
 if(hp===null){
-const hpMatch=hpText.match(/\\b(?:HP|H[Pp])\\s*[:#-]?\\s*(\\d{1,4})\\b/i);
+const hpMatch=hpText.match(/\\b(?:HP|H[Pp])\\s*[:#-]?\\s*(\d{1,4})\\b/i);
 if(hpMatch)hp=Number(hpMatch[1]);
 }
 
