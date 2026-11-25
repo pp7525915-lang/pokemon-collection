@@ -181,6 +181,43 @@ const id=pokemon&&(pokemon.pokemonId||pokemon.id);
 const base=pokemon&&pokemon.shiny?IMAGE_BASE+"shiny/":IMAGE_BASE;
 return base+String(id)+".png";
 }
+
+const regionalArtworkCache={};
+
+async function getRegionalArtwork(pokemon,form,shiny){
+if(!pokemon||!form||form==="Normal")return getPokemonArtwork({...pokemon,shiny:!!shiny});
+const cacheKey=String(pokemon.pokemonId||pokemon.id)+"|"+form+"|"+(shiny?"shiny":"normal");
+if(regionalArtworkCache[cacheKey])return regionalArtworkCache[cacheKey];
+const regionSuffix={Alolan:"alola",Galarian:"galar",Hisuian:"hisui",Paldean:"paldea"}[form];
+if(!regionSuffix)return getPokemonArtwork({...pokemon,shiny:!!shiny});
+try{
+const speciesId=Number(pokemon.pokemonId||pokemon.id);
+const speciesResponse=await fetch("https://pokeapi.co/api/v2/pokemon-species/"+speciesId);
+const speciesData=await speciesResponse.json();
+const regionalVariety=(speciesData.varieties||[]).find(item=>{
+const name=item&&item.pokemon&&item.pokemon.name||"";
+return name.endsWith("-"+regionSuffix)||name.includes("-"+regionSuffix+"-");
+});
+if(!regionalVariety)return getPokemonArtwork({...pokemon,shiny:!!shiny});
+const pokemonResponse=await fetch(regionalVariety.pokemon.url);
+const regionalData=await pokemonResponse.json();
+const artwork=regionalData.sprites&&regionalData.sprites.other&&regionalData.sprites.other["official-artwork"];
+const url=shiny?(artwork&&artwork.front_shiny):(artwork&&artwork.front_default);
+if(url){
+regionalArtworkCache[cacheKey]=url;
+return url;
+}
+}catch(error){
+console.error("Dex Go regional artwork error:",error);
+}
+return getPokemonArtwork({...pokemon,shiny:!!shiny});
+}
+
+async function updateRegionalArtworkImage(imageElement,pokemon,form,shiny){
+if(!imageElement||!pokemon||!form||form==="Normal")return;
+const url=await getRegionalArtwork(pokemon,form,shiny);
+if(url)imageElement.src=url;
+}
 let pokemonList=[],selectedPokemon=null,editingId=null;
 
 function showSection(sectionId,button){
@@ -351,7 +388,6 @@ const pokemonData=pokemonList.find(item=>Number(item.id)===Number(pokemon.pokemo
 selectedPokemon=pokemonData;
 document.getElementById("pokemonSearch").value=formatPokemonName(pokemonData.name);
 document.getElementById("pokemonSelect").value=String(pokemonData.id);
-document.getElementById("selectedPokemonPreview").innerHTML=`<div class="panel" style="margin-top:15px;text-align:center;"><img src="${getPokemonArtwork({...pokemonData,shiny:!!pokemon.shiny})}" alt="${formatPokemonName(pokemonData.name)}${pokemon.shiny?" shiny":""}" width="150" height="150"><h3>${formatPokemonName(pokemonData.name)}</h3><p>Pokédex #${String(pokemonData.id).padStart(3,"0")}</p><p style="font-size:13px;color:#6b7280;">${pokemon.shiny?"✨ Shiny artwork":"Official artwork"}</p></div>`;
 document.getElementById("cp").value=pokemon.cp||"";
 document.getElementById("hp").value=pokemon.hp||"";
 ["fastMove","chargedMove","costume","event","background","caughtPlace"].forEach(id=>document.getElementById(id).value=pokemon[id]||"");
@@ -359,6 +395,7 @@ document.getElementById("caughtDate").value=pokemon.caughtDate||"";
 document.getElementById("pokemonType").value=pokemon.type||"";
 setFormOptions(pokemon.pokemonId,pokemon.form||"Normal");
 document.getElementById("shiny").value=pokemon.shiny?"true":"false";
+renderSelectedPokemonPreview();
 document.getElementById("lucky").value=pokemon.lucky?"true":"false";
 document.getElementById("attackIV").value=limitIV(pokemon.attackIV);
 document.getElementById("defenseIV").value=limitIV(pokemon.defenseIV);
@@ -460,7 +497,7 @@ const image=getPokemonArtwork(pokemon);
 const stars=getAppraisalStars(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV);
 const total=getIVTotal(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV);
 const card=document.createElement("div");card.className="panel";card.style.marginBottom="15px";
-card.innerHTML=`<div style="display:flex;align-items:center;gap:15px;"><div style="text-align:center;min-width:100px;"><img class="collection-artwork${pokemon.shiny?" shiny":""}" src="${image}" alt="${formatPokemonName(pokemon.name)}${pokemon.shiny?" shiny":""}" width="100" height="100" loading="lazy"><div style="font-size:12px;color:#6b7280;margin-top:2px;">${pokemon.shiny?"✨ Shiny artwork":"Official artwork"}</div></div><div style="flex:1;"><h3 style="margin:0;">#${String(pokemon.pokemonId).padStart(3,"0")} ${formatPokemonName(pokemon.name)}</h3><p style="margin:6px 0;">CP: ${pokemon.cp||0} &nbsp; | &nbsp; HP: ${pokemon.hp||0}</p><p style="margin:6px 0;">IV: ${calculateIV(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV)}% (${total}/45)</p>
+card.innerHTML=`<div style="display:flex;align-items:center;gap:15px;"><div style="text-align:center;min-width:100px;"><img class="collection-artwork${pokemon.shiny?" shiny":""}" data-regional-artwork="true" src="${image}" alt="${formatPokemonName(pokemon.name)}${pokemon.shiny?" shiny":""}" width="100" height="100" loading="lazy"><div style="font-size:12px;color:#6b7280;margin-top:2px;">${pokemon.form&&pokemon.form!=="Normal"?pokemon.form+" artwork":pokemon.shiny?"✨ Shiny artwork":"Official artwork"}</div></div><div style="flex:1;"><h3 style="margin:0;">#${String(pokemon.pokemonId).padStart(3,"0")} ${formatPokemonName(pokemon.name)}</h3><p style="margin:6px 0;">CP: ${pokemon.cp||0} &nbsp; | &nbsp; HP: ${pokemon.hp||0}</p><p style="margin:6px 0;">IV: ${calculateIV(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV)}% (${total}/45)</p>
 ${pokemon.fastMove||pokemon.chargedMove?`<p style="margin:6px 0;">🥊 Moves: ${pokemon.fastMove||"-"} / ${pokemon.chargedMove||"-"}</p>`:""}
 ${pokemon.costume?`<p style="margin:6px 0;">👕 Costume: ${pokemon.costume}</p>`:""}
 ${pokemon.event?`<p style="margin:6px 0;">🎉 Event: ${pokemon.event}</p>`:""}
@@ -472,6 +509,10 @@ ${pokemon.form&&pokemon.form!=="Normal"?`<p style="margin:6px 0;">🌀 Form: ${p
 <p style="margin:6px 0;">${pokemon.shiny?"✨ Shiny ":""}${pokemon.lucky?"🍀 Lucky":""}</p><p style="font-size:22px;margin:6px 0;">${stars||"0★"}</p></div></div>
 <div class="collection-actions"><button type="button" class="edit-btn" onclick="editPokemon(${pokemon.id})">✏️ Edit</button><button type="button" class="delete-btn" onclick="deletePokemon(${pokemon.id})">🗑️ Delete</button></div>`;
 collectionList.appendChild(card);
+if(pokemon.form&&pokemon.form!=="Normal"){
+const regionalImage=card.querySelector("[data-regional-artwork]");
+updateRegionalArtworkImage(regionalImage,pokemon,pokemon.form,pokemon.shiny);
+}
 });
 }
 
@@ -708,15 +749,17 @@ const search=pokemonSearch.value.toLowerCase().trim();
 fillPokemonSelect(pokemonList.filter(pokemon=>pokemon.name.toLowerCase().includes(search)||String(pokemon.id).includes(search)));
 }
 
-function renderSelectedPokemonPreview(){
+async function renderSelectedPokemonPreview(){
 if(!selectedPokemon){
 document.getElementById("selectedPokemonPreview").innerHTML="";
 return;
 }
 const isShiny=document.getElementById("shiny").value==="true";
+const form=document.getElementById("pokemonForm").value||"Normal";
 const previewPokemon={...selectedPokemon,shiny:isShiny};
 const image=getPokemonArtwork(previewPokemon);
-document.getElementById("selectedPokemonPreview").innerHTML=`<div class="panel" style="margin-top:15px;text-align:center;"><img src="${image}" alt="${formatPokemonName(selectedPokemon.name)}${isShiny?" shiny":""}" width="150" height="150"><h3>${formatPokemonName(selectedPokemon.name)}</h3><p>Pokédex #${String(selectedPokemon.id).padStart(3,"0")}</p><p style="font-size:13px;color:#6b7280;">${isShiny?"✨ Shiny artwork":"Official artwork"}</p></div>`;
+document.getElementById("selectedPokemonPreview").innerHTML=`<div class="panel" style="margin-top:15px;text-align:center;"><img id="selectedPokemonArtwork" src="${image}" alt="${formatPokemonName(selectedPokemon.name)}${isShiny?" shiny":""}" width="150" height="150"><h3>${formatPokemonName(selectedPokemon.name)}</h3><p>Pokédex #${String(selectedPokemon.id).padStart(3,"0")}</p><p style="font-size:13px;color:#6b7280;">${form==="Normal"?(isShiny?"✨ Shiny artwork":"Official artwork"):form+" artwork"${isShiny?" ✨ Shiny":""}}</p></div>`;
+if(form!=="Normal")await updateRegionalArtworkImage(document.getElementById("selectedPokemonArtwork"),selectedPokemon,form,isShiny);
 }
 
 function selectPokemon(){
@@ -733,6 +776,7 @@ renderSelectedPokemonPreview();
 pokemonSearch.addEventListener("input",filterPokemon);
 pokemonSelect.addEventListener("change",selectPokemon);
 document.getElementById("shiny").addEventListener("change",renderSelectedPokemonPreview);
+document.getElementById("pokemonForm").addEventListener("change",renderSelectedPokemonPreview);
 loadPokedex();
 initPokemonBrowser();
 
