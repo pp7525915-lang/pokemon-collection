@@ -39,7 +39,7 @@ button{cursor:pointer}
 .edit-btn{background:#dbeafe;color:#1d4ed8}
 .delete-btn{background:#fee2e2;color:#b91c1c}
 @media (min-width:600px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
-.add-browser{margin-bottom:18px}.browser-row{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px}.browser-row button{border:0;background:#e5e7eb;padding:9px 12px;border-radius:999px;font-weight:bold;white-space:nowrap}.browser-row button.active{background:#111827;color:white}.pokemon-browser-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.pokemon-browser-card{border:1px solid #e5e7eb;background:#f9fafb;border-radius:14px;padding:10px;text-align:center}.pokemon-browser-card img{width:90px;height:90px;object-fit:contain}.pokemon-browser-card strong{display:block;font-size:14px}.pokemon-browser-card span{display:block;font-size:12px;color:#6b7280;margin-top:3px}.browser-more{width:100%;margin-top:12px;padding:11px;border:0;border-radius:10px;background:#e5e7eb;font-weight:bold}@media(min-width:600px){.pokemon-browser-grid{grid-template-columns:repeat(5,1fr)}}  .collection-artwork{object-fit:contain;transition:transform .2s ease,filter .2s ease}.collection-artwork:hover{transform:scale(1.05)}.collection-artwork.shiny{filter:drop-shadow(0 0 8px rgba(250,204,21,.7))}.collection-artwork.shadow{filter:brightness(.55) saturate(.65) drop-shadow(0 0 8px rgba(80,80,80,.8))}.collection-artwork.dynamax{filter:drop-shadow(0 0 10px rgba(220,30,30,.65))}.collection-artwork.gigantamax{filter:drop-shadow(0 0 10px rgba(220,30,30,.65)) scale(1.04)}.screenshot-scanner{margin-bottom:18px}.screenshot-scanner input[type="file"]{padding:10px;background:#f9fafb}.screenshot-scanner img{object-fit:contain}.screenshot-scanner button:disabled{opacity:.6;cursor:wait}</style>
+.add-browser{margin-bottom:18px}.browser-row{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px}.browser-row button{border:0;background:#e5e7eb;padding:9px 12px;border-radius:999px;font-weight:bold;white-space:nowrap}.browser-row button.active{background:#111827;color:white}.pokemon-browser-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.pokemon-browser-card{border:1px solid #e5e7eb;background:#f9fafb;border-radius:14px;padding:10px;text-align:center}.pokemon-browser-card img{width:90px;height:90px;object-fit:contain}.pokemon-browser-card strong{display:block;font-size:14px}.pokemon-browser-card span{display:block;font-size:12px;color:#6b7280;margin-top:3px}.browser-more{width:100%;margin-top:12px;padding:11px;border:0;border-radius:10px;background:#e5e7eb;font-weight:bold}@media(min-width:600px){.pokemon-browser-grid{grid-template-columns:repeat(5,1fr)}}  .collection-artwork{object-fit:contain;transition:transform .2s ease,filter .2s ease}.collection-artwork:hover{transform:scale(1.05)}.collection-artwork.shiny{filter:drop-shadow(0 0 8px rgba(250,204,21,.7))}.collection-artwork.shadow{filter:brightness(.5) saturate(.6) drop-shadow(0 0 8px rgba(80,80,80,.8)) drop-shadow(0 0 14px rgba(145,45,220,.65))}.collection-artwork.dynamax{filter:drop-shadow(0 0 10px rgba(220,30,30,.65))}.collection-artwork.gigantamax{filter:drop-shadow(0 0 10px rgba(220,30,30,.65)) scale(1.04)}.screenshot-scanner{margin-bottom:18px}.screenshot-scanner input[type="file"]{padding:10px;background:#f9fafb}.screenshot-scanner img{object-fit:contain}.screenshot-scanner button:disabled{opacity:.6;cursor:wait}</style>
 </head>
 <body>
 <header><h1>⚡ Dex Go</h1><p>Pokémon GO Collection Tracker</p></header>
@@ -648,6 +648,7 @@ async function setVariantOptions(pokemonId,selectedVariant="Normal"){
 const select=document.getElementById("pokemonVariant");
 if(!select)return;
 const options=["Normal","Shadow","Dynamax"];
+const knownMegaXY={charizard:["Mega X","Mega Y"],mewtwo:["Mega X","Mega Y"]};
 try{
 const species=await getVariantSpecies(pokemonId);
 const names=(species&&species.varieties||[]).map(item=>String(item&&item.pokemon&&item.pokemon.name||"").toLowerCase());
@@ -655,6 +656,8 @@ if(names.some(name=>name.endsWith("-gmax")))options.push("Gigantamax");
 if(names.some(name=>name.endsWith("-mega")))options.push("Mega");
 if(names.some(name=>name.endsWith("-mega-x")))options.push("Mega X");
 if(names.some(name=>name.endsWith("-mega-y")))options.push("Mega Y");
+const knownXY=knownMegaXY[String(species&&species.name||"").toLowerCase()];
+if(knownXY){knownXY.forEach(variant=>{if(!options.includes(variant))options.push(variant);});}
 }catch(error){
 console.error("Dex Go variant options error:",error);
 }
