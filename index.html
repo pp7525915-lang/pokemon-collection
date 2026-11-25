@@ -825,6 +825,33 @@ if(match){hp=Number(match[1]);break;}
 return{cp,hp};
 }
 
+async function extractCPFromImage(file){
+return await new Promise(resolve=>{
+const image=new Image();
+image.onload=async function(){
+try{
+const canvas=document.createElement("canvas");
+const sourceWidth=image.naturalWidth;
+const sourceHeight=image.naturalHeight;
+const cropY=0;
+const cropHeight=Math.max(1,Math.round(sourceHeight*0.22));
+canvas.width=sourceWidth;
+canvas.height=cropHeight;
+const ctx=canvas.getContext("2d");
+ctx.drawImage(image,0,cropY,sourceWidth,cropHeight,0,0,sourceWidth,cropHeight);
+const result=await Tesseract.recognize(canvas,"eng");
+const values=extractCPHP(result.data.text||"");
+resolve(values.cp);
+}catch(error){
+console.error("Dex Go targeted CP OCR error:",error);
+resolve(null);
+}
+};
+image.onerror=function(){resolve(null);};
+image.src=URL.createObjectURL(file);
+});
+}
+
 async function extractHPFromImage(file){
 return await new Promise(resolve=>{
 const image=new Image();
