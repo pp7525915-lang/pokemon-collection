@@ -832,27 +832,79 @@ image.onload=async function(){
 try{
 const sourceWidth=image.naturalWidth;
 const sourceHeight=image.naturalHeight;
-const crops=[
-{y:0,h:0.30},
-{y:0.25,h:0.45},
-{y:0.40,h:0.40}
-];
-let values={cp:null,hp:null};
-for(const crop of crops){
-if(values.cp!==null&&values.hp!==null)break;
-const canvas=document.createElement("canvas");
-const y=Math.round(sourceHeight*crop.y);
-const h=Math.min(sourceHeight-y,Math.round(sourceHeight*crop.h));
-canvas.width=sourceWidth;
-canvas.height=h;
-const ctx=canvas.getContext("2d");
-ctx.drawImage(image,0,y,sourceWidth,h,0,0,sourceWidth,h);
-const result=await Tesseract.recognize(canvas,"eng");
-const detected=extractCPHP(result.data.text||"");
-if(values.cp===null&&detected.cp!==null)values.cp=detected.cp;
-if(values.hp===null&&detected.hp!==null)values.hp=detected.hp;
+let cp=null;
+let hp=null;
+
+async function recognizeCrop(yRatio,heightRatio,whitelist){
+const y=Math.max(0,Math.round(sourceHeight*yRatio));
+const height=Math.min(sourceHeight-y,Math.round(sourceHeight*heightRatio));
+if(height<=0)return "";
+const result=await Tesseract.recognize(image,"eng",{
+rectangle:{
+left:0,
+top:y,
+width:sourceWidth,
+height:height
+},
+tessedit_pageseg_mode:"6",
+tessedit_char_whitelist:whitelist,
+logger:()=>{}
+});
+return result.data.text||"";
 }
-resolve(values);
+
+const topTexts=[];
+const topCrops=[
+{y:0.02,h:0.22},
+{y:0.10,h:0.24},
+{y:0.18,h:0.26}
+];
+for(const crop of topCrops){
+topTexts.push(await recognizeCrop(crop.y,crop.h,"0123456789CPcp"));
+}
+
+const topCombined=normalizeOCRText(topTexts.join(" "));
+const cpMatches=[...topCombined.matchAll(/(?:CP|C[Pp])\s*[:#-]?\s*(\d{2,5})\b/gi)];
+for(const match of cpMatches){
+const value=Number(match[1]);
+if(value>=10&&value<=5000){cp=value;break;}
+}
+if(cp===null){
+const numericCandidates=[...topCombined.matchAll(/\b(\d{3,5})\b/g)]
+.map(match=>Number(match[1]))
+.filter(value=>value>=100&&value<=5000);
+if(numericCandidates.length)cp=numericCandidates[0];
+}
+
+const hpTexts=[];
+const hpCrops=[
+{y:0.42,h:0.34},
+{y:0.50,h:0.30},
+{y:0.58,h:0.26}
+];
+for(const crop of hpCrops){
+hpTexts.push(await recognizeCrop(crop.y,crop.h,"0123456789/HPhp"));
+}
+
+const hpCombined=normalizeOCRText(hpTexts.join(" "));
+const slashMatches=[...hpCombined.matchAll(/\b(\d{1,4})\s*\/\s*(\d{1,4})\s*(?:HP|H[Pp])?\b/gi)];
+for(const match of slashMatches){
+const current=Number(match[1]);
+const maximum=Number(match[2]);
+if(current>0&&maximum>=current&&maximum<=1000){
+hp=current;
+break;
+}
+}
+if(hp===null){
+const hpLabelMatch=hpCombined.match(/(?:HP|H[Pp])\s*[:#-]?\s*(\d{1,4})\b/i);
+if(hpLabelMatch){
+const value=Number(hpLabelMatch[1]);
+if(value>0&&value<=1000)hp=value;
+}
+}
+
+resolve({cp,hp});
 }catch(error){
 console.error("Dex Go targeted CP/HP OCR error:",error);
 resolve({cp:null,hp:null});
