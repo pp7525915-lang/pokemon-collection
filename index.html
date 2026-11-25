@@ -4,21 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<script type="module">
-window.DexGoPaddleOCRPromise=(async()=>{
-try{
-const module=await import("https://cdn.jsdelivr.net/npm/@paddleocr/paddleocr-js/+esm");
-const ocr=await module.PaddleOCR.create({
-lang:"en",
-ocrVersion:"PP-OCRv6",
-ortOptions:{backend:"auto"}
-});
-return ocr;
-}catch(error){
-console.error("Dex Go PaddleOCR initialization error:",error);
-return null;
-}
-})();
+<script>
+window.DexGoPaddleOCRPromise=null;
 </script>
 <title>⚡ Dex Go</title>
 <style>
@@ -1351,7 +1338,21 @@ image.src=URL.createObjectURL(file);
 });
 }
 async function getPaddleOCR(){
-if(!window.DexGoPaddleOCRPromise)return null;
+if(!window.DexGoPaddleOCRPromise){
+window.DexGoPaddleOCRPromise=(async()=>{
+try{
+const module=await import("https://cdn.jsdelivr.net/npm/@paddleocr/paddleocr-js/+esm");
+return await module.PaddleOCR.create({
+lang:"en",
+ocrVersion:"PP-OCRv6",
+ortOptions:{backend:"auto"}
+});
+}catch(error){
+console.error("Dex Go PaddleOCR initialization error:",error);
+return null;
+}
+})();
+}
 return await window.DexGoPaddleOCRPromise;
 }
 
@@ -1474,7 +1475,6 @@ button.textContent="🔍 Scanning...";
 showScreenshotMessage("AI OCR is reading the screenshot. The first scan may take a little longer while the model loads.");
 showScreenshotResults("");
 try{
-if(typeof Tesseract==="undefined")throw new Error("OCR library failed to load.");
 const result=await runScreenshotOCR(fileInput.files[0]);
 if(!result)throw new Error("OCR library failed to load.");
 await applyScreenshotRecognition(result,fileInput.files[0]);
