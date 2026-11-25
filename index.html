@@ -825,7 +825,7 @@ if(match){hp=Number(match[1]);break;}
 return{cp,hp};
 }
 
-async function extractCPHPFromImage(file){
+async function extractCPHPFromImage(file,ocrData){
 return await new Promise(resolve=>{
 const image=new Image();
 image.onload=async function(){
@@ -835,78 +835,134 @@ const sourceHeight=image.naturalHeight;
 let cp=null;
 let hp=null;
 
-async function recognizeCrop(yRatio,heightRatio,whitelist){
-const y=Math.max(0,Math.round(sourceHeight*yRatio));
-const height=Math.min(sourceHeight-y,Math.round(sourceHeight*heightRatio));
-if(height<=0)return "";
+const words=(ocrData&&Array.isArray(ocrData.words)?ocrData.words:[])
+.map(word=>{
+const text=normalizeOCRText(word.text||"");
+const bbox=word.bbox||{};
+return{text,left:Number(bbox.x0)||0,right:Number(bbox.x1)||0,top:Number(bbox.y0)||0,bottom:Number(bbox.y1)||0};
+})
+.filter(word=>word.text);
+
+function isCPLabel(word){
+const compact=word.text.replace(/[^a-z]/gi,"").toLowerCase();
+return compact==="cp";
+}
+
+function isHPLabel(word){
+const compact=word.text.replace(/[^a-z]/gi,"").toLowerCase();
+return compact==="hp";
+}
+
+function nearbyWords(label){
+const centerY=(label.top+label.bottom)/2;
+return words
+.filter(word=>{
+const wordCenterY=(word.top+word.bottom)/2;
+return Math.abs(wordCenterY-centerY)<=70&&word.right>=label.left-500&&word.left<=label.right+500;
+})
+.sort((a,b)=>a.left-b.left);
+}
+
+function readCPFromWords(label){
+const nearby=nearbyWords(label);
+const line=nearby.map(word=>word.text).join(" ");
+const matches=[
+...line.matchAll(/(?:CP|C[Pp])\s*[:#-]?\s*(\d{2,5})\b/gi),
+...line.matchAll(/\b(\d{2,5})\s*(?:CP|C[Pp])\b/gi)
+];
+for(const match of matches){
+const value=Number(match[1]);
+if(value>=10&&value<=5000)return value;
+}
+const after=nearby
+.filter(word=>word.left>=label.right-10&&word.left<=label.right+350)
+.flatMap(word=>word.text.match(/\d{2,5}/g)||[])
+.map(Number)
+.filter(value=>value>=10&&value<=5000);
+return after.length?after[0]:null;
+}
+
+function readHPFromWords(label){
+const nearby=nearbyWords(label);
+const line=nearby.map(word=>word.text).join(" ");
+const slashMatches=[...line.matchAll(/\b(\d{1,4})\s*\/\s*(\d{1,4})\s*(?:HP|H[Pp])?\b/gi)];
+for(const match of slashMatches){
+const current=Number(match[1]);
+const maximum=Number(match[2]);
+if(current>0&&maximum>=current&&maximum<=1000)return current;
+}
+const labelMatches=[...line.matchAll(/(?:HP|H[Pp])\s*[:#-]?\s*(\d{1,4})\b/gi)];
+for(const match of labelMatches){
+const value=Number(match[1]);
+if(value>0&&value<=1000)return value;
+}
+const before=nearby
+.filter(word=>word.right<=label.left+10&&word.right>=label.left-350)
+.flatMap(word=>word.text.match(/\d{1,4}/g)||[])
+.map(Number)
+.filter(value=>value>0&&value<=1000);
+if(before.length)return before[0];
+const after=nearby
+.filter(word=>word.left>=label.right-10&&word.left<=label.right+350)
+.flatMap(word=>word.text.match(/\d{1,4}/g)||[])
+.map(Number)
+.filter(value=>value>0&&value<=1000);
+return after.length?after[0]:null;
+}
+
+const cpLabel=words.find(isCPLabel);
+const hpLabel=words.find(isHPLabel);
+
+if(cpLabel)cp=readCPFromWords(cpLabel);
+if(hpLabel)hp=readHPFromWords(hpLabel);
+
+async function recognizeLabelRegion(label,whitelist){
+if(!label)return "";
+const left=Math.max(0,Math.round(label.left-40));
+const top=Math.max(0,Math.round(label.top-40));
+const right=Math.min(sourceWidth,Math.round(label.right+450));
+const bottom=Math.min(sourceHeight,Math.round(label.bottom+100));
+const width=right-left;
+const height=bottom-top;
+if(width<=0||height<=0)return "";
 const result=await Tesseract.recognize(image,"eng",{
-rectangle:{
-left:0,
-top:y,
-width:sourceWidth,
-height:height
-},
+rectangle:{left,top,width,height},
 tessedit_pageseg_mode:"6",
 tessedit_char_whitelist:whitelist,
 logger:()=>{}
 });
-return result.data.text||"";
+return normalizeOCRText(result.data.text||"");
 }
 
-const topTexts=[];
-const topCrops=[
-{y:0.02,h:0.22},
-{y:0.10,h:0.24},
-{y:0.18,h:0.26}
-];
-for(const crop of topCrops){
-topTexts.push(await recognizeCrop(crop.y,crop.h,"0123456789CPcp"));
+if(cp===null&&cpLabel){
+const cpRegion=await recognizeLabelRegion(cpLabel,"0123456789CPcp");
+const cpMatch=cpRegion.match(/(?:CP|C[Pp])\s*[:#-]?\s*(\d{2,5})\b/i);
+if(cpMatch){
+const value=Number(cpMatch[1]);
+if(value>=10&&value<=5000)cp=value;
+}
 }
 
-const topCombined=normalizeOCRText(topTexts.join(" "));
-const cpMatches=[...topCombined.matchAll(/(?:CP|C[Pp])\s*[:#-]?\s*(\d{2,5})\b/gi)];
-for(const match of cpMatches){
-const value=Number(match[1]);
-if(value>=10&&value<=5000){cp=value;break;}
-}
-if(cp===null){
-const numericCandidates=[...topCombined.matchAll(/\b(\d{3,5})\b/g)]
-.map(match=>Number(match[1]))
-.filter(value=>value>=100&&value<=5000);
-if(numericCandidates.length)cp=numericCandidates[0];
-}
-
-const hpTexts=[];
-const hpCrops=[
-{y:0.42,h:0.34},
-{y:0.50,h:0.30},
-{y:0.58,h:0.26}
-];
-for(const crop of hpCrops){
-hpTexts.push(await recognizeCrop(crop.y,crop.h,"0123456789/HPhp"));
-}
-
-const hpCombined=normalizeOCRText(hpTexts.join(" "));
-const slashMatches=[...hpCombined.matchAll(/\b(\d{1,4})\s*\/\s*(\d{1,4})\s*(?:HP|H[Pp])?\b/gi)];
-for(const match of slashMatches){
-const current=Number(match[1]);
-const maximum=Number(match[2]);
-if(current>0&&maximum>=current&&maximum<=1000){
-hp=current;
-break;
-}
+if(hp===null&&hpLabel){
+const hpRegion=await recognizeLabelRegion(hpLabel,"0123456789/HPhp");
+const slashMatch=hpRegion.match(/\b(\d{1,4})\s*\/\s*(\d{1,4})\s*(?:HP|H[Pp])?\b/i);
+if(slashMatch){
+const current=Number(slashMatch[1]);
+const maximum=Number(slashMatch[2]);
+if(current>0&&maximum>=current&&maximum<=1000)hp=current;
 }
 if(hp===null){
-const hpLabelMatch=hpCombined.match(/(?:HP|H[Pp])\s*[:#-]?\s*(\d{1,4})\b/i);
-if(hpLabelMatch){
-const value=Number(hpLabelMatch[1]);
+const hpMatch=hpRegion.match(/(?:HP|H[Pp])\s*[:#-]?\s*(\d{1,4})\b/i);
+if(hpMatch){
+const value=Number(hpMatch[1]);
 if(value>0&&value<=1000)hp=value;
+}
 }
 }
 
 resolve({cp,hp});
 }catch(error){
-console.error("Dex Go targeted CP/HP OCR error:",error);
+console.error("Dex Go label-targeted CP/HP OCR error:",error);
 resolve({cp:null,hp:null});
 }
 };
@@ -1082,7 +1138,7 @@ async function applyScreenshotRecognition(result,file){
 const text=result.text||"";
 const pokemon=findPokemonFromOCR(text);
 const values=extractCPHP(text);
-const targetedCPHP=await extractCPHPFromImage(file);
+const targetedCPHP=await extractCPHPFromImage(file,result);
 if(values.cp===null&&targetedCPHP.cp!==null)values.cp=targetedCPHP.cp;
 if(values.hp===null&&targetedCPHP.hp!==null)values.hp=targetedCPHP.hp;
 const ocrIVs=extractIVs(text);
