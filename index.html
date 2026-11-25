@@ -7,7 +7,32 @@
 <title>⚡ Dex Go</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#f2f4f7;color:#222}
+:root{--bg:#f2f4f7;--surface:#fff;--surface-soft:#f3f4f6;--text:#111827;--muted:#6b7280;--border:#e5e7eb;--primary:#2563eb;--shadow:0 2px 8px rgba(0,0,0,.08)}
+body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text);transition:background .2s ease,color .2s ease}
+body.dark{--bg:#0f172a;--surface:#111827;--surface-soft:#1f2937;--text:#f8fafc;--muted:#94a3b8;--border:#334155;--primary:#3b82f6;--shadow:0 2px 10px rgba(0,0,0,.3)}
+body.dark header{background:#020617}
+body.dark nav{background:#111827;border-color:#334155}
+body.dark nav button{background:#1f2937;color:#e5e7eb}
+body.dark nav button.active{background:#3b82f6;color:white}
+body.dark .panel,body.dark .home-action,body.dark .home-featured-card,body.dark .home-insight-card,body.dark .home-special-card,body.dark .home-progress-item{background:var(--surface);border-color:var(--border);color:var(--text)}
+body.dark .stat,body.dark .generation-stat,body.dark .pokemon-browser-card{background:var(--surface-soft);border-color:var(--border);color:var(--text)}
+body.dark input,body.dark select{background:#0f172a;color:var(--text);border-color:#475569}
+body.dark .secondary-btn,body.dark .clear-filters-btn,body.dark .browser-row button,body.dark .browser-more{background:#334155;color:#f8fafc}
+body.dark .edit-btn{background:#172554;color:#93c5fd}
+body.dark .delete-btn{background:#451a1a;color:#fca5a5}
+body.dark .home-featured-badge{background:#1e293b;color:#bfdbfe}
+body.dark .home-featured-badge.shiny{background:#422006;color:#fde68a}
+body.dark .home-featured-badge.lucky{background:#052e16;color:#86efac}
+body.dark .home-featured-empty,body.dark .home-insight-empty{background:#1f2937;border-color:#475569;color:var(--muted)}
+body.dark .home-featured-empty strong{color:var(--text)}
+body.dark .generation-detail{background:#1f2937;color:var(--text)}
+body.dark .progress,body.dark .home-progress-track{background:#334155}
+body.dark .home-progress-card{background:rgba(15,23,42,.35)}
+body.dark .screenshot-scanner input[type="file"]{background:#1f2937;color:var(--text)}
+body.dark .home-hero{box-shadow:0 8px 24px rgba(0,0,0,.35)}
+body.dark .message{background:#052e16;color:#bbf7d0}
+.theme-toggle{position:absolute;right:12px;top:12px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:white;border-radius:999px;padding:8px 11px;font-size:16px;cursor:pointer}
+header{position:relative}
 header{background:#111827;color:white;padding:18px;text-align:center}
 header h1{margin:0;font-size:28px}
 header p{margin:6px 0 0;opacity:.8}
@@ -157,7 +182,7 @@ main{padding:12px}
 </style>
 </head>
 <body>
-<header><h1>⚡ Dex Go</h1><p>Pokémon GO Collection Tracker</p></header>
+<header><button id="themeToggle" class="theme-toggle" type="button" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button><h1>⚡ Dex Go</h1><p>Pokémon GO Collection Tracker</p></header>
 <nav>
 <button class="active" onclick="showSection('home',this)">Home</button>
 <button onclick="showSection('add',this)">Add Pokémon</button>
@@ -343,6 +368,24 @@ main{padding:12px}
 </section>
 </main>
 <script>
+function applyTheme(theme){
+const isDark=theme==="dark";
+document.body.classList.toggle("dark",isDark);
+const button=document.getElementById("themeToggle");
+if(button){
+button.textContent=isDark?"☀️":"🌙";
+button.setAttribute("aria-label",isDark?"Switch to light mode":"Switch to dark mode");
+}
+localStorage.setItem("dexGoTheme",isDark?"dark":"light");
+}
+function toggleTheme(){
+applyTheme(document.body.classList.contains("dark")?"light":"dark");
+}
+(function(){
+const savedTheme=localStorage.getItem("dexGoTheme");
+const preferred=savedTheme||(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
+if(preferred==="dark")document.body.classList.add("dark");
+})();
 const IMAGE_BASE="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/";
 const GO_ARTWORK_BASE="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokemon/";
 function getPokemonArtwork(pokemon){
