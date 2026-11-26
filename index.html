@@ -1496,8 +1496,6 @@ select.appendChild(option);
 if(!forms.includes(selectedForm))selectedForm="Normal";
 select.value=selectedForm;
 }
-renderPokemonGoEventSuggestions(pokemonId);
-renderPokemonGoSelectedEvents();
 
 const variantArtworkCache={};
 const variantArtworkPromiseCache={};
@@ -1940,6 +1938,8 @@ if(!id){selectedPokemon=null;renderSelectedPokemonPreview();return}
 selectedPokemon=pokemonList.find(pokemon=>pokemon.id===id);
 if(!selectedPokemon)return;
 setFormOptions(selectedPokemon.id,"Normal");
+renderPokemonGoEventSuggestions(selectedPokemon.id);
+renderPokemonGoSelectedEvents();
 setVariantOptions(selectedPokemon.id,"Normal").then(()=>renderSelectedPokemonPreview());
 document.getElementById("pokemonType").value="Loading...";applyPokemonTypeBackground("Loading...");
 fetch("https://pokeapi.co/api/v2/pokemon/"+selectedPokemon.id).then(response=>response.json()).then(data=>{if(selectedPokemon&&selectedPokemon.id===id){document.getElementById("pokemonType").value=data.types.map(item=>formatPokemonName(item.type.name)).join(", ");applyPokemonTypeBackground(document.getElementById("pokemonType").value);renderPokemonDetails(data);}}).catch(()=>{document.getElementById("pokemonType").value="";document.getElementById("pokemonDetails").style.display="none";});
