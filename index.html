@@ -293,6 +293,8 @@ main{padding:12px}
 html{scroll-behavior:auto}
 }
 
+/* Stats + Ranking interface */
+#stats .stats-hero,#ranking .ranking-hero{border:1px solid var(--border);background:linear-gradient(135deg,var(--surface),var(--surface-soft));box-shadow:var(--shadow);border-radius:20px;padding:18px;margin-bottom:12px}#stats .stats-hero h2,#ranking .ranking-hero h2{margin:0 0 5px;font-size:24px}#stats .stats-hero p,#ranking .ranking-hero p{margin:0;color:var(--muted);font-size:12px}.stats-dashboard{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}.stats-dashboard-card{border:1px solid var(--border);background:var(--surface);border-radius:16px;padding:12px;box-shadow:var(--shadow)}.stats-dashboard-card strong{display:block;font-size:22px}.stats-dashboard-card span{font-size:10px;color:var(--muted)}.stats-insight-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stats-insight{border:1px solid var(--border);background:var(--surface-soft);border-radius:14px;padding:11px}.stats-insight strong{display:block;font-size:13px}.stats-insight span{font-size:10px;color:var(--muted)}.ranking-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:12px 0}.ranking-tab{border:1px solid var(--border);background:var(--surface-soft);color:var(--text);border-radius:12px;padding:10px 6px;font-weight:bold;font-size:11px;cursor:pointer}.ranking-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}.league-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0}.league-summary-card{background:var(--surface-soft);border:1px solid var(--border);border-radius:12px;padding:9px;text-align:center}.league-summary-card strong{display:block;font-size:15px}.league-summary-card span{font-size:9px;color:var(--muted)}.league-list{display:grid;gap:8px}.league-card{display:grid;grid-template-columns:42px 1fr auto;gap:9px;align-items:center;border:1px solid var(--border);background:var(--surface);border-radius:15px;padding:9px;box-shadow:var(--shadow)}.league-rank{font-size:17px;font-weight:800;text-align:center}.league-card img{width:42px;height:42px;object-fit:contain}.league-info strong{display:block;font-size:12px}.league-info span{display:block;font-size:9px;color:var(--muted);margin-top:2px}.league-meta{text-align:right;font-size:10px}.league-meta strong{display:block;font-size:12px}.league-meta span{color:var(--muted)}.league-note{font-size:9px;color:var(--muted);margin-top:8px}@media(min-width:700px){.stats-dashboard{grid-template-columns:repeat(4,1fr)}.stats-insight-grid{grid-template-columns:repeat(4,1fr)}.league-list{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:599px){#stats .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ranking-tab{font-size:10px}.league-card{grid-template-columns:38px 1fr auto}.league-card img{width:38px;height:38px}}@media(prefers-reduced-motion:reduce){.league-card{transition:none}}
 /* Stats + Ranking polish */
 #stats .panel,#ranking .panel{border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow)}
 #stats .panel h2,#ranking .panel h2{font-size:20px;margin-bottom:6px}
@@ -500,30 +502,8 @@ html{scroll-behavior:auto}
 <div id="collectionList"><p>No Pokémon added yet.</p></div>
 </div>
 </section>
-<section id="stats">
-<div class="panel"><h2>Collection Stats</h2><div class="stats-grid">
-<div class="stat"><span class="stat-number" id="statsTotal">0</span>Total Records</div>
-<div class="stat"><span class="stat-number" id="statsUnique">0</span>Unique Pokémon</div>
-<div class="stat"><span class="stat-number" id="statsHundo">0</span>Hundos</div>
-<div class="stat"><span class="stat-number" id="statsMissing">1025</span>Missing</div>
-</div></div>
-<div class="panel"><h2>IV Appraisal</h2><div class="stats-grid">
-<div class="stat"><span class="stat-number" id="stats0Star">0</span>0★</div>
-<div class="stat"><span class="stat-number" id="stats1Star">0</span>1★</div>
-<div class="stat"><span class="stat-number" id="stats2Star">0</span>2★</div>
-<div class="stat"><span class="stat-number" id="stats3Star">0</span>3★</div>
-<div class="stat"><span class="stat-number" id="stats4Star">0</span>4★</div>
-</div></div>
-<div class="panel"><h2>Pokédex Completion</h2><div class="progress"><div id="statsProgressBar" class="progress-bar"></div></div><div id="statsProgressText" class="progress-text">0 / 1025 Pokémon collected — 0%</div></div>
-<div class="panel"><h2>Generation Progress</h2><div id="generationStats" class="generation-stats"></div></div>
-<div class="panel"><h2>Other Stats</h2><div class="stats-grid">
-<div class="stat"><span class="stat-number" id="statsShiny">0</span>Shiny</div>
-<div class="stat"><span class="stat-number" id="statsLucky">0</span>Lucky</div>
-</div></div>
-</section>
-<section id="ranking">
-<div class="panel"><h2>🏆 Ranking</h2><p class="progress-text">Your best and rarest Pokémon, ranked from your collection.</p><div id="rankingStats" class="generation-stats"></div></div>
-</section>
+<section id="stats"><div class="stats-hero"><h2>📊 Collection Stats</h2><p>Your complete Dex Go collection overview, progress and insights.</p></div><div class="stats-dashboard"><div class="stats-dashboard-card"><strong id="statsTotal">0</strong><span>Total Records</span></div><div class="stats-dashboard-card"><strong id="statsUnique">0</strong><span>Unique Pokémon</span></div><div class="stats-dashboard-card"><strong id="statsHundo">0</strong><span>💯 Hundos</span></div><div class="stats-dashboard-card"><strong id="statsMissing">1025</strong><span>Missing Pokédex</span></div></div><div class="panel"><h2>📖 Pokédex Completion</h2><div class="progress"><div id="statsProgressBar" class="progress-bar"></div></div><div id="statsProgressText" class="progress-text">0 / 1025 Pokémon collected — 0%</div></div><div class="panel"><h2>⭐ IV Appraisal</h2><div class="stats-grid"><div class="stat"><span class="stat-number" id="stats0Star">0</span>0★</div><div class="stat"><span class="stat-number" id="stats1Star">0</span>1★</div><div class="stat"><span class="stat-number" id="stats2Star">0</span>2★</div><div class="stat"><span class="stat-number" id="stats3Star">0</span>3★</div><div class="stat"><span class="stat-number" id="stats4Star">0</span>4★</div></div></div><div class="panel"><h2>🗺️ Generation Progress</h2><div id="generationStats" class="generation-stats"></div></div><div class="panel"><h2>✨ Collection Highlights</h2><div class="stats-insight-grid"><div class="stats-insight"><strong id="statsShiny">0</strong><span>✨ Shiny</span></div><div class="stats-insight"><strong id="statsLucky">0</strong><span>🍀 Lucky</span></div><div class="stats-insight"><strong id="statsVariantInsight">0</strong><span>🎭 Forms / Variants</span></div><div class="stats-insight"><strong id="statsFourStarInsight">0</strong><span>⭐ 4★ Pokémon</span></div></div></div></section>
+<section id="ranking"><div class="ranking-hero"><h2>🏆 GO Battle Ranking</h2><p>Choose a league to see the best Pokémon from your collection for that CP format.</p></div><div class="ranking-tabs"><button class="ranking-tab active" type="button" onclick="setRankingLeague('great',this)">🟢 Great League</button><button class="ranking-tab" type="button" onclick="setRankingLeague('ultra',this)">🔵 Ultra League</button><button class="ranking-tab" type="button" onclick="setRankingLeague('master',this)">🟣 Master League</button></div><div id="rankingLeagueSummary" class="league-summary"></div><div id="rankingStats" class="league-list"></div><p class="league-note">GBL format limits used here: Great League ≤ 1,500 CP • Ultra League ≤ 2,500 CP • Master League has no CP cap. This is a collection ranking, not an official GBL battle rating.</p></section>
 </main>
 <script>
 function toggleMenu(){
@@ -1044,7 +1024,9 @@ if(document.getElementById("homeLucky"))document.getElementById("homeLucky").tex
 if(document.getElementById("homeFourStar"))document.getElementById("homeFourStar").textContent=fourStarCount;
 if(document.getElementById("homeVariants"))document.getElementById("homeVariants").textContent=variantCount;
 document.getElementById("statsLucky").textContent=luckyCount;
-renderRankings(collection);
+if(document.getElementById("statsVariantInsight"))document.getElementById("statsVariantInsight").textContent=variantCount;
+if(document.getElementById("statsFourStarInsight"))document.getElementById("statsFourStarInsight").textContent=fourStarCount;
+renderRankings(collection,"great");
 renderHomeFeaturedCollection(collection);
 renderHomeQuickInsights(collection);
 
@@ -1063,26 +1045,9 @@ generationStats.appendChild(row);
 }
 
 
-function renderRankings(collection){
-const ranking=document.getElementById("rankingStats");
-if(!ranking)return;
-ranking.innerHTML="";
-if(collection.length===0){ranking.innerHTML='<div class="generation-stat">No Pokémon available for ranking.</div>';return;}
-const byIV=[...collection].sort((a,b)=>Number(b.ivPercent||calculateIV(b.attackIV,b.defenseIV,b.staminaIV))-Number(a.ivPercent||calculateIV(a.attackIV,a.defenseIV,a.staminaIV)));
-const byCP=[...collection].sort((a,b)=>Number(b.cp||0)-Number(a.cp||0));
-const hundos=collection.filter(p=>Number(p.attackIV)===15&&Number(p.defenseIV)===15&&Number(p.staminaIV)===15);
-const nundos=collection.filter(p=>getIVTotal(p.attackIV,p.defenseIV,p.staminaIV)===0);
-const rare=collection.filter(p=>p.costume||p.event||p.background||((p.form||"Normal")!=="Normal"));
-const sections=[["🏆 Best IV",byIV.slice(0,5)],["⚡ Highest CP",byCP.slice(0,5)],["💯 Hundos",hundos.slice(0,5)],["0️⃣ Nundos",nundos.slice(0,5)],["✨ Special / Rare",rare.slice(0,5)]];
-sections.forEach(([title,items])=>{
-const row=document.createElement("div");row.className="generation-stat";
-let html="<div class=\"generation-header\"><span>"+title+"</span><span>"+items.length+" shown</span></div>";
-if(items.length===0)html+="<div class=\"generation-percent\">None yet</div>";
-else html+="<div style=\"margin-top:8px\">"+items.map(p=>"#"+String(p.pokemonId).padStart(3,"0")+" "+formatPokemonName(p.name)+" — IV "+calculateIV(p.attackIV,p.defenseIV,p.staminaIV)+"% / CP "+(p.cp||0)).join("<br>")+"</div>";
-row.innerHTML=html;ranking.appendChild(row);
-});
-}
-
+function setRankingLeague(league,button){document.querySelectorAll(".ranking-tab").forEach(tab=>tab.classList.remove("active"));if(button)button.classList.add("active");renderRankings(getCollection(),league);}
+function getLeagueLimit(league){return league==="great"?1500:league==="ultra"?2500:Infinity;}
+function renderRankings(collection,league="great"){const ranking=document.getElementById("rankingStats"),summary=document.getElementById("rankingLeagueSummary");if(!ranking)return;const limit=getLeagueLimit(league),eligible=collection.filter(p=>Number(p.cp||0)>0&&Number(p.cp||0)<=limit);const sorted=[...eligible].sort((a,b)=>{const ivA=Number(a.ivPercent||calculateIV(a.attackIV,a.defenseIV,a.staminaIV)),ivB=Number(b.ivPercent||calculateIV(b.attackIV,b.defenseIV,b.staminaIV));return ivB!==ivA?ivB-ivA:Number(b.cp||0)-Number(a.cp||0);});if(summary){const best=sorted[0];summary.innerHTML='<div class="league-summary-card"><strong>'+eligible.length+'</strong><span>Eligible</span></div><div class="league-summary-card"><strong>'+(best?calculateIV(best.attackIV,best.defenseIV,best.staminaIV):"—")+'%</strong><span>Best IV</span></div><div class="league-summary-card"><strong>'+(best?(best.cp||0):"—")+'</strong><span>Top CP</span></div>';}ranking.innerHTML="";if(!sorted.length){ranking.innerHTML='<div class="generation-stat">No Pokémon currently qualify for this league.</div>';return;}sorted.slice(0,20).forEach((p,index)=>{const card=document.createElement("div");card.className="league-card";const stars=getAppraisalStars(p.attackIV,p.defenseIV,p.staminaIV)||"0★";card.innerHTML='<div class="league-rank">#'+(index+1)+'</div><img src="'+getPokemonArtwork(p)+'" alt="'+formatPokemonName(p.name)+'" loading="lazy"><div class="league-info"><strong>'+formatPokemonName(p.name)+'</strong><span>IV '+calculateIV(p.attackIV,p.defenseIV,p.staminaIV)+'% '+stars+' • '+(p.type||"Type")+'</span></div><div class="league-meta"><strong>CP '+(p.cp||0)+'</strong><span>'+(p.shiny?"✨ ":"")+(p.lucky?"🍀 ":"")+(p.variant&&p.variant!=="Normal"?p.variant+" ":"")+'</span></div>';ranking.appendChild(card);});}
 const regionalFormMap={
 Alolan:[19,20,26,27,28,37,38,50,51,52,53,74,75,76,88,89,103,105],
 Galarian:[52,77,78,79,80,83,110,122,144,145,146,199,222,263,264,554,555,562,618],
