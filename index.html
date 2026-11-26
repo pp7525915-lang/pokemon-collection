@@ -1209,7 +1209,6 @@ function getLeagueLimit(league){return league==="great"?1500:league==="ultra"?25
 function renderRankings(collection,league="great"){const ranking=document.getElementById("rankingStats"),summary=document.getElementById("rankingLeagueSummary");if(!ranking)return;const limit=getLeagueLimit(league),eligible=collection.filter(p=>Number(p.cp||0)>0&&Number(p.cp||0)<=limit);const sorted=[...eligible].sort((a,b)=>{const ivA=Number(a.ivPercent||calculateIV(a.attackIV,a.defenseIV,a.staminaIV)),ivB=Number(b.ivPercent||calculateIV(b.attackIV,b.defenseIV,b.staminaIV));return ivB!==ivA?ivB-ivA:Number(b.cp||0)-Number(a.cp||0);});if(summary){const best=sorted[0];summary.innerHTML='<div class="league-summary-card"><strong>'+eligible.length+'</strong><span>Eligible</span></div><div class="league-summary-card"><strong>'+(best?calculateIV(best.attackIV,best.defenseIV,best.staminaIV):"—")+'%</strong><span>Best IV</span></div><div class="league-summary-card"><strong>'+(best?(best.cp||0):"—")+'</strong><span>Top CP</span></div>';}ranking.innerHTML="";if(!sorted.length){ranking.innerHTML='<div class="generation-stat">No Pokémon currently qualify for this league.</div>';return;}sorted.slice(0,20).forEach((p,index)=>{const card=document.createElement("div");card.className="league-card";const stars=getAppraisalStars(p.attackIV,p.defenseIV,p.staminaIV)||"0★";card.innerHTML='<div class="league-rank">#'+(index+1)+'</div><img src="'+getPokemonArtwork(p)+'" alt="'+formatPokemonName(p.name)+'" loading="lazy"><div class="league-info"><strong>'+formatPokemonName(p.name)+'</strong><span>IV '+calculateIV(p.attackIV,p.defenseIV,p.staminaIV)+'% '+stars+' • '+(p.type||"Type")+'</span></div><div class="league-meta"><strong>CP '+(p.cp||0)+'</strong><span>'+(p.shiny?"✨ ":"")+(p.lucky?"🍀 ":"")+(p.variant&&p.variant!=="Normal"?p.variant+" ":"")+'</span></div>';ranking.appendChild(card);});}
 const pokemonGoCostumeMap={
   "1": [
-    "Fall 2019",
     "Party hat (red)",
     "Pikachu visor",
     "Shedinja Costume"
@@ -1224,7 +1223,6 @@ const pokemonGoCostumeMap={
     "Pikachu visor"
   ],
   "4": [
-    "Fall 2019",
     "Cubone Costume",
     "Party hat (red)",
     "Pikachu visor"
@@ -1239,7 +1237,6 @@ const pokemonGoCostumeMap={
     "Pikachu visor"
   ],
   "7": [
-    "Fall 2019",
     "Party hat (red)",
     "Pikachu visor",
     "Squirtle Squad sunglasses",
@@ -1257,99 +1254,19 @@ const pokemonGoCostumeMap={
     "Squirtle Squad sunglasses"
   ],
   "10": [
-    "Gofest 2026",
     "Poké Ball Hat"
   ],
   "12": [
-    "Gofest 2021",
     "Fashionable costume"
   ],
   "20": [
     "Party hat (green)"
   ],
   "25": [
-    "Fall 2019",
-    "Vs 2019",
-    "Costume 2020",
-    "Adventure Hat 2020",
-    "Winter 2020",
-    "Kariyushi",
-    "Pop Star",
-    "Rock Star",
-    "Flying 5th Anniv",
-    "Flying Okinawa",
-    "Gofest 2022",
-    "Wcs 2022",
-    "Tshirt 01",
-    "Tshirt 02",
-    "Flying 01",
-    "Flying 02",
-    "Gotour 2024 A",
-    "Gotour 2024 B",
-    "Gotour 2024 A 02",
-    "Gotour 2024 B 02",
-    "Tshirt 03",
-    "Flying 04",
-    "Horizons",
-    "Gofest 2024 Stiara",
-    "Gofest 2024 Mtiara",
-    "Diwali 2024",
-    "Gotour 2025 A",
-    "Gotour 2025 B",
-    "Gotour 2025 A 02",
-    "Gotour 2025 B 02",
-    "Kurta",
-    "Gofest 2025 Goggles Red",
-    "Gofest 2025 Goggles Blue",
-    "Gofest 2025 Goggles Yellow",
-    "Gofest 2025 Monocle Red",
-    "Gofest 2025 Monocle Blue",
-    "Gofest 2025 Monocle Yellow",
-    "Summer 2023 A",
-    "Summer 2023 B",
-    "Summer 2023 C",
-    "Summer 2023 D",
-    "Summer 2023 E",
-    "Flying 03",
-    "Jeju",
-    "Doctor",
-    "Wcs 2023",
-    "Wcs 2024",
-    "Wcs 2025",
-    "Gotour 2026 A",
-    "Gotour 2026 A 02",
-    "Gotour 2026 B",
-    "Gotour 2026 B 02",
-    "Gotour 2026 C",
-    "Gotour 2026 C 02",
-    "Bb 2026",
-    "Visor 2026",
-    "Fossil 2026",
-    "Gofest 2026 Cap Blue",
-    "Gofest 2026 Cap Red",
-    "Gofest 2026 Cap Yellow",
-    "Anniversary 2026",
-    "Pxp 2026",
-    "Wcs 2026",
-    "Glass Helmet 2026",
-    "Anniversary 2026 Malaysia 01",
-    "Anniversary 2026 Singapore 01",
-    "Anniversary 2026 Taiwan 01",
-    "K 2026 A 01",
-    "Anniversary 2026 Philippine 01",
-    "Halloween 2026",
     "Akari's kerchief",
     "Baseball Shirt",
     "Beanie hat",
     "Brendan's hat",
-    "Cake costume",
-    "Calem's hat",
-    "Captain Pikachu",
-    "Charizard hat",
-    "Cherry blossoms",
-    "Clone",
-    "Dapper Pikachu with blue accents",
-    "Dapper Pikachu with red accents",
     "Dapper Pikachu with yellow accents",
     "Dawn's hat",
     "Detective Pikachu",
@@ -1359,19 +1276,11 @@ const pokemonGoCostumeMap={
     "Festive hat",
     "Flower crown",
     "Flower hat",
-    "Flying Pikachu (2020 · Fly)",
-    "Formal Pikachu with blue accents",
-    "Formal Pikachu with red accents",
-    "Formal Pikachu with yellow accents",
-    "Gem crown",
     "Gracidea flower",
     "H.F. Custom Cap",
     "Halloween Mischief",
     "Hilbert's hat",
     "Hilda's hat",
-    "Holiday outfit",
-    "Indonesia Football Jersey",
-    "Leaf's hat",
     "Lucario hat",
     "Lucas's hat",
     "Lyra's hat",
@@ -1384,6 +1293,13 @@ const pokemonGoCostumeMap={
     "Party hat (red)",
     "Party top hat",
     "Pikachu Libre",
+    "Pikachu Ph.D.",
+    "Pikachu Pop Star",
+    "Pikachu Rock Star",
+    "Marathon Visor",
+    "Team Instinct hat",
+    "Team Mystic hat",
+    "Team Valor hat",
     "Pokémon TCG hat",
     "Professor Willow's Assistant",
     "Rayquaza hat",
@@ -1392,13 +1308,20 @@ const pokemonGoCostumeMap={
     "Rosa's visor",
     "Safari hat",
     "Saree",
+    "Serena's hat",
+    "Shaymin scarf",
+    "Straw hat",
+    "Summer-style",
     "T-shirt (2023 · TShirtBlue)",
     "T-shirt (2024 · TShirtBatik)",
     "Tricks & Treats",
     "Umbreon hat",
     "Varsity Jacket",
     "Winter Carnival",
-    "Witch hat"
+    "Witch hat",
+    "World Championships (2022 · WCS2022)",
+    "World Championships (2023 · WCS2023)",
+    "World Championships (2024 · WCS2024)"
   ],
   "26": [
     "Detective Pikachu",
@@ -1415,7 +1338,21 @@ const pokemonGoCostumeMap={
     "Crown"
   ],
   "33": [
-    "Party hat (red)",
+    "Party hat (red)"
+  ],
+  "34": [
+    "Crown"
+  ],
+  "37": [
+    "Spooky Festival"
+  ],
+  "38": [
+    "Spooky Festival"
+  ],
+  "39": [
+    "Ribbon"
+  ],
+  "40": [
     "Ribbon"
   ],
   "50": [
@@ -1435,16 +1372,17 @@ const pokemonGoCostumeMap={
     "Candela-themed accessory",
     "Meloetta hat"
   ],
-  "88": [
-    "Party hat (red)"
+  "78": [
+    "Candela-themed accessory"
   ],
-  "89": [
-    "Party hat (red)"
+  "79": [
+    "2020/2021/2022 glasses",
+    "Hat"
+  ],
+  "80": [
+    "2020/2021/2022 glasses"
   ],
   "94": [
-    "Costume 2020",
-    "Mega Banette costume",
-    "Party hat (red)",
     "Spooky Festival",
     "Tricks & Treats"
   ],
@@ -1461,9 +1399,37 @@ const pokemonGoCostumeMap={
     "Spark-themed accessory"
   ],
   "131": [
-    "Costume 2020"
+    "Blanche-themed accessory",
+    "Scarf"
+  ],
+  "132": [
+    "Pokopia Cap",
+    "Pokopia Hat"
+  ],
+  "133": [
+    "Cherry blossoms",
+    "Explorer hat",
+    "Flower crown",
+    "Holiday hat",
+    "Party hat (red)",
+    "Sun/Moon crown (2024 · Moon)",
+    "Sun/Moon crown (2024 · Sun)"
+  ],
+  "134": [
+    "Cherry blossoms",
+    "Explorer hat",
+    "Flower crown",
+    "Holiday hat"
+  ],
+  "135": [
+    "Cherry blossoms",
+    "Explorer hat",
+    "Flower crown",
+    "Holiday hat"
   ],
   "136": [
+    "Cherry blossoms",
+    "Explorer hat",
     "Flower crown",
     "Holiday hat"
   ],
@@ -1471,7 +1437,6 @@ const pokemonGoCostumeMap={
     "Satchel"
   ],
   "143": [
-    "Wildarea 2024",
     "Cowboy hat",
     "Nightcap",
     "Studded Jacket"
@@ -1490,12 +1455,10 @@ const pokemonGoCostumeMap={
   ],
   "172": [
     "Beanie hat",
-    "Fall 2018",
-    "Halloween 2017",
-    "Holiday 2016",
-    "November 2018",
-    "Spring 2023",
-    "Summer 2018"
+    "New Year's hat",
+    "Party hat",
+    "Summer-style",
+    "Witch hat"
   ],
   "175": [
     "Flower crown"
@@ -1515,7 +1478,13 @@ const pokemonGoCostumeMap={
   "196": [
     "Cherry blossoms",
     "Explorer hat",
-    "Flower crown"
+    "Flower crown",
+    "Holiday hat",
+    "Sun scarf"
+  ],
+  "197": [
+    "Cherry blossoms",
+    "Explorer hat"
   ],
   "202": [
     "Party hat (green)"
@@ -1548,17 +1517,27 @@ const pokemonGoCostumeMap={
     "Flower crown"
   ],
   "263": [
-    "Meloetta hat",
-    "Party hat (green)"
+    "Meloetta hat"
   ],
   "265": [
     "Party hat (green)"
+  ],
+  "281": [
+    "Fashionable costume"
+  ],
+  "282": [
+    "Meloetta hat"
+  ],
+  "287": [
+    "Visor"
+  ],
+  "288": [
+    "Visor"
   ],
   "289": [
     "Visor"
   ],
   "302": [
-    "Costume 2020",
     "Litwick costume"
   ],
   "330": [
@@ -1576,26 +1555,11 @@ const pokemonGoCostumeMap={
   "363": [
     "Holiday outfit"
   ],
-  "427": [
-    "Flower crown"
-  ],
-  "428": [
-    "Flower crown"
-  ],
-  "440": [
-    "Flower crown"
-  ],
-  "453": [
-    "Fashionable costume"
-  ],
-  "454": [
-    "Fashionable costume"
-  ],
-  "466": [
-    "Spark-themed accessory"
-  ],
-  "468": [
-    "Flower crown"
+  "471": [
+    "Explorer hat",
+    "Flower crown",
+    "Holiday hat",
+    "Undersea Holiday"
   ],
   "477": [
     "Cempasúchil crown"
@@ -1620,47 +1584,6 @@ const pokemonGoCostumeMap={
   ],
   "614": [
     "Holiday ribbon"
-  ],
-  "700": [
-    "Explorer hat",
-    "Flower crown",
-    "Holiday hat"
-  ],
-  "702": [
-    "Holiday Attire"
-  ],
-  "715": [
-    "Headband"
-  ],
-  "722": [
-    "Halloween costume"
-  ],
-  "723": [
-    "Halloween costume"
-  ],
-  "724": [
-    "Halloween costume"
-  ],
-  "737": [
-    "Holiday Attire"
-  ],
-  "738": [
-    "Holiday Attire"
-  ],
-  "760": [
-    "Wilderness Cape"
-  ],
-  "831": [
-    "Holiday Attire"
-  ],
-  "832": [
-    "Holiday Attire"
-  ],
-  "870": [
-    "Falinks in train-ing"
-  ],
-  "901": [
-    "Witch hat"
   ]
 };
 
