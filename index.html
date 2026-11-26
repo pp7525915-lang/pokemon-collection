@@ -165,6 +165,7 @@ button{cursor:pointer}
 .catch-detail-card label{margin-top:0}
 .catch-detail-card input{margin-top:2px}
 @media(min-width:600px){.catch-details-grid{grid-template-columns:repeat(2,1fr)}}
+.event-help{display:block;margin-top:5px;color:var(--muted);font-size:11px}.event-suggestions{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.event-suggestion{border:1px solid var(--border);background:var(--surface-soft);color:var(--text);border-radius:999px;padding:5px 8px;font-size:10px;font-weight:bold;cursor:pointer}.event-suggestion:hover{border-color:var(--primary);color:var(--primary)}.event-picker{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;margin-top:7px}.event-picker select{margin:0;font-size:13px;padding:9px 10px}.event-picker button{border:1px solid var(--border);background:var(--surface-soft);color:var(--text);border-radius:10px;padding:9px 11px;font-weight:bold}.event-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.event-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;font-size:10px;font-weight:bold}.event-chip button{border:0;background:transparent;color:inherit;padding:0;font-size:12px;line-height:1;cursor:pointer}
 .special-section{border:1px solid var(--border);border-radius:18px;padding:18px;margin:0 0 16px;background:var(--surface);box-shadow:var(--shadow)}.special-section h2{margin:0 0 4px;font-size:20px}.special-section .section-subtitle{margin:0 0 10px;color:var(--muted);font-size:13px}.special-grid{display:grid;grid-template-columns:1fr;gap:10px}.special-card{background:var(--surface-soft);border:1px solid var(--border);border-radius:14px;padding:11px}.special-card label{margin-top:0}.special-card input,.special-card select{margin-top:2px}@media(min-width:600px){.special-grid{grid-template-columns:repeat(2,1fr)}}/* Home Step 6 final polish */
 .home-hero{min-height:230px}
 .home-action{transition:transform .15s ease,box-shadow .15s ease;border:1px solid #e5e7eb}
@@ -444,7 +445,20 @@ html{scroll-behavior:auto}
 <p class="section-subtitle">Record special features and collection variants for this Pokémon.</p>
 <div class="special-grid">
 <div class="special-card"><label for="costume">Costume</label><input id="costume" type="text" placeholder="Example: Party Hat"></div>
-<div class="special-card"><label for="event">Event</label><input id="event" type="text" placeholder="Example: Community Day 2026"></div>
+<div class="special-card">
+<label for="event">Event</label>
+<input id="event" type="text" list="pokemonGoEventList" placeholder="Example: March Community Day 2026">
+<small class="event-help">You can record multiple events separated by commas.</small>
+<datalist id="pokemonGoEventList"></datalist>
+<div class="event-picker">
+<select id="pokemonGoEventSelect">
+<option value="">Select an event to add</option>
+</select>
+<button type="button" id="addPokemonGoEventBtn">＋ Add Event</button>
+</div>
+<div id="pokemonGoSelectedEvents" class="event-chips"></div>
+<div id="pokemonEventSuggestions" class="event-suggestions"></div>
+</div>
 <div class="special-card"><label for="background">Background</label><input id="background" type="text" placeholder="Example: New York City"></div>
 <div class="special-card"><label for="shiny">✨ Shiny</label><select id="shiny"><option value="false">No</option><option value="true">Yes</option></select></div>
 <div class="special-card"><label for="lucky">🍀 Lucky</label><select id="lucky"><option value="false">No</option><option value="true">Yes</option></select></div>
@@ -903,6 +917,7 @@ document.getElementById("selectedPokemonPreview").innerHTML="";
 document.getElementById("cp").value="";document.getElementById("hp").value="";
 ["fastMove","chargedMove","costume","event","background","caughtPlace","pokemonType"].forEach(id=>document.getElementById(id).value="");applyPokemonTypeBackground("");
 document.getElementById("caughtDate").value="";
+document.getElementById("pokemonEventSuggestions").innerHTML="";document.getElementById("pokemonGoSelectedEvents").innerHTML="";
 document.getElementById("pokemonForm").innerHTML="<option value=\"Normal\">Normal Form</option>";
 document.getElementById("pokemonVariant").innerHTML="<option value=\"Normal\">Normal Variant</option><option value=\"Shadow\">🌑 Shadow</option><option value=\"Dynamax\">🔴 Dynamax</option><option value=\"Gigantamax\">🔴 Gigantamax</option>";
 document.getElementById("shiny").value="false";
@@ -1250,6 +1265,198 @@ const pokemonGoAlternateForms={
 1001:["Unremarkable Form","Masterpiece Form"]
 };
 
+const pokemonGoEventCatalog=[
+"January Community Day 2026",
+"January Community Day Classic: Piplup 2026",
+"March Community Day: Scorbunny 2026",
+"April Community Day: Tinkatink 2026",
+"May Community Day: Lechonk 2026",
+"May Community Day Classic: Deino 2026",
+"June Community Day: Frigibax 2026",
+"July Community Day: Sobble 2026",
+"August Community Day: Nickit 2026",
+"September Community Day Classic: Gible 2026",
+"October Community Day: Zorua 2026",
+"November Community Day: Pawniard 2026",
+"December Community Day 2026",
+"Pokémon GO Tour: Kalos 2026",
+"Pokémon GO Fest 2026",
+"Pokémon GO Wild Area 2026",
+"Festival of Colors 2026",
+"Lunar New Year 2026",
+"Valentine's Day 2026",
+"Bug Out 2026",
+"Pokémon Day 2026",
+"30th Anniversary 2026",
+"Halloween 2026 Part I",
+"Halloween 2026 Part II",
+"Winter Holiday 2026",
+"New Year's 2026",
+"Community Day",
+"Community Day Classic",
+"Pokémon GO Fest",
+"Pokémon GO Tour",
+"Safari Zone",
+"City Safari",
+"GO Wild Area",
+"Raid Day",
+"Max Battle Day",
+"Research Day",
+"Hatch Day",
+"Spotlight Hour",
+"GO Pass",
+"GO Battle Week",
+"World Championships",
+"Duolingo × Pokémon GO 2026",
+"Pokémon Champions Celebration 2026",
+"Pokémon Pokopia × Pokémon GO",
+"Pokémon Legends: Z-A × Pokémon GO",
+"Pokémon Concierge × Pokémon GO",
+"Pokémon Air Adventures"
+];
+
+const pokemonGoEventPokemonMap={
+810:["January Community Day 2026","December Community Day 2026"],
+811:["January Community Day 2026","December Community Day 2026"],
+812:["January Community Day 2026","December Community Day 2026"],
+393:["January Community Day Classic: Piplup 2026","December Community Day 2026"],
+394:["January Community Day Classic: Piplup 2026","December Community Day 2026"],
+395:["January Community Day Classic: Piplup 2026","December Community Day 2026"],
+813:["March Community Day: Scorbunny 2026","December Community Day 2026"],
+814:["March Community Day: Scorbunny 2026","December Community Day 2026"],
+815:["March Community Day: Scorbunny 2026","December Community Day 2026"],
+957:["April Community Day: Tinkatink 2026","December Community Day 2026"],
+958:["April Community Day: Tinkatink 2026","December Community Day 2026"],
+959:["April Community Day: Tinkatink 2026","December Community Day 2026"],
+915:["May Community Day: Lechonk 2026","December Community Day 2026"],
+916:["May Community Day: Lechonk 2026","December Community Day 2026"],
+633:["May Community Day Classic: Deino 2026","December Community Day 2026"],
+634:["May Community Day Classic: Deino 2026","December Community Day 2026"],
+635:["May Community Day Classic: Deino 2026","December Community Day 2026"],
+996:["June Community Day: Frigibax 2026","December Community Day 2026"],
+997:["June Community Day: Frigibax 2026","December Community Day 2026"],
+998:["June Community Day: Frigibax 2026","December Community Day 2026"],
+816:["July Community Day: Sobble 2026","December Community Day 2026"],
+817:["July Community Day: Sobble 2026","December Community Day 2026"],
+818:["July Community Day: Sobble 2026","December Community Day 2026"],
+827:["August Community Day: Nickit 2026","December Community Day 2026"],
+828:["August Community Day: Nickit 2026","December Community Day 2026"],
+443:["September Community Day Classic: Gible 2026","December Community Day 2026"],
+444:["September Community Day Classic: Gible 2026","December Community Day 2026"],
+445:["September Community Day Classic: Gible 2026","December Community Day 2026"],
+570:["October Community Day: Zorua 2026","December Community Day 2026"],
+571:["October Community Day: Zorua 2026","December Community Day 2026"],
+624:["November Community Day: Pawniard 2026","December Community Day 2026"],
+625:["November Community Day: Pawniard 2026","December Community Day 2026"],
+626:["November Community Day: Pawniard 2026","December Community Day 2026"],
+25:["Duolingo × Pokémon GO 2026"],
+52:["Duolingo × Pokémon GO 2026"],
+441:["Duolingo × Pokémon GO 2026"],
+448:["Duolingo × Pokémon GO 2026"],
+650:["Duolingo × Pokémon GO 2026"],
+653:["Duolingo × Pokémon GO 2026"],
+656:["Duolingo × Pokémon GO 2026"],
+722:["Duolingo × Pokémon GO 2026"],
+725:["Duolingo × Pokémon GO 2026"],
+728:["Duolingo × Pokémon GO 2026"],
+810:["Duolingo × Pokémon GO 2026"],
+813:["Duolingo × Pokémon GO 2026"],
+816:["Duolingo × Pokémon GO 2026"],
+906:["Duolingo × Pokémon GO 2026"],
+909:["Duolingo × Pokémon GO 2026"],
+912:["Duolingo × Pokémon GO 2026"]
+};
+
+function populatePokemonGoEventList(){
+const list=document.getElementById("pokemonGoEventList");
+const select=document.getElementById("pokemonGoEventSelect");
+if(!list||!select)return;
+list.innerHTML="";
+select.innerHTML="<option value=\"\">Select an event to add</option>";
+pokemonGoEventCatalog.forEach(eventName=>{
+const option=document.createElement("option");
+option.value=eventName;
+list.appendChild(option);
+const pickerOption=document.createElement("option");
+pickerOption.value=eventName;
+pickerOption.textContent=eventName;
+select.appendChild(pickerOption);
+});
+}
+
+function getPokemonGoSelectedEvents(){
+return document.getElementById("event").value.split(",").map(item=>item.trim()).filter(Boolean);
+}
+
+function renderPokemonGoSelectedEvents(){
+const box=document.getElementById("pokemonGoSelectedEvents");
+if(!box)return;
+const events=getPokemonGoSelectedEvents();
+box.innerHTML="";
+events.forEach(eventName=>{
+const chip=document.createElement("span");
+chip.className="event-chip";
+chip.textContent=eventName;
+const remove=document.createElement("button");
+remove.type="button";
+remove.textContent="×";
+remove.setAttribute("aria-label","Remove "+eventName);
+remove.onclick=()=>{
+const remaining=getPokemonGoSelectedEvents().filter(item=>item.toLowerCase()!==eventName.toLowerCase());
+document.getElementById("event").value=remaining.join(", ");
+renderPokemonGoSelectedEvents();
+};
+chip.appendChild(remove);
+box.appendChild(chip);
+});
+}
+
+function addPokemonGoEvent(eventName){
+const input=document.getElementById("event");
+if(!input||!eventName)return;
+const existing=getPokemonGoSelectedEvents();
+if(!existing.some(item=>item.toLowerCase()===eventName.toLowerCase()))existing.push(eventName);
+input.value=existing.join(", ");
+renderPokemonGoSelectedEvents();
+const select=document.getElementById("pokemonGoEventSelect");
+if(select)select.value="";
+}
+
+function getPokemonGoEventSuggestions(pokemonId){
+return pokemonGoEventPokemonMap[Number(pokemonId)]||[];
+}
+
+function renderPokemonGoEventSuggestions(pokemonId){
+const box=document.getElementById("pokemonEventSuggestions");
+if(!box)return;
+const events=getPokemonGoEventSuggestions(pokemonId);
+if(!events.length){
+box.innerHTML="";
+return;
+}
+box.innerHTML='<span style="font-size:10px;color:var(--muted);width:100%;">Known event suggestions:</span>';
+events.forEach(eventName=>{
+const button=document.createElement("button");
+button.type="button";
+button.className="event-suggestion";
+button.textContent=eventName;
+button.onclick=()=>{
+const input=document.getElementById("event");
+const existing=input.value.split(",").map(item=>item.trim()).filter(Boolean);
+if(!existing.some(item=>item.toLowerCase()===eventName.toLowerCase()))existing.push(eventName);
+addPokemonGoEvent(eventName);
+};
+box.appendChild(button);
+});
+}
+
+populatePokemonGoEventList();
+document.getElementById("event").addEventListener("input",renderPokemonGoSelectedEvents);
+document.getElementById("addPokemonGoEventBtn").addEventListener("click",()=>{
+const select=document.getElementById("pokemonGoEventSelect");
+if(select)addPokemonGoEvent(select.value);
+});
+
 const pokemonGoRegionalBreedForms={
 128:["Paldean Combat Breed","Paldean Blaze Breed","Paldean Aqua Breed"]
 };
@@ -1289,6 +1496,8 @@ select.appendChild(option);
 if(!forms.includes(selectedForm))selectedForm="Normal";
 select.value=selectedForm;
 }
+renderPokemonGoEventSuggestions(pokemonId);
+renderPokemonGoSelectedEvents();
 
 const variantArtworkCache={};
 const variantArtworkPromiseCache={};
