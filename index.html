@@ -68,7 +68,32 @@ button{cursor:pointer}
 .secondary-btn{width:100%;margin-top:10px;padding:12px;border:0;border-radius:12px;background:#e5e7eb;font-weight:bold}
 .message{margin-top:12px;padding:12px;border-radius:10px;background:#ecfdf5;color:#065f46;display:none}
 .collection-actions{display:flex;gap:8px;margin-top:12px}
-.collection-filters{display:grid;gap:10px;margin-bottom:16px}
+.collection-filters{display:grid;gap:8px;margin-bottom:12px}
+.collection-search-box{position:relative}
+.collection-search-box label{display:block;font-size:12px;font-weight:bold;color:var(--muted);margin:0 0 4px}
+.collection-search-box input{width:100%;box-sizing:border-box;border-radius:14px;padding:11px 13px;border:1px solid var(--border);background:var(--surface-soft);font-size:14px;transition:border-color .2s ease,box-shadow .2s ease,background .2s ease}
+.collection-search-box input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.12);background:var(--surface)}
+.filter-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.filter-row>div{min-width:0}
+.collection-filters label{display:block;font-size:11px;font-weight:bold;color:var(--muted);margin:0 0 4px}
+.collection-filters input,.collection-filters select{width:100%;box-sizing:border-box;padding:9px 10px;border-radius:11px;font-size:13px}
+.filter-summary{margin:4px 0 0;font-size:12px;color:var(--muted)}
+.clear-filters-btn{width:auto;justify-self:start;padding:8px 13px;border:1px solid var(--border);border-radius:999px;background:var(--surface-soft);color:var(--text);font-weight:bold;font-size:12px}
+.pokemon-search-tools{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:10px;margin:8px 0 12px}
+.pokemon-search-field{min-width:0}
+.pokemon-search-field label{display:block;font-size:11px;font-weight:bold;color:var(--muted);margin:0 0 4px}
+.pokemon-search-field input,.pokemon-search-field select{width:100%;box-sizing:border-box;padding:10px 11px;border-radius:12px;font-size:14px}
+@media(max-width:599px){
+  .filter-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pokemon-search-tools{grid-template-columns:1fr;gap:7px}
+}
+@media(min-width:700px){
+  .collection-filters{grid-template-columns:repeat(3,minmax(0,1fr));align-items:end}
+  .collection-search-box{grid-column:1/-1}
+  .collection-filters .filter-row{display:contents}
+  .collection-filters .filter-row>div{min-width:0}
+  .clear-filters-btn{grid-column:1/-1}
+}
 .filter-row{display:grid;gap:10px}
 .filter-summary{margin:8px 0 0;font-size:14px;color:#6b7280}
 .clear-filters-btn{width:100%;padding:12px;border:0;border-radius:10px;background:#e5e7eb;font-weight:bold}
@@ -282,8 +307,16 @@ main{padding:12px}
 <div id="pokemonIdentitySection" class="add-pokemon-section">
 <h2>🎯 Pokémon</h2>
 <p class="section-subtitle">Choose your Pokémon, then customize its form, variant and artwork.</p>
-<label for="pokemonSearch">Search Pokémon</label><input id="pokemonSearch" type="text" placeholder="Example: Pikachu">
-<label for="pokemonSelect">Select Pokémon</label><select id="pokemonSelect"><option value="">Loading Pokémon...</option></select>
+<div class="pokemon-search-tools">
+<div class="pokemon-search-field">
+<label for="pokemonSearch">🔎 Search Pokémon</label>
+<input id="pokemonSearch" type="text" placeholder="Pikachu, Charizard...">
+</div>
+<div class="pokemon-search-field">
+<label for="pokemonSelect">Choose Pokémon</label>
+<select id="pokemonSelect"><option value="">Loading Pokémon...</option></select>
+</div>
+</div>
 <div id="selectedPokemonPreview"></div><div id="pokemonDetails" class="message"></div>
 <label for="pokemonType">Type</label><input id="pokemonType" type="text" placeholder="Auto-detected from Pokémon" readonly>
 <label for="pokemonForm">Form</label><select id="pokemonForm"><option value="Normal">Normal Form</option></select>
@@ -330,8 +363,10 @@ main{padding:12px}
 <div class="panel">
 <h2>My Pokémon</h2>
 <div class="collection-filters">
-<label for="collectionSearch">Search Collection</label>
-<input id="collectionSearch" type="text" placeholder="Name, Pokédex #, costume, event...">
+<div class="collection-search-box">
+<label for="collectionSearch">🔎 Search My Pokémon</label>
+<input id="collectionSearch" type="text" placeholder="Name, #, move, event...">
+</div>
 <div class="filter-row"><div>
 <label for="ivFilter">IV Stars</label>
 <select id="ivFilter">
