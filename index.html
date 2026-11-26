@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
 <title>⚡ Dex Go</title>
 <style>
 *{box-sizing:border-box}
@@ -854,7 +854,6 @@ function renderCollection(){
 const collection=getCollection();
 const collectionList=document.getElementById("collectionList");
 if(!collectionList)return;
-collectionList.innerHTML="";
 collectionList.innerHTML='<div class="my-pokemon-grid"></div>';
 const collectionGrid=collectionList.querySelector(".my-pokemon-grid");
 if(collection.length===0){
@@ -1467,7 +1466,7 @@ grid.innerHTML="";
 visible.forEach(pokemon=>{
 const card=document.createElement("button");
 card.type="button";card.className="pokemon-browser-card";
-card.innerHTML='<img src="'+IMAGE_BASE+pokemon.id+'.png" alt="'+formatPokemonName(pokemon.name)+'"><strong>#'+String(pokemon.id).padStart(3,"0")+'</strong><span>'+formatPokemonName(pokemon.name)+'</span>';
+card.innerHTML='<img src="'+IMAGE_BASE+pokemon.id+'.png" alt="'+formatPokemonName(pokemon.name)+'" loading="lazy"><strong>#'+String(pokemon.id).padStart(3,"0")+'</strong><span>'+formatPokemonName(pokemon.name)+'</span>';
 card.onclick=()=>selectPokemonFromBrowser(pokemon.id);
 grid.appendChild(card);
 });
