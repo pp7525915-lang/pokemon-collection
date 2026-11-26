@@ -1821,7 +1821,7 @@ const browserRegions=[
 ["5","Unova"],["6","Kalos"],["7","Alola"],["8","Galar"],["9","Paldea"]
 ];
 const browserTypes=["all","Normal","Fire","Water","Grass","Electric","Ice","Fighting","Poison","Ground","Flying","Psychic","Bug","Rock","Ghost","Dragon","Dark","Steel","Fairy"];
-let browserRegion="all",browserType="all",browserVisibleCount=60,browserTypeIds={};
+let browserRegion="all",browserType="all",browserVisibleCount=24,browserTypeIds={};
 
 function initPokemonBrowser(){
 const regionRow=document.getElementById("browserRegionRow");
@@ -1847,13 +1847,13 @@ renderPokemonBrowser();
 }
 
 function setBrowserRegion(region){
-browserRegion=region;browserVisibleCount=60;
+browserRegion=region;browserVisibleCount=24;
 document.querySelectorAll("#browserRegionRow button").forEach(button=>button.classList.toggle("active",button.dataset.value===region));
 renderPokemonBrowser();
 }
 
 async function setBrowserType(type){
-browserType=type;browserVisibleCount=60;
+browserType=type;browserVisibleCount=24;
 document.querySelectorAll("#browserTypeRow button").forEach(button=>button.classList.toggle("active",button.dataset.value===type));
 if(type!=="all"&&!browserTypeIds[type]){
 try{
@@ -1888,7 +1888,7 @@ if(list.length===0)grid.innerHTML='<div class="panel" style="grid-column:1/-1;ma
 }
 
 function showMoreBrowserPokemon(){
-browserVisibleCount+=60;renderPokemonBrowser();
+browserVisibleCount+=24;renderPokemonBrowser();
 }
 
 function selectPokemonFromBrowser(id){
