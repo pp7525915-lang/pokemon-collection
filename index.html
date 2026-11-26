@@ -165,7 +165,7 @@ button{cursor:pointer}
 .catch-detail-card label{margin-top:0}
 .catch-detail-card input{margin-top:2px}
 @media(min-width:600px){.catch-details-grid{grid-template-columns:repeat(2,1fr)}}
-.event-help{display:block;margin-top:5px;color:var(--muted);font-size:11px}.event-suggestions{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.event-suggestion{border:1px solid var(--border);background:var(--surface-soft);color:var(--text);border-radius:999px;padding:5px 8px;font-size:10px;font-weight:bold;cursor:pointer}.event-suggestion:hover{border-color:var(--primary);color:var(--primary)}
+.event-help{display:block;margin-top:5px;color:var(--muted);font-size:11px}.event-suggestions{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.event-suggestion{border:1px solid var(--border);background:var(--surface-soft);color:var(--text);border-radius:999px;padding:5px 8px;font-size:10px;font-weight:bold;cursor:pointer}.event-suggestion:hover{border-color:var(--primary);color:var(--primary)}.event-picker{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;margin-top:7px}.event-picker select{margin:0;font-size:13px;padding:9px 10px}.event-picker button{border:1px solid var(--border);background:var(--surface-soft);color:var(--text);border-radius:10px;padding:9px 11px;font-weight:bold}.event-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.event-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;font-size:10px;font-weight:bold}.event-chip button{border:0;background:transparent;color:inherit;padding:0;font-size:12px;line-height:1;cursor:pointer}
 .special-section{border:1px solid var(--border);border-radius:18px;padding:18px;margin:0 0 16px;background:var(--surface);box-shadow:var(--shadow)}.special-section h2{margin:0 0 4px;font-size:20px}.special-section .section-subtitle{margin:0 0 10px;color:var(--muted);font-size:13px}.special-grid{display:grid;grid-template-columns:1fr;gap:10px}.special-card{background:var(--surface-soft);border:1px solid var(--border);border-radius:14px;padding:11px}.special-card label{margin-top:0}.special-card input,.special-card select{margin-top:2px}@media(min-width:600px){.special-grid{grid-template-columns:repeat(2,1fr)}}/* Home Step 6 final polish */
 .home-hero{min-height:230px}
 .home-action{transition:transform .15s ease,box-shadow .15s ease;border:1px solid #e5e7eb}
@@ -450,6 +450,13 @@ html{scroll-behavior:auto}
 <input id="event" type="text" list="pokemonGoEventList" placeholder="Example: March Community Day 2026">
 <small class="event-help">You can record multiple events separated by commas.</small>
 <datalist id="pokemonGoEventList"></datalist>
+<div class="event-picker">
+<select id="pokemonGoEventSelect">
+<option value="">Select an event to add</option>
+</select>
+<button type="button" id="addPokemonGoEventBtn">＋ Add Event</button>
+</div>
+<div id="pokemonGoSelectedEvents" class="event-chips"></div>
 <div id="pokemonEventSuggestions" class="event-suggestions"></div>
 </div>
 <div class="special-card"><label for="background">Background</label><input id="background" type="text" placeholder="Example: New York City"></div>
@@ -910,7 +917,7 @@ document.getElementById("selectedPokemonPreview").innerHTML="";
 document.getElementById("cp").value="";document.getElementById("hp").value="";
 ["fastMove","chargedMove","costume","event","background","caughtPlace","pokemonType"].forEach(id=>document.getElementById(id).value="");applyPokemonTypeBackground("");
 document.getElementById("caughtDate").value="";
-document.getElementById("pokemonEventSuggestions").innerHTML="";
+document.getElementById("pokemonEventSuggestions").innerHTML="";document.getElementById("pokemonGoSelectedEvents").innerHTML="";
 document.getElementById("pokemonForm").innerHTML="<option value=\"Normal\">Normal Form</option>";
 document.getElementById("pokemonVariant").innerHTML="<option value=\"Normal\">Normal Variant</option><option value=\"Shadow\">🌑 Shadow</option><option value=\"Dynamax\">🔴 Dynamax</option><option value=\"Gigantamax\">🔴 Gigantamax</option>";
 document.getElementById("shiny").value="false";
@@ -1299,7 +1306,13 @@ const pokemonGoEventCatalog=[
 "Spotlight Hour",
 "GO Pass",
 "GO Battle Week",
-"World Championships"
+"World Championships",
+"Duolingo × Pokémon GO 2026",
+"Pokémon Champions Celebration 2026",
+"Pokémon Pokopia × Pokémon GO",
+"Pokémon Legends: Z-A × Pokémon GO",
+"Pokémon Concierge × Pokémon GO",
+"Pokémon Air Adventures"
 ];
 
 const pokemonGoEventPokemonMap={
@@ -1335,18 +1348,96 @@ const pokemonGoEventPokemonMap={
 571:["October Community Day: Zorua 2026","December Community Day 2026"],
 624:["November Community Day: Pawniard 2026","December Community Day 2026"],
 625:["November Community Day: Pawniard 2026","December Community Day 2026"],
-626:["November Community Day: Pawniard 2026","December Community Day 2026"]
+626:["November Community Day: Pawniard 2026","December Community Day 2026"],
+25:["Duolingo × Pokémon GO 2026"],
+52:["Duolingo × Pokémon GO 2026"],
+166:["Duolingo × Pokémon GO 2026"],
+172:["Duolingo × Pokémon GO 2026"],
+390:["Duolingo × Pokémon GO 2026"],
+391:["Duolingo × Pokémon GO 2026"],
+392:["Duolingo × Pokémon GO 2026"],
+393:["Duolingo × Pokémon GO 2026"],
+394:["Duolingo × Pokémon GO 2026"],
+395:["Duolingo × Pokémon GO 2026"],
+498:["Duolingo × Pokémon GO 2026"],
+499:["Duolingo × Pokémon GO 2026"],
+500:["Duolingo × Pokémon GO 2026"],
+511:["Duolingo × Pokémon GO 2026"],
+512:["Duolingo × Pokémon GO 2026"],
+513:["Duolingo × Pokémon GO 2026"],
+816:["Duolingo × Pokémon GO 2026"],
+817:["Duolingo × Pokémon GO 2026"],
+818:["Duolingo × Pokémon GO 2026"],
+827:["Duolingo × Pokémon GO 2026"],
+828:["Duolingo × Pokémon GO 2026"],
+829:["Duolingo × Pokémon GO 2026"],
+906:["Duolingo × Pokémon GO 2026"],
+907:["Duolingo × Pokémon GO 2026"],
+908:["Duolingo × Pokémon GO 2026"],
+819:["Duolingo × Pokémon GO 2026"],
+820:["Duolingo × Pokémon GO 2026"],
+821:["Duolingo × Pokémon GO 2026"],
+824:["Duolingo × Pokémon GO 2026"],
+825:["Duolingo × Pokémon GO 2026"],
+826:["Duolingo × Pokémon GO 2026"],
+919:["Duolingo × Pokémon GO 2026"],
+920:["Duolingo × Pokémon GO 2026"],
+921:["Duolingo × Pokémon GO 2026"]
 };
 
 function populatePokemonGoEventList(){
 const list=document.getElementById("pokemonGoEventList");
-if(!list)return;
+const select=document.getElementById("pokemonGoEventSelect");
+if(!list||!select)return;
 list.innerHTML="";
+select.innerHTML="<option value=\"\">Select an event to add</option>";
 pokemonGoEventCatalog.forEach(eventName=>{
 const option=document.createElement("option");
 option.value=eventName;
 list.appendChild(option);
+const pickerOption=document.createElement("option");
+pickerOption.value=eventName;
+pickerOption.textContent=eventName;
+select.appendChild(pickerOption);
 });
+}
+
+function getPokemonGoSelectedEvents(){
+return document.getElementById("event").value.split(",").map(item=>item.trim()).filter(Boolean);
+}
+
+function renderPokemonGoSelectedEvents(){
+const box=document.getElementById("pokemonGoSelectedEvents");
+if(!box)return;
+const events=getPokemonGoSelectedEvents();
+box.innerHTML="";
+events.forEach(eventName=>{
+const chip=document.createElement("span");
+chip.className="event-chip";
+chip.textContent=eventName;
+const remove=document.createElement("button");
+remove.type="button";
+remove.textContent="×";
+remove.setAttribute("aria-label","Remove "+eventName);
+remove.onclick=()=>{
+const remaining=getPokemonGoSelectedEvents().filter(item=>item.toLowerCase()!==eventName.toLowerCase());
+document.getElementById("event").value=remaining.join(", ");
+renderPokemonGoSelectedEvents();
+};
+chip.appendChild(remove);
+box.appendChild(chip);
+});
+}
+
+function addPokemonGoEvent(eventName){
+const input=document.getElementById("event");
+if(!input||!eventName)return;
+const existing=getPokemonGoSelectedEvents();
+if(!existing.some(item=>item.toLowerCase()===eventName.toLowerCase()))existing.push(eventName);
+input.value=existing.join(", ");
+renderPokemonGoSelectedEvents();
+const select=document.getElementById("pokemonGoEventSelect");
+if(select)select.value="";
 }
 
 function getPokemonGoEventSuggestions(pokemonId){
@@ -1371,13 +1462,18 @@ button.onclick=()=>{
 const input=document.getElementById("event");
 const existing=input.value.split(",").map(item=>item.trim()).filter(Boolean);
 if(!existing.some(item=>item.toLowerCase()===eventName.toLowerCase()))existing.push(eventName);
-input.value=existing.join(", ");
+addPokemonGoEvent(eventName);
 };
 box.appendChild(button);
 });
 }
 
 populatePokemonGoEventList();
+document.getElementById("event").addEventListener("input",renderPokemonGoSelectedEvents);
+document.getElementById("addPokemonGoEventBtn").addEventListener("click",()=>{
+const select=document.getElementById("pokemonGoEventSelect");
+if(select)addPokemonGoEvent(select.value);
+});
 
 const pokemonGoRegionalBreedForms={
 128:["Paldean Combat Breed","Paldean Blaze Breed","Paldean Aqua Breed"]
@@ -1419,6 +1515,7 @@ if(!forms.includes(selectedForm))selectedForm="Normal";
 select.value=selectedForm;
 }
 renderPokemonGoEventSuggestions(pokemonId);
+renderPokemonGoSelectedEvents();
 
 const variantArtworkCache={};
 const variantArtworkPromiseCache={};
