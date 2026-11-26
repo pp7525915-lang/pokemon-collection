@@ -584,11 +584,22 @@ return regionalArtworkPromiseCache[cacheKey];
 
 async function getRegionalArtworkUncached(pokemon,form,shiny){
 const regionSuffix={Alolan:"alola",Galarian:"galar",Hisuian:"hisui",Paldean:"paldea"}[form];
-if(!regionSuffix)return getPokemonArtwork({...pokemon,shiny:!!shiny});
+const regionalSlugFallbacks={
+"128":{
+"Paldean Combat Breed":"tauros-paldea-combat-breed",
+"Paldean Blaze Breed":"tauros-paldea-blaze-breed",
+"Paldean Aqua Breed":"tauros-paldea-aqua-breed"
+}
+};
+const explicitSlug=(regionalSlugFallbacks[String(pokemon.pokemonId||pokemon.id)]||{})[form];
+if(!regionSuffix&&!explicitSlug)return getPokemonArtwork({...pokemon,shiny:!!shiny});
 try{
 const baseName=String(pokemon.name||"").toLowerCase().trim();
 if(!baseName)return getPokemonArtwork({...pokemon,shiny:!!shiny});
-const regionalResponse=await fetch("https://pokeapi.co/api/v2/pokemon/"+encodeURIComponent(baseName+"-"+regionSuffix));
+const pokemonSlug=explicitSlug||(
+baseName+"-"+regionSuffix
+);
+const regionalResponse=await fetch("https://pokeapi.co/api/v2/pokemon/"+encodeURIComponent(pokemonSlug));
 if(!regionalResponse.ok)throw new Error("Regional Pokémon not found: "+baseName+"-"+regionSuffix);
 const regionalData=await regionalResponse.json();
 const artwork=regionalData.sprites&&regionalData.sprites.other&&regionalData.sprites.other["official-artwork"];
@@ -1239,6 +1250,10 @@ const pokemonGoAlternateForms={
 1001:["Unremarkable Form","Masterpiece Form"]
 };
 
+const pokemonGoRegionalBreedForms={
+128:["Paldean Combat Breed","Paldean Blaze Breed","Paldean Aqua Breed"]
+};
+
 const pokemonGoFusionForms={
 800:["Dusk Mane","Dawn Wings"],
 646:["White Kyurem","Black Kyurem"]
@@ -1250,6 +1265,9 @@ Object.keys(regionalFormMap).forEach(form=>{
 if(regionalFormMap[form].includes(Number(pokemonId)))forms.push(form);
 });
 (pokemonGoAlternateForms[Number(pokemonId)]||[]).forEach(form=>{
+if(!forms.includes(form))forms.push(form);
+});
+(pokemonGoRegionalBreedForms[Number(pokemonId)]||[]).forEach(form=>{
 if(!forms.includes(form))forms.push(form);
 });
 (pokemonGoFusionForms[Number(pokemonId)]||[]).forEach(form=>{
