@@ -1438,10 +1438,10 @@ const box=document.getElementById("pokemonEventSuggestions");
 if(!box)return;
 const events=getPokemonGoEventSuggestions(pokemonId);
 if(!events.length){
-box.innerHTML="";
+box.innerHTML='<span style="font-size:10px;color:var(--muted);width:100%;">No known linked events for this Pokémon.</span>';
 return;
 }
-box.innerHTML='<span style="font-size:10px;color:var(--muted);width:100%;">Known event suggestions:</span>';
+box.innerHTML='<span style="font-size:10px;color:var(--muted);width:100%;">Known events for this Pokémon:</span>';
 events.forEach(eventName=>{
 const button=document.createElement("button");
 button.type="button";
