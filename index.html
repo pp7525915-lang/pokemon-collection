@@ -292,6 +292,28 @@ main{padding:12px}
 @media(prefers-reduced-motion:reduce){
 html{scroll-behavior:auto}
 }
+
+/* Stats + Ranking polish */
+#stats .panel,#ranking .panel{border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow)}
+#stats .panel h2,#ranking .panel h2{font-size:20px;margin-bottom:6px}
+#stats .stats-grid{gap:10px}
+#stats .stat{border:1px solid var(--border);background:var(--surface-soft);padding:14px;transition:transform .15s ease,box-shadow .15s ease}
+#stats .stat:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(0,0,0,.06)}
+#stats .stat-number{font-size:23px}
+#stats .progress{height:14px}
+#stats .generation-stat,#ranking .generation-stat{border:1px solid var(--border);background:var(--surface-soft);padding:13px}
+#ranking .generation-stat{transition:transform .15s ease,box-shadow .15s ease}
+#ranking .generation-stat:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(0,0,0,.06)}
+#ranking .generation-header{font-size:14px}
+#ranking .generation-percent{margin-top:7px}
+@media(max-width:599px){
+#stats .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+#stats .stat{padding:12px 8px}
+#stats .stat-number{font-size:21px}
+#ranking .generation-stat{padding:11px}
+}
+@media(hover:none){#stats .stat:hover,#ranking .generation-stat:hover{transform:none;box-shadow:none}}
+@media(prefers-reduced-motion:reduce){#stats .stat,#ranking .generation-stat{transition:none}}
 </style>
 </head>
 <body>
