@@ -604,10 +604,96 @@ console.error("Dex Go regional artwork error:",error);
 return getPokemonArtwork({...pokemon,shiny:!!shiny});
 }
 
+const pokemonGoFormSlugs={
+"201":{A:"unown-a",B:"unown-b",C:"unown-c",D:"unown-d",E:"unown-e",F:"unown-f",G:"unown-g",H:"unown-h",I:"unown-i",J:"unown-j",K:"unown-k",L:"unown-l",M:"unown-m",N:"unown-n",O:"unown-o",P:"unown-p",Q:"unown-q",R:"unown-r",S:"unown-s",T:"unown-t",U:"unown-u",V:"unown-v",W:"unown-w",X:"unown-x",Y:"unown-y",Z:"unown-z","!":"unown-exclamation-mark","?":"unown-question-mark"},
+"412":{"Plant Cloak":"burmy-plant","Sandy Cloak":"burmy-sandy","Trash Cloak":"burmy-trash"},
+"413":{"Plant Cloak":"wormadam-plant","Sandy Cloak":"wormadam-sandy","Trash Cloak":"wormadam-trash"},
+"421":{"Overcast Form":"cherrim-overcast","Sunshine Form":"cherrim-sunshine"},
+"422":{"East Sea":"shellos-east","West Sea":"shellos-west"},
+"423":{"East Sea":"gastrodon-east","West Sea":"gastrodon-west"},
+"479":{"Heat":"rotom-heat","Wash":"rotom-wash","Frost":"rotom-frost","Fan":"rotom-fan","Mow":"rotom-mow"},
+"483":{"Origin Forme":"dialga-origin"},
+"484":{"Origin Forme":"palkia-origin"},
+"487":{"Origin Forme":"giratina-origin"},
+"492":{"Sky Forme":"shaymin-sky"},
+"550":{"Red-Striped":"basculin-red-striped","Blue-Striped":"basculin-blue-striped","White-Striped":"basculin-white-striped"},
+"585":{"Spring Form":"deerling-spring","Summer Form":"deerling-summer","Autumn Form":"deerling-autumn","Winter Form":"deerling-winter"},
+"586":{"Spring Form":"sawsbuck-spring","Summer Form":"sawsbuck-summer","Autumn Form":"sawsbuck-autumn","Winter Form":"sawsbuck-winter"},
+"641":{"Therian Forme":"tornadus-therian"},
+"642":{"Therian Forme":"thundurus-therian"},
+"645":{"Therian Forme":"landorus-therian"},
+"647":{"Resolute Form":"keldeo-resolute"},
+"649":{"Shock Drive":"genesect-shock","Burn Drive":"genesect-burn","Chill Drive":"genesect-chill","Douse Drive":"genesect-douse"},
+"666":{"Icy Snow Pattern":"vivillon-icy-snow","Polar Pattern":"vivillon-polar","Tundra Pattern":"vivillon-tundra","Continental Pattern":"vivillon-continental","Garden Pattern":"vivillon-garden","Elegant Pattern":"vivillon-elegant","Meadow Pattern":"vivillon-meadow","Modern Pattern":"vivillon-modern","Marine Pattern":"vivillon-marine","Archipelago Pattern":"vivillon-archipelago","High Plains Pattern":"vivillon-high-plains","Sandstorm Pattern":"vivillon-sandstorm","River Pattern":"vivillon-river","Monsoon Pattern":"vivillon-monsoon","Savanna Pattern":"vivillon-savanna","Sun Pattern":"vivillon-sun","Ocean Pattern":"vivillon-ocean","Jungle Pattern":"vivillon-jungle"},
+"669":{"Red Flower":"flabebe-red","Yellow Flower":"flabebe-yellow","Orange Flower":"flabebe-orange","Blue Flower":"flabebe-blue","White Flower":"flabebe-white"},
+"670":{"Red Flower":"floette-red","Yellow Flower":"floette-yellow","Orange Flower":"floette-orange","Blue Flower":"floette-blue","White Flower":"floette-white"},
+"671":{"Red Flower":"florges-red","Yellow Flower":"florges-yellow","Orange Flower":"florges-orange","Blue Flower":"florges-blue","White Flower":"florges-white"},
+"676":{"Heart Trim":"furfrou-heart","Star Trim":"furfrou-star","Diamond Trim":"furfrou-diamond","Debutante Trim":"furfrou-debutante","Matron Trim":"furfrou-matron","Dandy Trim":"furfrou-dandy","La Reine Trim":"furfrou-la-reine","Kabuki Trim":"furfrou-kabuki","Pharaoh Trim":"furfrou-pharaoh"},
+"678":{"Male":"meowstic-male","Female":"meowstic-female"},
+"681":{"Blade Forme":"aegislash-blade"},
+"710":{"Small Variety":"pumpkaboo-small","Medium Variety":"pumpkaboo-average","Large Variety":"pumpkaboo-large","Jumbo Variety":"pumpkaboo-super-size"},
+"711":{"Small Variety":"gourgeist-small","Medium Variety":"gourgeist-average","Large Variety":"gourgeist-large","Jumbo Variety":"gourgeist-super-size"},
+"716":{"Active Mode":"xerneas-active"},
+"718":{"10% Forme":"zygarde-10","50% Forme":"zygarde-50","Complete Forme":"zygarde-complete"},
+"720":{"Unbound":"hoopa-unbound"},
+"741":{"Pom-Pom Style":"oricorio-pom-pom","Pa'u Style":"oricorio-pau","Sensu Style":"oricorio-sensu"},
+"745":{"Midnight Form":"lycanroc-midnight","Dusk Form":"lycanroc-dusk"},
+"774":{"Red Core":"minior-red-meteor","Orange Core":"minior-orange-meteor","Yellow Core":"minior-yellow-meteor","Green Core":"minior-green-meteor","Blue Core":"minior-blue-meteor","Indigo Core":"minior-indigo-meteor","Violet Core":"minior-violet-meteor"},
+"849":{"Low Key Form":"toxtricity-low-key"},
+"854":{"Antique Form":"sinistea-antique"},
+"855":{"Antique Form":"polteageist-antique"},
+"876":{"Male":"indeedee-male","Female":"indeedee-female"},
+"877":{"Hangry Mode":"morpeko-hangry"},
+"888":{"Crowned Sword":"zacian-crowned"},
+"889":{"Crowned Shield":"zamazenta-crowned"},
+"890":{"Single Strike Style":"urshifu-single-strike","Rapid Strike Style":"urshifu-rapid-strike"},
+"894":{"Therian Forme":"enamorus-therian"},
+"903":{"Male":"oinkologne-male","Female":"oinkologne-female"},
+"901":{"Family of Three":"maushold-family-of-three"},
+"905":{"Blue Plumage":"squawkabilly-blue","Yellow Plumage":"squawkabilly-yellow","White Plumage":"squawkabilly-white"},
+"978":{"Droopy Form":"tatsugiri-droopy","Stretchy Form":"tatsugiri-stretchy"},
+"982":{"Three-Segment Form":"dudunsparce-three-segment"},
+"999":{"Artisan Form":"poltchageist-artisan"},
+"1001":{"Masterpiece Form":"sinistcha-masterpiece"},
+"800":{"Dusk Mane":"necrozma-dusk-mane","Dawn Wings":"necrozma-dawn-wings"},
+"646":{"White Kyurem":"kyurem-white","Black Kyurem":"kyurem-black"}
+};
+
+const formArtworkCache={};
+const formArtworkPromiseCache={};
+
+async function getPokemonGoFormArtwork(pokemon,form,shiny){
+if(!pokemon||!form||form==="Normal")return getPokemonArtwork({...pokemon,shiny:!!shiny});
+const pokemonId=String(pokemon.pokemonId||pokemon.id);
+const slug=(pokemonGoFormSlugs[pokemonId]||{})[form];
+if(!slug)return getPokemonArtwork({...pokemon,shiny:!!shiny});
+const cacheKey=pokemonId+"|"+form+"|"+(shiny?"shiny":"normal");
+if(formArtworkCache[cacheKey])return formArtworkCache[cacheKey];
+if(formArtworkPromiseCache[cacheKey])return formArtworkPromiseCache[cacheKey];
+formArtworkPromiseCache[cacheKey]=fetch("https://pokeapi.co/api/v2/pokemon/"+encodeURIComponent(slug)).then(response=>{
+if(!response.ok)throw new Error("GO form artwork not found: "+slug);
+return response.json();
+}).then(data=>{
+const artwork=data.sprites&&data.sprites.other&&data.sprites.other["official-artwork"];
+const url=shiny?(artwork&&artwork.front_shiny):(artwork&&artwork.front_default);
+return url||getPokemonArtwork({...pokemon,shiny:!!shiny});
+}).catch(error=>{
+console.error("Dex Go form artwork error:",error);
+return getPokemonArtwork({...pokemon,shiny:!!shiny});
+}).then(url=>{
+formArtworkCache[cacheKey]=url;
+return url;
+}).finally(()=>{delete formArtworkPromiseCache[cacheKey];});
+return formArtworkPromiseCache[cacheKey];
+}
+
 async function updateFormArtworkImage(imageElement,pokemon,form,shiny){
 if(!imageElement||!pokemon||!form||form==="Normal")return;
-const url=await getRegionalArtwork(pokemon,form,shiny);
+const url=await getPokemonGoFormArtwork(pokemon,form,shiny);
 if(url)imageElement.src=url;
+}
+async function updateRegionalArtworkImage(imageElement,pokemon,form,shiny){
+return updateFormArtworkImage(imageElement,pokemon,form,shiny);
 }
 let pokemonList=[],selectedPokemon=null,editingId=null;
 
@@ -1054,11 +1140,79 @@ Galarian:[52,77,78,79,80,83,110,122,144,145,146,199,222,263,264,554,555,562,618]
 Hisuian:[58,59,100,101,157,211,215,503,549,570,571,628,705,706,713,724],
 Paldean:[128,194]
 };
+
+const pokemonGoAlternateForms={
+201:["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","!","?"],
+412:["Plant Cloak","Sandy Cloak","Trash Cloak"],
+413:["Plant Cloak","Sandy Cloak","Trash Cloak"],
+421:["Overcast Form","Sunshine Form"],
+422:["East Sea","West Sea"],
+423:["East Sea","West Sea"],
+479:["Heat","Wash","Frost","Fan","Mow"],
+483:["Origin Forme"],
+484:["Origin Forme"],
+487:["Origin Forme"],
+492:["Sky Forme"],
+550:["Red-Striped","Blue-Striped","White-Striped"],
+585:["Spring Form","Summer Form","Autumn Form","Winter Form"],
+586:["Spring Form","Summer Form","Autumn Form","Winter Form"],
+641:["Therian Forme"],
+642:["Therian Forme"],
+645:["Therian Forme"],
+647:["Resolute Form"],
+649:["Shock Drive","Burn Drive","Chill Drive","Douse Drive"],
+666:["Icy Snow Pattern","Polar Pattern","Tundra Pattern","Continental Pattern","Garden Pattern","Elegant Pattern","Meadow Pattern","Modern Pattern","Marine Pattern","Archipelago Pattern","High Plains Pattern","Sandstorm Pattern","River Pattern","Monsoon Pattern","Savanna Pattern","Sun Pattern","Ocean Pattern","Jungle Pattern"],
+669:["Red Flower","Yellow Flower","Orange Flower","Blue Flower","White Flower"],
+670:["Red Flower","Yellow Flower","Orange Flower","Blue Flower","White Flower"],
+671:["Red Flower","Yellow Flower","Orange Flower","Blue Flower","White Flower"],
+676:["Heart Trim","Star Trim","Diamond Trim","Debutante Trim","Matron Trim","Dandy Trim","La Reine Trim","Kabuki Trim","Pharaoh Trim"],
+678:["Male","Female"],
+681:["Blade Forme"],
+710:["Small Variety","Medium Variety","Large Variety","Jumbo Variety"],
+711:["Small Variety","Medium Variety","Large Variety","Jumbo Variety"],
+716:["Active Mode"],
+718:["10% Forme","50% Forme","Complete Forme"],
+720:["Unbound"],
+741:["Pom-Pom Style","Pa'u Style","Sensu Style"],
+745:["Midnight Form","Dusk Form"],
+774:["Red Core","Orange Core","Yellow Core","Green Core","Blue Core","Indigo Core","Violet Core"],
+849:["Low Key Form"],
+854:["Antique Form"],
+855:["Antique Form"],
+876:["Male","Female"],
+877:["Hangry Mode"],
+888:["Crowned Sword"],
+889:["Crowned Shield"],
+890:["Single Strike Style","Rapid Strike Style"],
+894:["Therian Forme"],
+903:["Male","Female"],
+901:["Family of Three"],
+905:["Blue Plumage","Yellow Plumage","White Plumage"],
+978:["Droopy Form","Stretchy Form"],
+982:["Three-Segment Form"],
+999:["Artisan Form"],
+1001:["Masterpiece Form"]
+};
+
+const pokemonGoFusionForms={
+800:["Dusk Mane","Dawn Wings"],
+646:["White Kyurem","Black Kyurem"]
+};
+
 function getAvailableForms(pokemonId){
 const forms=["Normal"];
-Object.keys(regionalFormMap).forEach(form=>{if(regionalFormMap[form].includes(Number(pokemonId)))forms.push(form);});
+Object.keys(regionalFormMap).forEach(form=>{
+if(regionalFormMap[form].includes(Number(pokemonId)))forms.push(form);
+});
+(pokemonGoAlternateForms[Number(pokemonId)]||[]).forEach(form=>{
+if(!forms.includes(form))forms.push(form);
+});
+(pokemonGoFusionForms[Number(pokemonId)]||[]).forEach(form=>{
+if(!forms.includes(form))forms.push(form);
+});
 return forms;
 }
+
 function setFormOptions(pokemonId,selectedForm="Normal"){
 const select=document.getElementById("pokemonForm");
 const forms=getAvailableForms(pokemonId);
@@ -1066,7 +1220,7 @@ select.innerHTML="";
 forms.forEach(form=>{
 const option=document.createElement("option");
 option.value=form;
-option.textContent=form==="Normal"?"Normal Form":form+" Form";
+option.textContent=form==="Normal"?"Normal Form":form;
 select.appendChild(option);
 });
 if(!forms.includes(selectedForm))selectedForm="Normal";
