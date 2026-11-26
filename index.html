@@ -165,7 +165,7 @@ button{cursor:pointer}
 .catch-detail-card label{margin-top:0}
 .catch-detail-card input{margin-top:2px}
 @media(min-width:600px){.catch-details-grid{grid-template-columns:repeat(2,1fr)}}
-.event-help{display:block;margin-top:5px;color:var(--muted);font-size:11px}.event-suggestions{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.event-suggestion{border:1px solid var(--border);background:var(--surface-soft);color:var(--text);border-radius:999px;padding:5px 8px;font-size:10px;font-weight:bold;cursor:pointer}.event-suggestion:hover{border-color:var(--primary);color:var(--primary)}.event-picker{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;margin-top:7px}.event-picker select{margin:0;font-size:13px;padding:9px 10px}.event-picker button{border:1px solid var(--border);background:var(--surface-soft);color:var(--text);border-radius:10px;padding:9px 11px;font-weight:bold}.event-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.event-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;font-size:10px;font-weight:bold}.event-chip button{border:0;background:transparent;color:inherit;padding:0;font-size:12px;line-height:1;cursor:pointer}
+.event-help{display:block;margin-top:5px;color:var(--muted);font-size:11px}.costume-picker{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;margin-top:7px}.costume-picker select{margin:0;font-size:13px;padding:9px 10px}.costume-picker button{border:1px solid var(--border);background:var(--surface-soft);color:var(--text);border-radius:10px;padding:9px 11px;font-weight:bold}.costume-help{display:block;margin-top:5px;color:var(--muted);font-size:11px}.event-suggestions{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.event-suggestion{border:1px solid var(--border);background:var(--surface-soft);color:var(--text);border-radius:999px;padding:5px 8px;font-size:10px;font-weight:bold;cursor:pointer}.event-suggestion:hover{border-color:var(--primary);color:var(--primary)}.event-picker{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;margin-top:7px}.event-picker select{margin:0;font-size:13px;padding:9px 10px}.event-picker button{border:1px solid var(--border);background:var(--surface-soft);color:var(--text);border-radius:10px;padding:9px 11px;font-weight:bold}.event-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.event-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;font-size:10px;font-weight:bold}.event-chip button{border:0;background:transparent;color:inherit;padding:0;font-size:12px;line-height:1;cursor:pointer}
 .special-section{border:1px solid var(--border);border-radius:18px;padding:18px;margin:0 0 16px;background:var(--surface);box-shadow:var(--shadow)}.special-section h2{margin:0 0 4px;font-size:20px}.special-section .section-subtitle{margin:0 0 10px;color:var(--muted);font-size:13px}.special-grid{display:grid;grid-template-columns:1fr;gap:10px}.special-card{background:var(--surface-soft);border:1px solid var(--border);border-radius:14px;padding:11px}.special-card label{margin-top:0}.special-card input,.special-card select{margin-top:2px}@media(min-width:600px){.special-grid{grid-template-columns:repeat(2,1fr)}}/* Home Step 6 final polish */
 .home-hero{min-height:230px}
 .home-action{transition:transform .15s ease,box-shadow .15s ease;border:1px solid #e5e7eb}
@@ -444,7 +444,7 @@ html{scroll-behavior:auto}
 <h2>✨ Special</h2>
 <p class="section-subtitle">Record special features and collection variants for this Pokémon.</p>
 <div class="special-grid">
-<div class="special-card"><label for="costume">Costume</label><input id="costume" type="text" placeholder="Example: Party Hat"></div>
+<div class="special-card"><label for="costume">Costume</label><input id="costume" type="text" placeholder="Example: Party Hat"><small class="costume-help">Select a Pokémon first to see known Pokémon GO costumes for it.</small><div class="costume-picker"><select id="pokemonGoCostumeSelect"><option value="">Select a costume</option></select><button type="button" id="usePokemonGoCostumeBtn">＋ Use Costume</button></div></div>
 <div class="special-card">
 <label for="event">Event</label>
 <input id="event" type="text" list="pokemonGoEventList" placeholder="Example: March Community Day 2026">
@@ -917,7 +917,7 @@ document.getElementById("selectedPokemonPreview").innerHTML="";
 document.getElementById("cp").value="";document.getElementById("hp").value="";
 ["fastMove","chargedMove","costume","event","background","caughtPlace","pokemonType"].forEach(id=>document.getElementById(id).value="");applyPokemonTypeBackground("");
 document.getElementById("caughtDate").value="";
-document.getElementById("pokemonEventSuggestions").innerHTML="";document.getElementById("pokemonGoSelectedEvents").innerHTML="";
+document.getElementById("pokemonEventSuggestions").innerHTML="";document.getElementById("pokemonGoSelectedEvents").innerHTML="";renderPokemonGoCostumePicker(0,"");
 document.getElementById("pokemonForm").innerHTML="<option value=\"Normal\">Normal Form</option>";
 document.getElementById("pokemonVariant").innerHTML="<option value=\"Normal\">Normal Variant</option><option value=\"Shadow\">🌑 Shadow</option><option value=\"Dynamax\">🔴 Dynamax</option><option value=\"Gigantamax\">🔴 Gigantamax</option>";
 document.getElementById("shiny").value="false";
@@ -944,7 +944,7 @@ document.getElementById("caughtDate").value=pokemon.caughtDate||"";
 document.getElementById("pokemonType").value=pokemon.type||"";
 populatePokemonGoEventList(pokemon.pokemonId);
 renderPokemonGoEventSuggestions(pokemon.pokemonId);
-renderPokemonGoSelectedEvents();applyPokemonTypeBackground(document.getElementById("pokemonType").value);
+renderPokemonGoSelectedEvents();renderPokemonGoCostumePicker(pokemon.pokemonId,pokemon.costume||"");applyPokemonTypeBackground(document.getElementById("pokemonType").value);
 setFormOptions(pokemon.pokemonId,pokemon.form||"Normal");
 document.getElementById("shiny").value=pokemon.shiny?"true":"false";
 setVariantOptions(pokemon.pokemonId,pokemon.variant||"Normal").then(()=>renderSelectedPokemonPreview());
@@ -1207,6 +1207,386 @@ generationStats.appendChild(row);
 function setRankingLeague(league,button){document.querySelectorAll(".ranking-tab").forEach(tab=>tab.classList.remove("active"));if(button)button.classList.add("active");renderRankings(getCollection(),league);}
 function getLeagueLimit(league){return league==="great"?1500:league==="ultra"?2500:Infinity;}
 function renderRankings(collection,league="great"){const ranking=document.getElementById("rankingStats"),summary=document.getElementById("rankingLeagueSummary");if(!ranking)return;const limit=getLeagueLimit(league),eligible=collection.filter(p=>Number(p.cp||0)>0&&Number(p.cp||0)<=limit);const sorted=[...eligible].sort((a,b)=>{const ivA=Number(a.ivPercent||calculateIV(a.attackIV,a.defenseIV,a.staminaIV)),ivB=Number(b.ivPercent||calculateIV(b.attackIV,b.defenseIV,b.staminaIV));return ivB!==ivA?ivB-ivA:Number(b.cp||0)-Number(a.cp||0);});if(summary){const best=sorted[0];summary.innerHTML='<div class="league-summary-card"><strong>'+eligible.length+'</strong><span>Eligible</span></div><div class="league-summary-card"><strong>'+(best?calculateIV(best.attackIV,best.defenseIV,best.staminaIV):"—")+'%</strong><span>Best IV</span></div><div class="league-summary-card"><strong>'+(best?(best.cp||0):"—")+'</strong><span>Top CP</span></div>';}ranking.innerHTML="";if(!sorted.length){ranking.innerHTML='<div class="generation-stat">No Pokémon currently qualify for this league.</div>';return;}sorted.slice(0,20).forEach((p,index)=>{const card=document.createElement("div");card.className="league-card";const stars=getAppraisalStars(p.attackIV,p.defenseIV,p.staminaIV)||"0★";card.innerHTML='<div class="league-rank">#'+(index+1)+'</div><img src="'+getPokemonArtwork(p)+'" alt="'+formatPokemonName(p.name)+'" loading="lazy"><div class="league-info"><strong>'+formatPokemonName(p.name)+'</strong><span>IV '+calculateIV(p.attackIV,p.defenseIV,p.staminaIV)+'% '+stars+' • '+(p.type||"Type")+'</span></div><div class="league-meta"><strong>CP '+(p.cp||0)+'</strong><span>'+(p.shiny?"✨ ":"")+(p.lucky?"🍀 ":"")+(p.variant&&p.variant!=="Normal"?p.variant+" ":"")+'</span></div>';ranking.appendChild(card);});}
+const pokemonGoCostumeMap={
+  "1": [
+    "Party hat (red)",
+    "Pikachu visor",
+    "Shedinja Costume"
+  ],
+  "2": [
+    "Party hat (red)",
+    "Pikachu visor"
+  ],
+  "3": [
+    "Clone",
+    "Party hat (red)",
+    "Pikachu visor"
+  ],
+  "4": [
+    "Cubone Costume",
+    "Party hat (red)",
+    "Pikachu visor"
+  ],
+  "5": [
+    "Party hat (red)",
+    "Pikachu visor"
+  ],
+  "6": [
+    "Clone",
+    "Party hat (red)",
+    "Pikachu visor"
+  ],
+  "7": [
+    "Party hat (red)",
+    "Pikachu visor",
+    "Squirtle Squad sunglasses",
+    "Yamask Costume"
+  ],
+  "8": [
+    "Party hat (red)",
+    "Pikachu visor",
+    "Squirtle Squad sunglasses"
+  ],
+  "9": [
+    "Clone",
+    "Party hat (red)",
+    "Pikachu visor",
+    "Squirtle Squad sunglasses"
+  ],
+  "10": [
+    "Poké Ball Hat"
+  ],
+  "12": [
+    "Fashionable costume"
+  ],
+  "20": [
+    "Party hat (green)"
+  ],
+  "25": [
+    "Akari's kerchief",
+    "Baseball Shirt",
+    "Beanie hat",
+    "Brendan's hat",
+    "Dapper Pikachu with yellow accents",
+    "Dawn's hat",
+    "Detective Pikachu",
+    "Ethan's hat",
+    "Excavator Pikachu",
+    "Explorer",
+    "Festive hat",
+    "Flower crown",
+    "Flower hat",
+    "Gracidea flower",
+    "H.F. Custom Cap",
+    "Halloween Mischief",
+    "Hilbert's hat",
+    "Hilda's hat",
+    "Lucario hat",
+    "Lucas's hat",
+    "Lyra's hat",
+    "May's bow",
+    "Meloetta hat",
+    "Mimikyu Costume",
+    "Nate's visor",
+    "New Year's hat",
+    "Party hat",
+    "Party hat (red)",
+    "Party top hat",
+    "Pikachu Libre",
+    "Pikachu Ph.D.",
+    "Pikachu Pop Star",
+    "Pikachu Rock Star",
+    "Marathon Visor",
+    "Team Instinct hat",
+    "Team Mystic hat",
+    "Team Valor hat",
+    "Pokémon TCG hat",
+    "Professor Willow's Assistant",
+    "Rayquaza hat",
+    "Red's hat",
+    "Rei's cap",
+    "Rosa's visor",
+    "Safari hat",
+    "Saree",
+    "Serena's hat",
+    "Shaymin scarf",
+    "Straw hat",
+    "Summer-style",
+    "T-shirt (2023 · TShirtBlue)",
+    "T-shirt (2024 · TShirtBatik)",
+    "Tricks & Treats",
+    "Umbreon hat",
+    "Varsity Jacket",
+    "Winter Carnival",
+    "Witch hat",
+    "World Championships (2022 · WCS2022)",
+    "World Championships (2023 · WCS2023)",
+    "World Championships (2024 · WCS2024)"
+  ],
+  "26": [
+    "Detective Pikachu",
+    "Festive hat",
+    "Flower crown",
+    "H.F. Custom Cap",
+    "Holiday outfit",
+    "New Year's hat",
+    "Party hat",
+    "Summer-style",
+    "Witch hat"
+  ],
+  "31": [
+    "Crown"
+  ],
+  "33": [
+    "Party hat (red)"
+  ],
+  "34": [
+    "Crown"
+  ],
+  "37": [
+    "Spooky Festival"
+  ],
+  "38": [
+    "Spooky Festival"
+  ],
+  "39": [
+    "Ribbon"
+  ],
+  "40": [
+    "Ribbon"
+  ],
+  "50": [
+    "Fashionable costume"
+  ],
+  "51": [
+    "Fashionable costume"
+  ],
+  "54": [
+    "Holiday outfit",
+    "Swim Ring"
+  ],
+  "55": [
+    "Holiday outfit"
+  ],
+  "77": [
+    "Candela-themed accessory",
+    "Meloetta hat"
+  ],
+  "78": [
+    "Candela-themed accessory"
+  ],
+  "79": [
+    "2020/2021/2022 glasses",
+    "Hat"
+  ],
+  "80": [
+    "2020/2021/2022 glasses"
+  ],
+  "94": [
+    "Spooky Festival",
+    "Tricks & Treats"
+  ],
+  "104": [
+    "Cempasúchil crown"
+  ],
+  "105": [
+    "Cempasúchil crown"
+  ],
+  "113": [
+    "Flower crown"
+  ],
+  "125": [
+    "Spark-themed accessory"
+  ],
+  "131": [
+    "Blanche-themed accessory",
+    "Scarf"
+  ],
+  "132": [
+    "Pokopia Cap",
+    "Pokopia Hat"
+  ],
+  "133": [
+    "Cherry blossoms",
+    "Explorer hat",
+    "Flower crown",
+    "Holiday hat",
+    "Party hat (red)",
+    "Sun/Moon crown (2024 · Moon)",
+    "Sun/Moon crown (2024 · Sun)"
+  ],
+  "134": [
+    "Cherry blossoms",
+    "Explorer hat",
+    "Flower crown",
+    "Holiday hat"
+  ],
+  "135": [
+    "Cherry blossoms",
+    "Explorer hat",
+    "Flower crown",
+    "Holiday hat"
+  ],
+  "136": [
+    "Cherry blossoms",
+    "Explorer hat",
+    "Flower crown",
+    "Holiday hat"
+  ],
+  "142": [
+    "Satchel"
+  ],
+  "143": [
+    "Cowboy hat",
+    "Nightcap",
+    "Studded Jacket"
+  ],
+  "149": [
+    "Fashionable costume"
+  ],
+  "150": [
+    "Armored Mewtwo"
+  ],
+  "163": [
+    "New Year's outfit"
+  ],
+  "164": [
+    "New Year's outfit"
+  ],
+  "172": [
+    "Beanie hat",
+    "New Year's hat",
+    "Party hat",
+    "Summer-style",
+    "Witch hat"
+  ],
+  "175": [
+    "Flower crown"
+  ],
+  "176": [
+    "Flower crown"
+  ],
+  "185": [
+    "Holiday Attire"
+  ],
+  "194": [
+    "Fashionable costume"
+  ],
+  "195": [
+    "Fashionable costume"
+  ],
+  "196": [
+    "Cherry blossoms",
+    "Explorer hat",
+    "Flower crown",
+    "Holiday hat",
+    "Sun scarf"
+  ],
+  "197": [
+    "Cherry blossoms",
+    "Explorer hat"
+  ],
+  "202": [
+    "Party hat (green)"
+  ],
+  "215": [
+    "Fashionable costume"
+  ],
+  "216": [
+    "Witch hat"
+  ],
+  "217": [
+    "Witch hat"
+  ],
+  "222": [
+    "Pink Sunglasses"
+  ],
+  "225": [
+    "Holiday ribbon"
+  ],
+  "234": [
+    "Holiday outfit"
+  ],
+  "238": [
+    "Fashionable costume"
+  ],
+  "239": [
+    "Spark-themed accessory"
+  ],
+  "242": [
+    "Flower crown"
+  ],
+  "263": [
+    "Meloetta hat"
+  ],
+  "265": [
+    "Party hat (green)"
+  ],
+  "281": [
+    "Fashionable costume"
+  ],
+  "282": [
+    "Meloetta hat"
+  ],
+  "287": [
+    "Visor"
+  ],
+  "288": [
+    "Visor"
+  ],
+  "289": [
+    "Visor"
+  ],
+  "302": [
+    "Litwick costume"
+  ],
+  "330": [
+    "Meloetta hat"
+  ],
+  "355": [
+    "Cempasúchil crown"
+  ],
+  "356": [
+    "Cempasúchil crown"
+  ],
+  "359": [
+    "Fashionable costume"
+  ],
+  "363": [
+    "Holiday outfit"
+  ],
+  "471": [
+    "Explorer hat",
+    "Flower crown",
+    "Holiday hat",
+    "Undersea Holiday"
+  ],
+  "477": [
+    "Cempasúchil crown"
+  ],
+  "522": [
+    "Fashionable costume"
+  ],
+  "546": [
+    "Flower crown"
+  ],
+  "547": [
+    "Flower crown"
+  ],
+  "572": [
+    "Fashionable costume"
+  ],
+  "573": [
+    "Fashionable costume"
+  ],
+  "613": [
+    "Holiday ribbon"
+  ],
+  "614": [
+    "Holiday ribbon"
+  ]
+};
+
 const regionalFormMap={
 Alolan:[19,20,26,27,28,37,38,50,51,52,53,74,75,76,88,89,103,105],
 Galarian:[52,77,78,79,80,83,110,122,144,145,146,199,222,263,264,554,555,562,618],
@@ -1429,6 +1809,26 @@ const select=document.getElementById("pokemonGoEventSelect");
 if(select)select.value="";
 }
 
+function getPokemonGoCostumeSuggestions(pokemonId){return pokemonGoCostumeMap[Number(pokemonId)]||[];}
+function renderPokemonGoCostumePicker(pokemonId,selectedCostume=""){
+const select=document.getElementById("pokemonGoCostumeSelect");
+const button=document.getElementById("usePokemonGoCostumeBtn");
+if(!select||!button)return;
+const costumes=getPokemonGoCostumeSuggestions(pokemonId);
+select.innerHTML='<option value="">Select a costume</option>';
+costumes.forEach(costume=>{
+const option=document.createElement("option");
+option.value=costume;option.textContent=costume;select.appendChild(option);
+});
+select.value=selectedCostume||"";
+select.disabled=!costumes.length;
+button.disabled=!costumes.length;
+}
+function useSelectedPokemonGoCostume(){
+const select=document.getElementById("pokemonGoCostumeSelect");
+const input=document.getElementById("costume");
+if(select&&input&&select.value)input.value=select.value;
+}
 function getPokemonGoEventSuggestions(pokemonId){
 return pokemonGoEventPokemonMap[Number(pokemonId)]||[];
 }
@@ -1948,6 +2348,7 @@ setFormOptions(selectedPokemon.id,"Normal");
 populatePokemonGoEventList(selectedPokemon.id);
 renderPokemonGoEventSuggestions(selectedPokemon.id);
 renderPokemonGoSelectedEvents();
+renderPokemonGoCostumePicker(selectedPokemon.id,document.getElementById("costume").value);
 setVariantOptions(selectedPokemon.id,"Normal").then(()=>renderSelectedPokemonPreview());
 document.getElementById("pokemonType").value="Loading...";applyPokemonTypeBackground("Loading...");
 fetch("https://pokeapi.co/api/v2/pokemon/"+selectedPokemon.id).then(response=>response.json()).then(data=>{if(selectedPokemon&&selectedPokemon.id===id){document.getElementById("pokemonType").value=data.types.map(item=>formatPokemonName(item.type.name)).join(", ");applyPokemonTypeBackground(document.getElementById("pokemonType").value);renderPokemonDetails(data);}}).catch(()=>{document.getElementById("pokemonType").value="";document.getElementById("pokemonDetails").style.display="none";});
