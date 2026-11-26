@@ -262,6 +262,36 @@ main{padding:12px}
   .menu-panel.open,.home-action,.home-featured-card,.home-insight-card,.pokemon-browser-card,.my-pokemon-card,.add-pokemon-section,.battle-stats-section,.moves-section,.catch-details-section{animation:none;transition:none}
 }
 
+
+/* Mobile + performance polish */
+html{scroll-behavior:smooth}
+body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+img{max-width:100%}
+button,input,select{font:inherit}
+button{touch-action:manipulation}
+@media(max-width:599px){
+main{padding:12px}
+.panel{padding:14px}
+.home-hero{padding:18px}
+.home-hero h2{font-size:26px}
+.home-hero-art{width:125px;height:125px}
+.home-featured-card img{width:105px;height:105px}
+.home-insight-card img{width:95px;height:95px}
+.pokemon-browser-card{padding:8px}
+.pokemon-browser-card img{width:76px;height:76px}
+.add-pokemon-section,.battle-stats-section,.moves-section,.catch-details-section{padding:14px}
+}
+@media(hover:none){
+.my-pokemon-card:hover,
+.home-insight-card:hover,
+.home-featured-card:hover,
+.pokemon-browser-card:hover{transform:none}
+.my-pokemon-card:hover .my-pokemon-art,
+.collection-artwork:hover{transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+html{scroll-behavior:auto}
+}
 </style>
 </head>
 <body>
