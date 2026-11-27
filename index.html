@@ -779,6 +779,20 @@ return costumeFormsData;
 return costumeFormsPromise;
 }
 
+async function loadCostumeCatalogData(){
+if(Array.isArray(costumeCatalogData))return costumeCatalogData;
+if(costumeCatalogPromise)return costumeCatalogPromise;
+costumeCatalogPromise=fetch("https://raw.githubusercontent.com/WatWowMap/pogo-data-api/main/data/v1/costumes.json")
+.then(response=>response.ok?response.json():[])
+.then(data=>{
+costumeCatalogData=Array.isArray(data)?data:[];
+return costumeCatalogData;
+})
+.catch(()=>[])
+.finally(()=>{costumeCatalogPromise=null;});
+return costumeCatalogPromise;
+}
+
 async function getPokemonGoCostumeArtwork(pokemon,costume,shiny){
 if(!pokemon||!costume)return getPokemonArtwork({...pokemon,shiny:!!shiny});
 const pokemonId=String(pokemon.pokemonId||pokemon.id);
@@ -802,9 +816,13 @@ const aExact=normalizeCostumeText(a.formName)===target?0:1;
 const bExact=normalizeCostumeText(b.formName)===target?0:1;
 return aExact-bExact;
 })[0];
-if(candidate&&candidate.formId){
+const candidateIds=candidate&&candidate.formId?[candidate.formId]:[];
+const costumes=await loadCostumeCatalogData();
+const catalogMatch=costumes.find(item=>normalizeCostumeText(item.name)===target);
+if(catalogMatch&&catalogMatch.id!=null)candidateIds.push(catalogMatch.id);
+for(const assetId of [...new Set(candidateIds)]){
 const paddedId=String(pokemonId).padStart(3,"0");
-const base=GO_ARTWORK_BASE+"pokemon_icon_"+paddedId+"_"+candidate.formId;
+const base=GO_ARTWORK_BASE+"pokemon_icon_"+paddedId+"_00_"+String(assetId);
 const urls=shiny?[base+"_shiny.png",base+".png"]:[base+".png"];
 for(const url of urls){
 try{
