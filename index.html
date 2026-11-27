@@ -1946,6 +1946,7 @@ box.appendChild(button);
 
 populatePokemonGoEventList();
 document.getElementById("event").addEventListener("input",renderPokemonGoSelectedEvents);
+document.getElementById("usePokemonGoCostumeBtn").addEventListener("click",useSelectedPokemonGoCostume);
 document.getElementById("addPokemonGoEventBtn").addEventListener("click",()=>{
 const select=document.getElementById("pokemonGoEventSelect");
 if(select)addPokemonGoEvent(select.value);
