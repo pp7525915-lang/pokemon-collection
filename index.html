@@ -1026,7 +1026,7 @@ document.getElementById("cp").value="";document.getElementById("hp").value="";
 document.getElementById("caughtDate").value="";
 document.getElementById("pokemonEventSuggestions").innerHTML="";document.getElementById("pokemonGoSelectedEvents").innerHTML="";renderPokemonGoCostumePicker(0,"");
 document.getElementById("pokemonForm").innerHTML="<option value=\"Normal\">Normal Form</option>";
-document.getElementById("pokemonVariant").innerHTML="<option value=\"Normal\">Normal Variant</option><option value=\"Shadow\">🌑 Shadow</option><option value=\"Dynamax\">🔴 Dynamax</option><option value=\"Gigantamax\">🔴 Gigantamax</option>";
+document.getElementById("pokemonVariant").innerHTML="<option value=\"Normal\">Normal Variant</option><option value=\"Shadow\">🌑 Shadow</option><option value=\"Purified\">✨ Purified</option><option value=\"Dynamax\">🔴 Dynamax</option><option value=\"Gigantamax\">🔴 Gigantamax</option><option value=\"Mega\">⭐ Mega</option><option value=\"Mega X\">⭐ Mega X</option><option value=\"Mega Y\">⭐ Mega Y</option><option value=\"Primal\">🌋 Primal</option>";
 document.getElementById("shiny").value="false";
 document.getElementById("lucky").value="false";
 document.getElementById("pokemonDetails").style.display="none";
@@ -2039,6 +2039,7 @@ const select=document.getElementById("pokemonVariant");
 if(!select)return;
 const options=["Normal","Shadow","Purified","Dynamax"];
 const knownMegaXY={charizard:["Mega X","Mega Y"],mewtwo:["Mega X","Mega Y"]};
+const knownPrimal={groudon:"Primal",kyogre:"Primal"};
 try{
 const species=await getVariantSpecies(pokemonId);
 const names=(species&&species.varieties||[]).map(item=>String(item&&item.pokemon&&item.pokemon.name||"").toLowerCase());
@@ -2046,8 +2047,11 @@ if(names.some(name=>name.endsWith("-gmax")))options.push("Gigantamax");
 if(names.some(name=>name.endsWith("-mega")))options.push("Mega");
 if(names.some(name=>name.endsWith("-mega-x")))options.push("Mega X");
 if(names.some(name=>name.endsWith("-mega-y")))options.push("Mega Y");
-const knownXY=knownMegaXY[String(species&&species.name||"").toLowerCase()];
+const speciesName=String(species&&species.name||"").toLowerCase();
+const knownXY=knownMegaXY[speciesName];
 if(knownXY){knownXY.forEach(variant=>{if(!options.includes(variant))options.push(variant);});}
+const knownPrimalVariant=knownPrimal[speciesName];
+if(knownPrimalVariant&&!options.includes(knownPrimalVariant))options.push(knownPrimalVariant);
 }catch(error){
 console.error("Dex Go variant options error:",error);
 }
@@ -2068,6 +2072,7 @@ if(!baseName)return null;
 if(variant==="Mega")return baseName+"-mega";
 if(variant==="Mega X")return baseName+"-mega-x";
 if(variant==="Mega Y")return baseName+"-mega-y";
+if(variant==="Primal"&&(baseName==="groudon"||baseName==="kyogre"))return baseName+"-primal";
 if(variant==="Gigantamax")return baseName+"-gmax";
 return null;
 }
@@ -2387,6 +2392,8 @@ if(variant==="Mega"){
 ["51"].forEach(pushGoForm);
 }else if(variant==="Mega Y"){
 ["52"].forEach(pushGoForm);
+}else if(variant==="Primal"){
+/* Primal Groudon/Kyogre use the PokéAPI form resolver below. */
 }else if(variant==="Dynamax"){
 ["16"].forEach(pushGoForm);
 pushGoSuffix("dynamax");
