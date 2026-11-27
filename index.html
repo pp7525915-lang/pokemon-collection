@@ -848,6 +848,25 @@ if(!imageElement||!pokemon||!form||form==="Normal")return;
 const url=await getPokemonGoFormArtwork(pokemon,form,shiny);
 if(url)imageElement.src=url;
 }
+
+async function getPreferredPokemonArtwork(pokemon){
+const shiny=!!(pokemon&&pokemon.shiny);
+const normal=getPokemonArtwork({...pokemon,shiny});
+if(pokemon&&String(pokemon.costume||"").trim()){
+const costumeUrl=await getPokemonGoCostumeArtwork(pokemon,String(pokemon.costume).trim(),shiny);
+if(costumeUrl&&costumeUrl!==normal)return costumeUrl;
+}
+if(pokemon&&pokemon.variant&&pokemon.variant!=="Normal"){
+const variantUrl=await getVariantArtwork(pokemon,pokemon.variant,shiny);
+if(variantUrl&&variantUrl!==normal)return variantUrl;
+}
+if(pokemon&&pokemon.form&&pokemon.form!=="Normal"){
+const formUrl=await getPokemonGoFormArtwork(pokemon,pokemon.form,shiny);
+if(formUrl&&formUrl!==normal)return formUrl;
+}
+return normal;
+}
+
 async function updateRegionalArtworkImage(imageElement,pokemon,form,shiny){
 return updateFormArtworkImage(imageElement,pokemon,form,shiny);
 }
@@ -1152,12 +1171,11 @@ if(pokemon.caughtPlace)details.push("📍 "+pokemon.caughtPlace);
 card.innerHTML='<div class="my-pokemon-top"><div class="my-pokemon-art-wrap"><img class="collection-artwork my-pokemon-art'+(pokemon.shiny?" shiny ":" ")+(pokemon.variant&&pokemon.variant!=="Normal"?pokemon.variant.toLowerCase().replace(/[^a-z0-9]+/g,"-"):"")+'" data-regional-artwork="true" src="'+image+'" alt="'+formatPokemonName(pokemon.name)+(pokemon.shiny?" shiny":"")+'" loading="lazy"><div class="my-pokemon-number">#'+String(pokemon.pokemonId).padStart(3,"0")+'</div></div><div><h3 class="my-pokemon-name">'+formatPokemonName(pokemon.name)+'</h3><div class="my-pokemon-type">'+(pokemon.type||"Type not set")+'</div><div class="my-pokemon-badges">'+badges.join("")+'</div></div></div><div class="my-pokemon-summary"><div class="my-pokemon-summary-item"><strong>⚡ '+(pokemon.cp||0)+'</strong><span>CP</span></div><div class="my-pokemon-summary-item"><strong>'+stars+'</strong><span>IV</span></div></div><div class="my-pokemon-expand-hint">Tap for full details</div><div class="my-pokemon-expanded-details"><div class="my-pokemon-stats"><div class="my-pokemon-stat"><strong>⚡ '+(pokemon.cp||0)+'</strong><span>CP</span></div><div class="my-pokemon-stat"><strong>❤️ '+(pokemon.hp||0)+'</strong><span>HP</span></div><div class="my-pokemon-stat"><strong>'+stars+'</strong><span>IV Stars</span></div></div><div class="my-pokemon-iv">IV '+calculateIV(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV)+'% · '+total+'/45</div>'+(details.length?'<div class="my-pokemon-details">'+details.map(item=>'<div>'+item+'</div>').join("")+'</div>':"")+'<div class="my-pokemon-actions"><button type="button" class="edit-btn" onclick="editPokemon('+pokemon.id+')">✏️ Edit</button><button type="button" class="delete-btn" onclick="deletePokemon('+pokemon.id+')">🗑️ Delete</button></div>';
 card.addEventListener("click",event=>{if(event.target.closest("button"))return;card.classList.toggle("expanded");});
 collectionGrid.appendChild(card);
-if(pokemon.variant&&pokemon.variant!=="Normal"){
-const variantImage=card.querySelector("[data-regional-artwork]");
-updateVariantArtworkImage(variantImage,pokemon,pokemon.variant,pokemon.shiny);
-}else if(pokemon.form&&pokemon.form!=="Normal"){
-const regionalImage=card.querySelector("[data-regional-artwork]");
-updateFormArtworkImage(regionalImage,pokemon,pokemon.form,pokemon.shiny);
+const collectionArtwork=card.querySelector("[data-regional-artwork]");
+if(collectionArtwork){
+getPreferredPokemonArtwork(pokemon).then(url=>{
+if(url&&collectionArtwork.isConnected)collectionArtwork.src=url;
+});
 }
 });
 }
@@ -1182,7 +1200,8 @@ if(pokemon.shiny)badges.push('<span class="home-featured-badge shiny">✨ Shiny<
 if(pokemon.lucky)badges.push('<span class="home-featured-badge lucky">🍀 Lucky</span>');
 if(pokemon.variant&&pokemon.variant!=="Normal")badges.push('<span class="home-featured-badge">'+pokemon.variant+'</span>');
 else if(pokemon.form&&pokemon.form!=="Normal")badges.push('<span class="home-featured-badge">'+pokemon.form+'</span>');
-card.innerHTML='<img src="'+image+'" alt="'+formatPokemonName(pokemon.name)+'" loading="lazy"><div class="home-featured-number">#'+String(pokemon.pokemonId).padStart(3,"0")+'</div><h3>'+formatPokemonName(pokemon.name)+'</h3><div class="home-featured-meta"><span class="home-featured-badge">CP '+(pokemon.cp||0)+'</span><span class="home-featured-badge">'+stars+'</span>'+badges.join("")+'</div>';
+card.innerHTML='<img data-preferred-artwork="true" src="'+image+'" alt="'+formatPokemonName(pokemon.name)+'" loading="lazy"><div class="home-featured-number">#'+String(pokemon.pokemonId).padStart(3,"0")+'</div><h3>'+formatPokemonName(pokemon.name)+'</h3><div class="home-featured-meta"><span class="home-featured-badge">CP '+(pokemon.cp||0)+'</span><span class="home-featured-badge">'+stars+'</span>'+badges.join("")+'</div>';
+getPreferredPokemonArtwork(pokemon).then(url=>{const artwork=card.querySelector("[data-preferred-artwork]");if(url&&artwork)artwork.src=url;});
 card.onclick=()=>showSection("collection",document.querySelectorAll("nav button")[2]);
 card.style.cursor="pointer";
 grid.appendChild(card);
@@ -1208,7 +1227,8 @@ card.className="home-insight-card";
 if(!pokemon){card.innerHTML='<span class="home-insight-icon">'+icon+'</span><strong>'+label+'</strong><div class="home-insight-meta">None yet</div>';box.appendChild(card);return;}
 const stars=getAppraisalStars(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV);
 const specialBadge=pokemon.shiny?"✨ Shiny":pokemon.lucky?"🍀 Lucky":pokemon.variant&&pokemon.variant!=="Normal"?pokemon.variant:pokemon.form&&pokemon.form!=="Normal"?pokemon.form:pokemon.costume?"👕 Costume":pokemon.event?"🎉 Event":pokemon.background?"🖼️ Background":"";
-card.innerHTML='<span class="home-insight-icon">'+icon+'</span><img src="'+getPokemonArtwork(pokemon)+'" alt="'+formatPokemonName(pokemon.name)+'" loading="lazy"><div class="home-insight-label">'+label+'</div><div class="home-insight-name">#'+String(pokemon.pokemonId).padStart(3,"0")+' '+formatPokemonName(pokemon.name)+'</div><div class="home-insight-meta">CP '+(pokemon.cp||0)+' • IV '+calculateIV(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV)+'% '+(stars||"0★")+(specialBadge?" • "+specialBadge:"")+'</div>';
+card.innerHTML='<span class="home-insight-icon">'+icon+'</span><img data-preferred-artwork="true" src="'+getPokemonArtwork(pokemon)+'" alt="'+formatPokemonName(pokemon.name)+'" loading="lazy"><div class="home-insight-label">'+label+'</div><div class="home-insight-name">#'+String(pokemon.pokemonId).padStart(3,"0")+' '+formatPokemonName(pokemon.name)+'</div><div class="home-insight-meta">CP '+(pokemon.cp||0)+' • IV '+calculateIV(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV)+'% '+(stars||"0★")+(specialBadge?" • "+specialBadge:"")+'</div>';
+getPreferredPokemonArtwork(pokemon).then(url=>{const artwork=card.querySelector("[data-preferred-artwork]");if(url&&artwork)artwork.src=url;});
 card.onclick=()=>showSection("collection",document.querySelectorAll("nav button")[2]);
 box.appendChild(card);
 });
@@ -2403,14 +2423,17 @@ return;
 const isShiny=document.getElementById("shiny").value==="true";
 const form=document.getElementById("pokemonForm").value||"Normal";
 const variant=document.getElementById("pokemonVariant").value||"Normal";
-const previewPokemon={...selectedPokemon,shiny:isShiny};
+const costume=document.getElementById("costume").value.trim();
+const previewPokemon={...selectedPokemon,shiny:isShiny,form,variant,costume};
 const image=getPokemonArtwork(previewPokemon);
 const artworkClass=variant.toLowerCase().replace(/[^a-z0-9]+/g,"-");
-const artworkLabel=variant!=="Normal"?variant+" artwork":form!=="Normal"?form+" artwork":isShiny?"✨ Shiny artwork":"Official artwork";
-document.getElementById("selectedPokemonPreview").innerHTML=`<div class="panel" style="margin-top:15px;text-align:center;"><img id="selectedPokemonArtwork" class="collection-artwork ${isShiny?"shiny ":""}${artworkClass}" src="${image}" alt="${formatPokemonName(selectedPokemon.name)}${isShiny?" shiny":""}${variant!=="Normal"?" "+variant:""}" width="150" height="150"><h3>${formatPokemonName(selectedPokemon.name)}</h3><p>Pokédex #${String(selectedPokemon.id).padStart(3,"0")}</p><p style="font-size:13px;color:#6b7280;">${artworkLabel}${isShiny?" ✨ Shiny":""}</p></div>`;
-if(variant!=="Normal")await updateVariantArtworkImage(document.getElementById("selectedPokemonArtwork"),selectedPokemon,variant,isShiny);
-else if(form!=="Normal")await updateFormArtworkImage(document.getElementById("selectedPokemonArtwork"),selectedPokemon,form,isShiny);
-else if(document.getElementById("costume").value.trim())await updateCostumeArtworkImage(document.getElementById("selectedPokemonArtwork"),selectedPokemon,document.getElementById("costume").value.trim(),isShiny);
+const artworkLabel=costume?"👕 "+costume+" artwork":variant!=="Normal"?variant+" artwork":form!=="Normal"?form+" artwork":isShiny?"✨ Shiny artwork":"Official artwork";
+document.getElementById("selectedPokemonPreview").innerHTML=`<div class="panel" style="margin-top:15px;text-align:center;"><img id="selectedPokemonArtwork" class="collection-artwork ${isShiny?"shiny ":""}${artworkClass}" src="${image}" alt="${formatPokemonName(selectedPokemon.name)}${isShiny?" shiny":""}${costume?" "+costume:""}" width="150" height="150"><h3>${formatPokemonName(selectedPokemon.name)}</h3><p>Pokédex #${String(selectedPokemon.id).padStart(3,"0")}</p><p style="font-size:13px;color:#6b7280;">${artworkLabel}${isShiny?" ✨ Shiny":""}</p></div>`;
+const artwork=document.getElementById("selectedPokemonArtwork");
+if(artwork){
+const preferred=await getPreferredPokemonArtwork(previewPokemon);
+if(artwork.src!==preferred)artwork.src=preferred;
+}
 }
 
 const pokemonTypeColors={Normal:"#d1d5db",Fire:"#fb923c",Water:"#60a5fa",Electric:"#facc15",Grass:"#86efac",Ice:"#bae6fd",Fighting:"#f87171",Poison:"#c084fc",Ground:"#d6b88a",Flying:"#a5b4fc",Psychic:"#f9a8d4",Bug:"#bef264",Rock:"#d6d3d1",Ghost:"#c4b5fd",Dragon:"#93c5fd",Dark:"#94a3b8",Steel:"#cbd5e1",Fairy:"#f9a8d4"};
