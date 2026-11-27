@@ -2271,6 +2271,76 @@ return sourceUrl;
 }
 }
 
+async function createDynamaxAuraArtwork(pokemon,shiny){
+const sourceUrl=getPokemonArtwork({...pokemon,shiny:!!shiny});
+try{
+const response=await fetch(sourceUrl);
+if(!response.ok)throw new Error("Dynamax source artwork failed");
+const blob=await response.blob();
+const objectUrl=URL.createObjectURL(blob);
+let image;
+try{
+image=await new Promise((resolve,reject)=>{
+const img=new Image();
+img.onload=()=>resolve(img);
+img.onerror=reject;
+img.src=objectUrl;
+});
+}finally{URL.revokeObjectURL(objectUrl);}
+const canvas=document.createElement("canvas");
+canvas.width=image.naturalWidth||256;
+canvas.height=image.naturalHeight||256;
+const ctx=canvas.getContext("2d");
+if(!ctx)throw new Error("Canvas unavailable");
+const w=canvas.width,h=canvas.height,scale=Math.max(1,w/256);
+ctx.clearRect(0,0,w,h);
+const aura=ctx.createRadialGradient(w/2,h/2,Math.min(w,h)*.12,w/2,h/2,Math.max(w,h)*.52);
+aura.addColorStop(0,"rgba(255,80,80,.18)");
+aura.addColorStop(.55,"rgba(220,30,30,.20)");
+aura.addColorStop(1,"rgba(220,30,30,0)");
+ctx.fillStyle=aura;ctx.fillRect(0,0,w,h);
+for(let i=0;i<18;i++){
+const angle=(Math.PI*2*i)/18,radius=Math.min(w,h)*(.34+((i%3)*.07));
+const x=w/2+Math.cos(angle)*radius,y=h/2+Math.sin(angle)*radius,r=Math.max(2,Math.min(w,h)*(.008+((i%2)*.004)));
+ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+ctx.fillStyle=i%2?"rgba(255,90,90,.65)":"rgba(255,220,220,.8)";ctx.fill();
+}
+ctx.save();ctx.shadowColor="rgba(220,30,30,.65)";ctx.shadowBlur=16*scale;ctx.drawImage(image,0,0,w,h);ctx.restore();
+return canvas.toDataURL("image/png");
+}catch(error){console.error("Dex Go Dynamax fallback artwork error:",error);return null;}
+}
+
+async function createGigantamaxAuraArtwork(pokemon,shiny){
+const sourceUrl=getPokemonArtwork({...pokemon,shiny:!!shiny});
+try{
+const response=await fetch(sourceUrl);
+if(!response.ok)throw new Error("Gigantamax source artwork failed");
+const blob=await response.blob();
+const objectUrl=URL.createObjectURL(blob);
+let image;
+try{
+image=await new Promise((resolve,reject)=>{
+const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=objectUrl;
+});
+}finally{URL.revokeObjectURL(objectUrl);}
+const canvas=document.createElement("canvas");
+canvas.width=image.naturalWidth||256;canvas.height=image.naturalHeight||256;
+const ctx=canvas.getContext("2d");
+if(!ctx)throw new Error("Canvas unavailable");
+const w=canvas.width,h=canvas.height,scale=Math.max(1,w/256);
+ctx.clearRect(0,0,w,h);
+const aura=ctx.createRadialGradient(w/2,h*.48,Math.min(w,h)*.08,w/2,h*.48,Math.max(w,h)*.62);
+aura.addColorStop(0,"rgba(255,120,120,.22)");aura.addColorStop(.52,"rgba(190,20,20,.28)");aura.addColorStop(1,"rgba(190,20,20,0)");
+ctx.fillStyle=aura;ctx.fillRect(0,0,w,h);
+ctx.save();ctx.translate(w/2,h/2);ctx.strokeStyle="rgba(255,95,95,.42)";ctx.lineWidth=Math.max(2,3*scale);
+for(let i=0;i<12;i++){const angle=(Math.PI*2*i)/12;ctx.beginPath();ctx.moveTo(Math.cos(angle)*Math.min(w,h)*.28,Math.sin(angle)*Math.min(w,h)*.28);ctx.lineTo(Math.cos(angle)*Math.max(w,h)*.62,Math.sin(angle)*Math.max(w,h)*.62);ctx.stroke();}
+ctx.restore();
+ctx.save();ctx.shadowColor="rgba(190,20,20,.8)";ctx.shadowBlur=22*scale;
+const drawScale=1.08,dw=w*drawScale,dh=h*drawScale;ctx.drawImage(image,(w-dw)/2,(h-dh)/2,dw,dh);ctx.restore();
+return canvas.toDataURL("image/png");
+}catch(error){console.error("Dex Go Gigantamax fallback artwork error:",error);return null;}
+}
+
 async function getVariantArtwork(pokemon,variant,shiny){
 if(!pokemon||!variant||variant==="Normal")return getPokemonArtwork({...pokemon,shiny:!!shiny});
 const cacheKey=String(pokemon.pokemonId||pokemon.id)+"|"+variant+"|"+(shiny?"shiny":"normal");
@@ -2322,7 +2392,7 @@ if(variant==="Mega"){
 pushGoSuffix("dynamax");
 pushGoSuffix("dmax");
 }else if(variant==="Gigantamax"){
-["16"].forEach(pushGoForm);
+["16","17"].forEach(pushGoForm);
 pushGoSuffix("gmax");
 pushGoSuffix("gigantamax");
 }
@@ -2352,6 +2422,18 @@ return getPokemonArtwork({...pokemon,shiny:!!shiny});
 }
 })().finally(()=>{delete variantArtworkPromiseCache[cacheKey];});
 return variantArtworkPromiseCache[cacheKey];
+}
+
+if(variant==="Dynamax"){
+const fallbackUrl=await createDynamaxAuraArtwork(pokemon,shiny);
+if(fallbackUrl)variantArtworkCache[cacheKey]=fallbackUrl;
+return fallbackUrl||getPokemonArtwork({...pokemon,shiny:!!shiny});
+}
+
+if(variant==="Gigantamax"){
+const fallbackUrl=await createGigantamaxAuraArtwork(pokemon,shiny);
+if(fallbackUrl)variantArtworkCache[cacheKey]=fallbackUrl;
+return fallbackUrl||getPokemonArtwork({...pokemon,shiny:!!shiny});
 }
 
 return getPokemonArtwork({...pokemon,shiny:!!shiny});
