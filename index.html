@@ -2503,7 +2503,7 @@ input.value=String(name||"").trim();
 if(select)select.value=specialBackgrounds.some(bg=>bg.name===input.value)?input.value:"";
 updateSpecialBackgroundPreview();
 }
-function renderSelectedPokemonPreview()
+async function renderSelectedPokemonPreview(){
 if(!selectedPokemon){
 document.getElementById("selectedPokemonPreview").innerHTML="";
 return;
