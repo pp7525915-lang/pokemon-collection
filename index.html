@@ -823,7 +823,7 @@ if(catalogMatch&&catalogMatch.id!=null)candidateIds.push(catalogMatch.id);
 for(const assetId of [...new Set(candidateIds)]){
 const paddedId=String(pokemonId).padStart(3,"0");
 const base=GO_ARTWORK_BASE+"pokemon_icon_"+paddedId+"_00_"+String(assetId);
-const urls=shiny?[base+"_shiny.png",base+".png"]:[base+".png"];
+const urls=shiny?[base+"_shiny.png"]:[base+".png"];
 for(const url of urls){
 try{
 const response=await fetch(url,{method:"HEAD"});
@@ -831,7 +831,8 @@ if(response.ok)return url;
 }catch(error){}
 }
 }
-return getPokemonArtwork({...pokemon,shiny:!!shiny});
+if(shiny)return getPokemonArtwork({...pokemon,shiny:true});
+return getPokemonArtwork({...pokemon,shiny:false});
 })().finally(()=>{delete costumeArtworkPromiseCache[cacheKey];});
 costumeArtworkPromiseCache[cacheKey].then(url=>{costumeArtworkCache[cacheKey]=url;});
 return costumeArtworkPromiseCache[cacheKey];
@@ -849,21 +850,48 @@ const url=await getPokemonGoFormArtwork(pokemon,form,shiny);
 if(url)imageElement.src=url;
 }
 
+async function getShinyCombinationArtwork(pokemon){
+const shinyPokemon={...pokemon,shiny:true};
+const shinyNormal=getPokemonArtwork(shinyPokemon);
+
+if(pokemon&&String(pokemon.costume||"").trim()){
+const costumeUrl=await getPokemonGoCostumeArtwork(shinyPokemon,String(pokemon.costume).trim(),true);
+if(costumeUrl&&costumeUrl!==shinyNormal)return costumeUrl;
+}
+
+if(pokemon&&pokemon.variant&&pokemon.variant!=="Normal"){
+const variantUrl=await getVariantArtwork(shinyPokemon,pokemon.variant,true);
+if(variantUrl&&variantUrl!==shinyNormal)return variantUrl;
+}
+
+if(pokemon&&pokemon.form&&pokemon.form!=="Normal"){
+const formUrl=await getPokemonGoFormArtwork(shinyPokemon,pokemon.form,true);
+if(formUrl&&formUrl!==shinyNormal)return formUrl;
+}
+
+return shinyNormal;
+}
+
 async function getPreferredPokemonArtwork(pokemon){
 const shiny=!!(pokemon&&pokemon.shiny);
-const normal=getPokemonArtwork({...pokemon,shiny});
+if(shiny)return getShinyCombinationArtwork(pokemon);
+const normal=getPokemonArtwork({...pokemon,shiny:false});
+
 if(pokemon&&String(pokemon.costume||"").trim()){
-const costumeUrl=await getPokemonGoCostumeArtwork(pokemon,String(pokemon.costume).trim(),shiny);
+const costumeUrl=await getPokemonGoCostumeArtwork(pokemon,String(pokemon.costume).trim(),false);
 if(costumeUrl&&costumeUrl!==normal)return costumeUrl;
 }
+
 if(pokemon&&pokemon.variant&&pokemon.variant!=="Normal"){
-const variantUrl=await getVariantArtwork(pokemon,pokemon.variant,shiny);
+const variantUrl=await getVariantArtwork(pokemon,pokemon.variant,false);
 if(variantUrl&&variantUrl!==normal)return variantUrl;
 }
+
 if(pokemon&&pokemon.form&&pokemon.form!=="Normal"){
-const formUrl=await getPokemonGoFormArtwork(pokemon,pokemon.form,shiny);
+const formUrl=await getPokemonGoFormArtwork(pokemon,pokemon.form,false);
 if(formUrl&&formUrl!==normal)return formUrl;
 }
+
 return normal;
 }
 
