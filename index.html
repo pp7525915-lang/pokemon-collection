@@ -911,6 +911,7 @@ target.length>0&&values.some(value=>target.includes(value))
 });
 
 const assetUrls=[];
+const directAssetUrls=[];
 const pushProto=(proto)=>{
 const code=String(proto||"").trim().toUpperCase();
 if(!code)return;
@@ -920,10 +921,34 @@ const base=GO_ARTWORK_BASE+"pm"+pokemonId+".f"+encodeURIComponent(normalizedCode
 assetUrls.push(shiny?base+".s.icon.png":base+".icon.png");
 }
 };
+const pushDirectAsset=(value)=>{
+const raw=String(value||"").trim();
+if(!raw)return;
+if(/^https?:\\/\\//i.test(raw)){
+directAssetUrls.push(raw);
+return;
+}
+const normalized=raw.replace(/^\\/+|\\+$/g,"");
+if(!normalized)return;
+const variants=[
+normalized,
+normalized.toUpperCase(),
+normalized.toLowerCase()
+];
+variants.forEach(code=>{
+directAssetUrls.push(GO_ARTWORK_BASE+"pm"+pokemonId+".f"+encodeURIComponent(code)+(shiny?".s.icon.png":".icon.png"));
+});
+};
 pushProto(candidate&&candidate.proto);
 pushProto(candidate&&candidate.asset);
 pushProto(catalogMatch&&catalogMatch.proto);
 pushProto(catalogMatch&&catalogMatch.asset);
+["assetUrl","imageUrl","image","iconUrl","icon","url"].forEach(key=>{
+pushDirectAsset(candidate&&candidate[key]);
+pushDirectAsset(catalogMatch&&catalogMatch[key]);
+});
+if(candidate&&candidate.formId!=null)pushDirectAsset(String(candidate.formId));
+if(catalogMatch&&catalogMatch.formId!=null)pushDirectAsset(String(catalogMatch.formId));
 
 const candidateIds=[];
 if(candidate&&candidate.formId!=null)candidateIds.push(candidate.formId);
@@ -937,6 +962,9 @@ const base=GO_ARTWORK_BASE+"pokemon_icon_"+paddedId+"_00_"+assetId;
 assetUrls.push(shiny?base+"_shiny.png":base+".png");
 }
 
+for(const url of [...new Set(directAssetUrls)]){
+if(await probeImage(url))return url;
+}
 for(const url of [...new Set(assetUrls)]){
 if(await probeImage(url))return url;
 }
