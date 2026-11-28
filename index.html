@@ -816,20 +816,41 @@ const aExact=normalizeCostumeText(a.formName)===target?0:1;
 const bExact=normalizeCostumeText(b.formName)===target?0:1;
 return aExact-bExact;
 })[0];
+const assetCodes=[];
+if(candidate&&candidate.proto){
+const proto=String(candidate.proto).toUpperCase();
+const prefix=speciesName+"_";
+if(proto.startsWith(prefix)){
+const costumeCode=proto.slice(prefix.length).trim();
+if(costumeCode)assetCodes.push(costumeCode);
+}
+}
+const catalogMatch=(await loadCostumeCatalogData()).find(item=>{
+const catalogName=normalizeCostumeText(item&&item.name);
+return catalogName===target;
+});
+if(catalogMatch&&catalogMatch.proto){
+const catalogProto=String(catalogMatch.proto).toUpperCase().trim();
+if(catalogProto)assetCodes.push(catalogProto);
+}
 const candidateIds=candidate&&candidate.formId?[candidate.formId]:[];
-const costumes=await loadCostumeCatalogData();
-const catalogMatch=costumes.find(item=>normalizeCostumeText(item.name)===target);
 if(catalogMatch&&catalogMatch.id!=null)candidateIds.push(catalogMatch.id);
-for(const assetId of [...new Set(candidateIds)]){
+
 const paddedId=String(pokemonId).padStart(3,"0");
+const assetUrls=[];
+for(const assetCode of [...new Set(assetCodes)]){
+const base=GO_ARTWORK_BASE+"pm"+pokemonId+".f"+encodeURIComponent(assetCode);
+assetUrls.push(shiny?base+".s.icon.png":base+".icon.png");
+}
+for(const assetId of [...new Set(candidateIds)]){
 const base=GO_ARTWORK_BASE+"pokemon_icon_"+paddedId+"_00_"+String(assetId);
-const urls=shiny?[base+"_shiny.png",base+".png"]:[base+".png"];
-for(const url of urls){
+assetUrls.push(shiny?base+"_shiny.png":base+".png");
+}
+for(const url of [...new Set(assetUrls)]){
 try{
 const response=await fetch(url,{method:"HEAD"});
 if(response.ok)return url;
 }catch(error){}
-}
 }
 return getPokemonArtwork({...pokemon,shiny:!!shiny});
 })().finally(()=>{delete costumeArtworkPromiseCache[cacheKey];});
