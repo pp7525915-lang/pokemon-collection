@@ -2232,7 +2232,7 @@ function renderPokemonGoEventCostumeGallery(){
 const box=document.getElementById("pokemonEventCostumeGallery");
 if(!box)return;
 const selectedEvents=getPokemonGoSelectedEvents();
-const selectedPokemon=selectedPokemon?Number(selectedPokemon.id):null;
+const currentPokemonId=selectedPokemon?Number(selectedPokemon.id):null;
 const eventName=selectedEvents[selectedEvents.length-1]||"";
 const candidates=eventName?getEventCostumeCandidates(eventName,selectedPokemon):[];
 if(!eventName||!candidates.length){
@@ -2344,6 +2344,7 @@ if(!existing.some(item=>item.toLowerCase()===eventName.toLowerCase()))existing.p
 input.value=existing.join(", ");
 renderPokemonGoSelectedEvents();
 renderPokemonGoEventBranding();
+renderPokemonGoEventCostumeGallery();
 const select=document.getElementById("pokemonGoEventSelect");
 if(select)select.value="";
 }
@@ -2352,7 +2353,7 @@ function bindPokemonGoEventBranding(){
 const input=document.getElementById("event");
 if(input&&!input.dataset.brandingBound){
 input.dataset.brandingBound="true";
-input.addEventListener("input",renderPokemonGoEventBranding);
+input.addEventListener("input",()=>{renderPokemonGoEventBranding();renderPokemonGoEventCostumeGallery();});
 }
 }
 function getPokemonGoCostumeSuggestions(pokemonId){return pokemonGoCostumeMap[Number(pokemonId)]||[];}
