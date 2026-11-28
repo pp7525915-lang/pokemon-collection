@@ -602,6 +602,8 @@ if(preferred==="dark")document.body.classList.add("dark");
 })();
 const IMAGE_BASE="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/";
 const GO_ARTWORK_BASE="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokemon/";
+const GO_ADDRESSABLE_ASSET_BASE="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokemon/Addressable%20Assets/";
+const GO_ADDRESSABLE_ASSET_BASE="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokemon/Addressable%20Assets/";
 function getPokemonArtwork(pokemon){
 const id=pokemon&&(pokemon.pokemonId||pokemon.id);
 const paddedId=String(id).padStart(3,"0");
@@ -789,6 +791,12 @@ const costumeArtworkCache={};
 const costumeArtworkPromiseCache={};
 let costumeFormsData=null;
 let costumeFormsPromise=null;
+let costumeArtworkLabelData=null;
+let costumeArtworkLabelPromise=null;
+let costumeCatalogData=null;
+let costumeCatalogPromise=null;
+let costumeArtworkLabelData=null;
+let costumeArtworkLabelPromise=null;
 
 function normalizeCostumeText(value){
 return String(value||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
@@ -806,6 +814,60 @@ return costumeFormsData;
 .catch(()=>[])
 .finally(()=>{costumeFormsPromise=null;});
 return costumeFormsPromise;
+}
+
+async function loadCostumeArtworkLabelData(){
+if(costumeArtworkLabelData)return costumeArtworkLabelData;
+if(costumeArtworkLabelPromise)return costumeArtworkLabelPromise;
+costumeArtworkLabelPromise=fetch("https://raw.githubusercontent.com/Hailey-Ross/hailsDotGO/main/internal/costumes/labels.json")
+.then(response=>response.ok?response.json():null)
+.then(data=>{costumeArtworkLabelData=data&&typeof data==="object"?data:null;return costumeArtworkLabelData;})
+.catch(()=>null)
+.finally(()=>{costumeArtworkLabelPromise=null;});
+return costumeArtworkLabelPromise;
+}
+async function getCanonicalCostumeArtworkCode(pokemon,costume){
+const labels=await loadCostumeArtworkLabelData();
+if(!labels||!pokemon||!costume)return "";
+const target=normalizeCostumeText(costume);
+const species=labels.species&&labels.species[String(pokemon.name||"").trim()];
+if(species){
+for(const [label,code] of Object.entries(species)){
+if(normalizeCostumeText(label)===target)return String(code||"").trim();
+}
+}
+const shared=Array.isArray(labels.shared)?labels.shared:[];
+for(const item of shared){
+if(normalizeCostumeText(item&&item.label)===target)return String(item&&item.code||"").trim();
+}
+return "";
+}
+
+async function loadCostumeArtworkLabelData(){
+if(costumeArtworkLabelData)return costumeArtworkLabelData;
+if(costumeArtworkLabelPromise)return costumeArtworkLabelPromise;
+costumeArtworkLabelPromise=fetch("https://raw.githubusercontent.com/Hailey-Ross/hailsDotGO/main/internal/costumes/labels.json")
+.then(response=>response.ok?response.json():null)
+.then(data=>{costumeArtworkLabelData=data&&typeof data==="object"?data:null;return costumeArtworkLabelData;})
+.catch(()=>null)
+.finally(()=>{costumeArtworkLabelPromise=null;});
+return costumeArtworkLabelPromise;
+}
+async function getCanonicalCostumeArtworkCode(pokemon,costume){
+const labels=await loadCostumeArtworkLabelData();
+if(!labels||!pokemon||!costume)return "";
+const target=normalizeCostumeText(costume);
+const species=labels.species&&labels.species[String(pokemon.name||"").trim()];
+if(species&&typeof species==="object"){
+for(const [label,code] of Object.entries(species)){
+if(normalizeCostumeText(label)===target)return String(code||"").trim();
+}
+}
+const shared=Array.isArray(labels.shared)?labels.shared:[];
+for(const item of shared){
+if(normalizeCostumeText(item&&item.label)===target)return String(item&&item.code||"").trim();
+}
+return "";
 }
 
 async function loadCostumeCatalogData(){
@@ -912,6 +974,22 @@ target.length>0&&values.some(value=>target.includes(value))
 
 const assetUrls=[];
 const directAssetUrls=[];
+const pushAddressableCode=(value)=>{
+const raw=String(value||"").trim();
+const match=raw.match(/^([fc]):(.+)$/i);
+if(!match)return;
+const code=match[2].trim();
+if(!code)return;
+const base=GO_ADDRESSABLE_ASSET_BASE+"pm"+pokemonId+"."+match[1].toLowerCase()+encodeURIComponent(code);
+assetUrls.push(shiny?base+".s.icon.png":base+".icon.png");
+};
+const pushAddressableCode=(value)=>{
+const raw=String(value||"").trim();
+const match=raw.match(/^([fc]):(.+)$/i);
+if(!match)return;
+const base=GO_ADDRESSABLE_ASSET_BASE+"pm"+pokemonId+"."+match[1].toLowerCase()+encodeURIComponent(match[2].trim());
+assetUrls.push(shiny?base+".s.icon.png":base+".icon.png");
+};
 const pushProto=(proto)=>{
 const code=String(proto||"").trim().toUpperCase();
 if(!code)return;
@@ -939,6 +1017,10 @@ variants.forEach(code=>{
 directAssetUrls.push(GO_ARTWORK_BASE+"pm"+pokemonId+".f"+encodeURIComponent(code)+(shiny?".s.icon.png":".icon.png"));
 });
 };
+const canonicalCode=await getCanonicalCostumeArtworkCode(pokemon,costume);
+if(canonicalCode)pushAddressableCode(canonicalCode);
+const canonicalCode=await getCanonicalCostumeArtworkCode(pokemon,costume);
+if(canonicalCode)pushAddressableCode(canonicalCode);
 pushProto(candidate&&candidate.proto);
 pushProto(candidate&&candidate.asset);
 pushProto(catalogMatch&&catalogMatch.proto);
