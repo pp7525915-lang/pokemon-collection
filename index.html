@@ -2034,6 +2034,9 @@ const pokemonGoHistoricalEventPokemonMap={
 "September Community Day 2019":[387,388,389],
 "October Community Day 2019":[328,329,330],
 "November Community Day 2019":[390,391,392],
+"December Community Day 2018":[1,2,3,4,5,6,7,8,9,25,133,147,148,149,152,153,154,155,156,157,179,180,181,246,247,248,374,375,376],
+"December Community Day 2019":[1,2,3,4,5,6,7,8,9,25,133,134,135,136,147,148,149,152,153,154,155,156,157,158,159,160,179,180,181,220,221,246,247,248,252,253,254,255,256,257,258,259,260,280,281,282,287,288,289,328,329,330,371,372,373,374,375,376,387,388,389,390,391,392],
+"December Community Day 2020":[1,2,3,4,5,6,13,14,15,25,63,64,65,92,93,94,111,112,125,126,129,130,137,233,273,274,275,328,329,330,371,372,373,390,391,392,393,394,395,396,397,398,498,499,500,255,256,257,258,259,260,280,281,282,387,388,389],
 "January Community Day 2020":[393,394,395],
 "February Community Day 2020":[111,112,464],
 "April Community Day 2020: Abra":[63,64,65],
@@ -2134,7 +2137,7 @@ pokemonGoEventPokemonMap[Number(id)]=existing;
 });
 });
 
-pokemonGoEventCatalog.push(...Object.keys(pokemonGoHistoricalEventPokemonMap));
+pokemonGoEventCatalog.push(...Object.keys(pokemonGoHistoricalEventPokemonMap).filter(eventName=>!pokemonGoEventCatalog.includes(eventName)));
 
 function getPokemonGoEventBranding(eventName){
 const name=String(eventName||"").trim();
