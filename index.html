@@ -930,6 +930,7 @@ target.length>0&&values.some(value=>target.includes(value))
 
 const assetUrls=[];
 const directAssetUrls=[];
+const GO_ADDRESSABLE_ARTWORK_BASE=GO_ARTWORK_BASE+"Addressable%20Assets/";
 const artworkLabelData=await loadCostumeArtworkLabelData();
 const labelAliases=artworkLabelData&&artworkLabelData.aliases&&typeof artworkLabelData.aliases==="object"?artworkLabelData.aliases:{};
 const speciesLabels=artworkLabelData&&artworkLabelData.species&&typeof artworkLabelData.species==="object"?artworkLabelData.species:{};
@@ -949,7 +950,7 @@ if(!match)return;
 const prefix=match[1].toLowerCase();
 const assetCode=match[2].trim();
 if(!assetCode)return;
-const base=GO_ARTWORK_BASE+"pm"+pokemonId+"."+prefix+encodeURIComponent(assetCode);
+const base=GO_ADDRESSABLE_ARTWORK_BASE+"pm"+pokemonId+"."+prefix+encodeURIComponent(assetCode);
 directAssetUrls.push(shiny?base+".s.icon.png":base+".icon.png");
 };
 pushArtworkCode(mappedCode);
@@ -958,7 +959,7 @@ const code=String(proto||"").trim().toUpperCase();
 if(!code)return;
 const normalizedCode=code.startsWith(speciesName+"_")?code.slice(speciesName.length+1):code;
 if(normalizedCode){
-const base=GO_ARTWORK_BASE+"pm"+pokemonId+".f"+encodeURIComponent(normalizedCode);
+const base=GO_ADDRESSABLE_ARTWORK_BASE+"pm"+pokemonId+".f"+encodeURIComponent(normalizedCode);
 assetUrls.push(shiny?base+".s.icon.png":base+".icon.png");
 }
 };
@@ -977,7 +978,7 @@ normalized.toUpperCase(),
 normalized.toLowerCase()
 ];
 variants.forEach(code=>{
-directAssetUrls.push(GO_ARTWORK_BASE+"pm"+pokemonId+".f"+encodeURIComponent(code)+(shiny?".s.icon.png":".icon.png"));
+directAssetUrls.push(GO_ADDRESSABLE_ARTWORK_BASE+"pm"+pokemonId+".f"+encodeURIComponent(code)+(shiny?".s.icon.png":".icon.png"));
 });
 };
 pushProto(candidate&&candidate.proto);
