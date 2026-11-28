@@ -925,6 +925,24 @@ pushProto(candidate&&candidate.asset);
 pushProto(catalogMatch&&catalogMatch.proto);
 pushProto(catalogMatch&&catalogMatch.asset);
 
+// Some older/event costumes are not consistently exposed by the live
+// costume metadata feeds. Keep explicit GO asset fallbacks for those
+// known costume names so the gallery never falls back to plain Pikachu.
+const directCostumeProtoMap={
+  "akari's kerchief":"AKARI_KERCHIEF",
+  "rei's cap":"REI_CAP",
+  "lucas's hat":"LUCAS_HAT",
+  "dawn's hat":"DAWN_HAT",
+  "hilbert's hat":"HILBERT_HAT",
+  "hilda's hat":"HILDA_HAT",
+  "nate's visor":"NATE_VISOR",
+  "rosa's visor":"ROSA_VISOR"
+};
+const directProto=directCostumeProtoMap[normalizeCostumeText(costume)];
+if(directProto){
+  pushProto(speciesName+"_"+directProto);
+}
+
 const candidateIds=[];
 if(candidate&&candidate.formId!=null)candidateIds.push(candidate.formId);
 if(candidate&&candidate.id!=null&&String(candidate.id)!==speciesId)candidateIds.push(candidate.id);
