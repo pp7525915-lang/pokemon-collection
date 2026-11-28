@@ -2250,7 +2250,11 @@ const card=document.createElement("button");
 card.type="button";
 card.className="event-costume-card";
 card.innerHTML='<img alt="'+formatPokemonName(pokemon.name)+' — '+item.costume+'" loading="lazy"><strong>'+formatPokemonName(pokemon.name)+'</strong><span>'+item.costume+'</span>';
-card.querySelector("img").src=getPokemonArtwork({...pokemon,costume:item.costume});
+const image=card.querySelector("img");
+getPokemonGoCostumeArtwork(pokemon,item.costume,false).then(url=>{
+if(url)image.src=url;
+else image.src=getPokemonArtwork(pokemon);
+}).catch(()=>{image.src=getPokemonArtwork(pokemon);});
 card.onclick=()=>{
 document.getElementById("pokemonSelect").value=String(pokemon.id);
 selectPokemon();
