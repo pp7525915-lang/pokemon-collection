@@ -2916,6 +2916,7 @@ section.style.setProperty("--type-bg-b",pokemonTypeColors[types[1]||types[0]]);
 const POGO_MOVES_API_URL="https://pogoapi.net/api/v1/current_pokemon_moves.json";
 let pokemonGoMovesCache=null;
 let pokemonGoMovesLoading=null;
+let pokemonGoMovesRequestToken=0;
 
 function normalizePokemonGoMoveForm(value){
 return String(value||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"_");
@@ -2983,6 +2984,7 @@ if(savedValue)select.value=String(savedValue).trim();
 }
 
 async function populatePokemonGoMoves(pokemonId,savedFastMove="",savedChargedMove=""){
+const requestToken=++pokemonGoMovesRequestToken;
 const message=document.getElementById("movesMessage");
 const fastSelect=document.getElementById("fastMove");
 const chargedSelect=document.getElementById("chargedMove");
@@ -2998,6 +3000,7 @@ message.style.display="block";
 message.textContent="Loading moves...";
 }
 const data=await loadPokemonGoMovesData();
+if(requestToken!==pokemonGoMovesRequestToken)return;
 const id=Number(pokemonId);
 const selectedForm=normalizePokemonGoMoveForm(getSelectedMoveForm());
 let matches=data.filter(item=>Number(item.pokemon_id)===id);
@@ -3050,9 +3053,8 @@ renderSelectedPokemonPreview();
 pokemonSearch.addEventListener("input",filterPokemon);
 pokemonSelect.addEventListener("change",selectPokemon);
 document.getElementById("shiny").addEventListener("change",renderSelectedPokemonPreview);
-document.getElementById("pokemonForm").addEventListener("change",renderSelectedPokemonPreview);
+document.getElementById("pokemonForm").addEventListener("change",()=>{renderSelectedPokemonPreview();if(selectedPokemon)populatePokemonGoMoves(selectedPokemon.id);});
 document.getElementById("pokemonVariant").addEventListener("change",()=>{renderSelectedPokemonPreview();if(selectedPokemon)populatePokemonGoMoves(selectedPokemon.id);});
-document.getElementById("pokemonForm").addEventListener("change",()=>{if(selectedPokemon)populatePokemonGoMoves(selectedPokemon.id);});
 populateSpecialBackgrounds();
 const backgroundPreset=document.getElementById("backgroundPreset");
 if(backgroundPreset)backgroundPreset.addEventListener("change",()=>setSpecialBackground(backgroundPreset.value));
