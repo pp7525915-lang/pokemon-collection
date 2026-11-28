@@ -327,6 +327,16 @@ html{scroll-behavior:auto}
 .add-pokemon-section.has-type-bg{background:linear-gradient(135deg,#0b1220 0%,#111827 58%,#172554 100%);border-color:#334155}.add-pokemon-section.has-type-bg:before{background:linear-gradient(90deg,rgba(15,23,42,.76),rgba(15,23,42,.52))}.add-pokemon-section.has-type-bg .section-subtitle{color:#94a3b8}
 @media(max-width:599px){.pokemon-selection-grid{grid-template-columns:1fr}.pokemon-browser-card{flex-basis:126px}.pokemon-browser-card img{width:84px;height:84px}.pokemon-preview-column #selectedPokemonPreview .background-preview{min-height:200px!important}}
 @media(min-width:900px){.add-browser{padding:20px}.pokemon-browser-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));overflow:visible}.pokemon-browser-card{min-width:0;flex-basis:auto}}
+
+/* 25C Event Costume Gallery */
+.event-costume-gallery{margin-top:12px;padding:12px;border:1px solid var(--border);border-radius:16px;background:var(--surface-soft)}
+.event-costume-gallery-header{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.event-costume-gallery-header strong{font-size:14px}.event-costume-gallery-header span{font-size:10px;color:var(--muted)}
+.event-costume-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.event-costume-card{border:1px solid var(--border);background:var(--surface);border-radius:14px;padding:8px;text-align:center;cursor:pointer;transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}
+.event-costume-card:hover{transform:translateY(-2px);border-color:var(--primary);box-shadow:0 6px 16px rgba(0,0,0,.1)}
+.event-costume-card img{width:92px;height:92px;object-fit:contain}.event-costume-card strong{display:block;font-size:12px;margin-top:3px}.event-costume-card span{display:block;font-size:9px;color:var(--muted);margin-top:2px}
+@media(min-width:600px){.event-costume-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.event-costume-card img{width:110px;height:110px}}
 </style>
 </head>
 <body>
@@ -475,7 +485,7 @@ html{scroll-behavior:auto}
 </div>
 <div id="pokemonGoSelectedEvents" class="event-chips"></div>
 <div id="pokemonEventBranding" class="event-branding" aria-live="polite"></div>
-<div id="pokemonEventSuggestions" class="event-suggestions"></div>
+<div id="pokemonEventSuggestions" class="event-suggestions"></div><div id="pokemonEventCostumeGallery" class="event-costume-gallery" style="display:none"></div>
 </div>
 <div class="special-card"><label for="background">🖼️ Special Background</label><div class="background-select-row"><select id="backgroundPreset"><option value="">No special background</option></select><button type="button" id="clearBackgroundBtn">Clear</button></div><input id="background" type="text" placeholder="Custom background name" style="margin-top:7px"><div id="backgroundPreview" class="background-preview"><div class="background-preview-empty">Select a Special Background to preview it.</div></div></div>
 <div class="special-card"><label for="shiny">✨ Shiny</label><select id="shiny"><option value="false">No</option><option value="true">Yes</option></select></div>
@@ -2176,6 +2186,87 @@ return false;
 return match;
 }
 
+
+function getEventCostumeCandidates(eventName,pokemonId=null){
+const name=String(eventName||"").toLowerCase();
+const all=[];
+const add=(costumeNames)=>{
+const ids=pokemonId?[Number(pokemonId)]:Object.keys(pokemonGoCostumeMap).map(Number);
+ids.forEach(id=>{
+const names=pokemonGoCostumeMap[String(id)]||[];
+costumeNames.forEach(costume=>{
+if(names.some(item=>String(item).toLowerCase()===String(costume).toLowerCase())){
+all.push({pokemonId:id,costume});
+}
+});
+});
+};
+if(name.includes("halloween")||name.includes("spooky")||name.includes("tricks")){
+add(["Halloween Mischief","Witch hat","Spooky Festival","Tricks & Treats"]);
+}
+if(name.includes("new year")||name.includes("new year's")||name.includes("holiday")){
+add(["New Year's hat","New Year's outfit","Festive hat","Holiday outfit","Holiday hat"]);
+}
+if(name.includes("fashion")||name.includes("valentine")){
+add(["Fashionable costume","Flower crown","Heart"]);
+}
+if(name.includes("world championships")){
+add(["World Championships (2022 · WCS2022)","World Championships (2023 · WCS2023)","World Championships (2024 · WCS2024)"]);
+}
+if(name.includes("go fest")||name.includes("go tour")||name.includes("safari")){
+add(["Explorer","Safari hat","Party hat"]);
+}
+if(name.includes("anniversary")){
+add(["Party hat","Party hat (red)","Party top hat"]);
+}
+if(name.includes("community day")){
+add(["Flower crown","Explorer hat"]);
+}
+if(name.includes("pikachu")||name.includes("costume")){
+add(["Detective Pikachu","Pikachu Libre","Pikachu Pop Star","Pikachu Rock Star","Pikachu Ph.D."]);
+}
+return [...new Map(all.map(item=>[item.pokemonId+"|"+item.costume,item])).values()];
+}
+
+function renderPokemonGoEventCostumeGallery(){
+const box=document.getElementById("pokemonEventCostumeGallery");
+if(!box)return;
+const selectedEvents=getPokemonGoSelectedEvents();
+const selectedPokemon=selectedPokemon?Number(selectedPokemon.id):null;
+const eventName=selectedEvents[selectedEvents.length-1]||"";
+const candidates=eventName?getEventCostumeCandidates(eventName,selectedPokemon):[];
+if(!eventName||!candidates.length){
+box.innerHTML="";
+box.style.display="none";
+return;
+}
+box.style.display="block";
+box.innerHTML='<div class="event-costume-gallery-header"><strong>🎭 Event Costume Collection</strong><span>'+candidates.length+' matching skin'+(candidates.length===1?"":"s")+'</span></div><div class="event-costume-grid"></div>';
+const grid=box.querySelector(".event-costume-grid");
+candidates.forEach(item=>{
+const pokemon=pokemonList.find(p=>Number(p.id)===item.pokemonId);
+if(!pokemon)return;
+const card=document.createElement("button");
+card.type="button";
+card.className="event-costume-card";
+card.innerHTML='<img alt="'+formatPokemonName(pokemon.name)+' — '+item.costume+'" loading="lazy"><strong>'+formatPokemonName(pokemon.name)+'</strong><span>'+item.costume+'</span>';
+card.querySelector("img").src=getPokemonArtwork({...pokemon,costume:item.costume});
+card.onclick=()=>{
+document.getElementById("pokemonSelect").value=String(pokemon.id);
+selectPokemon();
+setTimeout(()=>{
+const costumeSelect=document.getElementById("pokemonGoCostumeSelect");
+if(costumeSelect){
+costumeSelect.value=item.costume;
+document.getElementById("costume").value=item.costume;
+}
+renderPokemonGoEventCostumeGallery();
+},0);
+};
+grid.appendChild(card);
+});
+}
+
 function renderPokemonGoEventBranding(){
 const box=document.getElementById("pokemonEventBranding");
 if(!box)return;
@@ -2238,6 +2329,7 @@ const remaining=getPokemonGoSelectedEvents().filter(item=>item.toLowerCase()!==e
 document.getElementById("event").value=remaining.join(", ");
 renderPokemonGoSelectedEvents();
 renderPokemonGoEventBranding();
+renderPokemonGoEventCostumeGallery();
 };
 chip.appendChild(remove);
 box.appendChild(chip);
@@ -3920,6 +4012,7 @@ button.textContent="🔍 Scan Screenshot";
 
 document.getElementById("pokemonScreenshot").addEventListener("change",previewPokemonScreenshot);
 bindPokemonGoEventBranding();
+renderPokemonGoEventCostumeGallery();
 </script>
 </body>
 </html>
