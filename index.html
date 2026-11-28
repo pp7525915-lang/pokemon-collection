@@ -924,11 +924,11 @@ assetUrls.push(shiny?base+".s.icon.png":base+".icon.png");
 const pushDirectAsset=(value)=>{
 const raw=String(value||"").trim();
 if(!raw)return;
-if(/^https?:\\/\\//i.test(raw)){
+if(/^https?:\/\//i.test(raw)){
 directAssetUrls.push(raw);
 return;
 }
-const normalized=raw.replace(/^\\/+|\\+$/g,"");
+const normalized=raw.replace(/^\/+|\/+$/g,"");
 if(!normalized)return;
 const variants=[
 normalized,
