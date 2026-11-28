@@ -509,14 +509,15 @@ html{scroll-behavior:auto}
 </div>
 <div class="filter-row"><div><label for="backgroundFilter">Background Filter</label><input id="backgroundFilter" type="text" placeholder="Example: New York City"></div><div><label for="shinyFilter">Shiny</label><select id="shinyFilter"><option value="all">All</option><option value="yes">✨ Shiny</option><option value="no">Not Shiny</option></select></div><div><label for="luckyFilter">Lucky</label><select id="luckyFilter"><option value="all">All</option><option value="yes">🍀 Lucky</option><option value="no">Not Lucky</option></select></div></div>
 <div class="filter-row"><div><label for="typeFilter">Type</label><select id="typeFilter"><option value="all">All Types</option><option>Normal</option><option>Fire</option><option>Water</option><option>Electric</option><option>Grass</option><option>Ice</option><option>Fighting</option><option>Poison</option><option>Ground</option><option>Flying</option><option>Psychic</option><option>Bug</option><option>Rock</option><option>Ghost</option><option>Dragon</option><option>Dark</option><option>Steel</option><option>Fairy</option></select></div></div>
-<div class="filter-row"><div><label for="formFilter">Form</label><select id="formFilter"><option value="all">All Forms</option><option value="Normal">Normal</option><option value="Alolan">Alolan</option><option value="Galarian">Galarian</option><option value="Hisuian">Hisuian</option><option value="Paldean">Paldean</option><option value="Other">Other</option></select></div></div>
+<div class="filter-row"><div><label for="formFilter">Form</label><select id="formFilter"><option value="all">All Forms</option><option value="Normal">Normal</option><option value="Alolan">Alolan</option><option value="Galarian">Galarian</option><option value="Hisuian">Hisuian</option><option value="Paldean">Paldean</option><option value="Other">Other</option></select></div><div><label for="variantFilter">Variant</label><select id="variantFilter"><option value="all">All Variants</option><option value="Normal">Normal</option><option value="Shadow">🌑 Shadow</option><option value="Purified">✨ Purified</option><option value="Dynamax">🔴 Dynamax</option><option value="Gigantamax">🔴 Gigantamax</option><option value="Mega">⭐ Mega</option><option value="Mega X">⭐ Mega X</option><option value="Mega Y">⭐ Mega Y</option><option value="Primal">🌋 Primal</option></select></div></div>
 <button class="clear-filters-btn" onclick="clearCollectionFilters()">Clear Filters</button>
 <p id="collectionFilterSummary" class="filter-summary"></p>
 </div>
 <div id="collectionList"><p>No Pokémon added yet.</p></div>
 </div>
 </section>
-<section id="stats"><div class="stats-hero"><h2>📊 Collection Stats</h2><p>Your complete Dex Go collection overview, progress and insights.</p></div><div class="stats-dashboard"><div class="stats-dashboard-card"><strong id="statsTotal">0</strong><span>Total Records</span></div><div class="stats-dashboard-card"><strong id="statsUnique">0</strong><span>Unique Pokémon</span></div><div class="stats-dashboard-card"><strong id="statsHundo">0</strong><span>💯 Hundos</span></div><div class="stats-dashboard-card"><strong id="statsMissing">1025</strong><span>Missing Pokédex</span></div></div><div class="panel"><h2>📖 Pokédex Completion</h2><div class="progress"><div id="statsProgressBar" class="progress-bar"></div></div><div id="statsProgressText" class="progress-text">0 / 1025 Pokémon collected — 0%</div></div><div class="panel"><h2>⭐ IV Appraisal</h2><div class="stats-grid"><div class="stat"><span class="stat-number" id="stats0Star">0</span>0★</div><div class="stat"><span class="stat-number" id="stats1Star">0</span>1★</div><div class="stat"><span class="stat-number" id="stats2Star">0</span>2★</div><div class="stat"><span class="stat-number" id="stats3Star">0</span>3★</div><div class="stat"><span class="stat-number" id="stats4Star">0</span>4★</div></div></div><div class="panel"><h2>🗺️ Generation Progress</h2><div id="generationStats" class="generation-stats"></div></div><div class="panel"><h2>✨ Collection Highlights</h2><div class="stats-insight-grid"><div class="stats-insight"><strong id="statsShiny">0</strong><span>✨ Shiny</span></div><div class="stats-insight"><strong id="statsLucky">0</strong><span>🍀 Lucky</span></div><div class="stats-insight"><strong id="statsVariantInsight">0</strong><span>🎭 Forms / Variants</span></div><div class="stats-insight"><strong id="statsFourStarInsight">0</strong><span>⭐ 4★ Pokémon</span></div></div></div></section>
+<section id="stats"><div class="stats-hero"><h2>📊 Collection Stats</h2><p>Your complete Dex Go collection overview, progress and insights.</p></div><div class="stats-dashboard"><div class="stats-dashboard-card"><strong id="statsTotal">0</strong><span>Total Records</span></div><div class="stats-dashboard-card"><strong id="statsUnique">0</strong><span>Unique Pokémon</span></div><div class="stats-dashboard-card"><strong id="statsHundo">0</strong><span>💯 Hundos</span></div><div class="stats-dashboard-card"><strong id="statsMissing">1025</strong><span>Missing Pokédex</span></div></div><div class="panel"><h2>📖 Pokédex Completion</h2><div class="progress"><div id="statsProgressBar" class="progress-bar"></div></div><div id="statsProgressText" class="progress-text">0 / 1025 Pokémon collected — 0%</div></div><div class="panel"><h2>⭐ IV Appraisal</h2><div class="stats-grid"><div class="stat"><span class="stat-number" id="stats0Star">0</span>0★</div><div class="stat"><span class="stat-number" id="stats1Star">0</span>1★</div><div class="stat"><span class="stat-number" id="stats2Star">0</span>2★</div><div class="stat"><span class="stat-number" id="stats3Star">0</span>3★</div><div class="stat"><span class="stat-number" id="stats4Star">0</span>4★</div></div></div><div class="panel"><h2>🗺️ Generation Progress</h2><div id="generationStats" class="generation-stats"></div></div><div class="panel"><h2>✨ Collection Highlights</h2><div class="stats-insight-grid"><div class="stats-insight"><strong id="statsShiny">0</strong><span>✨ Shiny</span></div><div class="stats-insight"><strong id="statsLucky">0</strong><span>🍀 Lucky</span></div><div class="stats-insight"><strong id="statsVariantInsight">0</strong><span>🎭 Forms / Variants</span></div><div class="stats-insight"><strong id="statsFourStarInsight">0</strong><span>⭐ 4★ Pokémon</span></div><div class="stats-insight"><strong id="statsCostumeInsight">0</strong><span>👕 Costumes</span></div><div class="stats-insight"><strong id="statsEventInsight">0</strong><span>🎉 Event Pokémon</span></div><div class="stats-insight"><strong id="statsBackgroundInsight">0</strong><span>🖼️ Special Backgrounds</span></div><div class="stats-insight"><strong id="statsFormInsight">0</strong><span>🔄 Alternate Forms</span></div></div></div>
+<div class="panel"><h2>🎭 Variant Breakdown</h2><div class="stats-insight-grid"><div class="stats-insight"><strong id="statsShadow">0</strong><span>🌑 Shadow</span></div><div class="stats-insight"><strong id="statsPurified">0</strong><span>✨ Purified</span></div><div class="stats-insight"><strong id="statsDynamax">0</strong><span>🔴 Dynamax</span></div><div class="stats-insight"><strong id="statsGigantamax">0</strong><span>🔴 Gigantamax</span></div><div class="stats-insight"><strong id="statsMega">0</strong><span>⭐ Mega</span></div><div class="stats-insight"><strong id="statsPrimal">0</strong><span>🌋 Primal</span></div></div></div></section>
 <section id="ranking"><div class="ranking-hero"><h2>🏆 GO Battle Ranking</h2><p>Choose a league to see the best Pokémon from your collection for that CP format.</p></div><div class="ranking-tabs"><button class="ranking-tab active" type="button" onclick="setRankingLeague('great',this)">🟢 Great League</button><button class="ranking-tab" type="button" onclick="setRankingLeague('ultra',this)">🔵 Ultra League</button><button class="ranking-tab" type="button" onclick="setRankingLeague('master',this)">🟣 Master League</button></div><div id="rankingLeagueSummary" class="league-summary"></div><div id="rankingStats" class="league-list"></div><p class="league-note">GBL format limits used here: Great League ≤ 1,500 CP • Ultra League ≤ 2,500 CP • Master League has no CP cap. This is a collection ranking, not an official GBL battle rating.</p></section>
 </main>
 <script>
@@ -1208,6 +1209,7 @@ shiny:document.getElementById("shinyFilter").value,
 lucky:document.getElementById("luckyFilter").value,
 type:document.getElementById("typeFilter").value,
 form:document.getElementById("formFilter").value,
+variant:document.getElementById("variantFilter").value,
 
 };
 }
@@ -1224,6 +1226,7 @@ document.getElementById("shinyFilter").value="all";
 document.getElementById("luckyFilter").value="all";
 document.getElementById("typeFilter").value="all";
 document.getElementById("formFilter").value="all";
+document.getElementById("variantFilter").value="all";
 
 renderCollection();
 }
@@ -1254,6 +1257,7 @@ if(filters.shiny!=="all"&&((pokemon.shiny===true)!==(filters.shiny==="yes")))ret
 if(filters.lucky!=="all"&&((pokemon.lucky===true)!==(filters.lucky==="yes")))return false;
 if(filters.type&&filters.type!=="all"&&!(pokemon.type||"").split(", ").map(value=>value.toLowerCase()).includes(filters.type.toLowerCase()))return false;
 if(filters.form&&filters.form!=="all"&&(pokemon.form||"Normal")!==filters.form)return false;
+if(filters.variant&&filters.variant!=="all"&&(pokemon.variant||"Normal")!==filters.variant)return false;
 return true;
 });
 const summary=document.getElementById("collectionFilterSummary");
@@ -1354,6 +1358,15 @@ const shinyCount=collection.filter(pokemon=>pokemon.shiny===true).length;
 const luckyCount=collection.filter(pokemon=>pokemon.lucky===true).length;
 const fourStarCount=collection.filter(pokemon=>getAppraisalStarCount(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV)===4).length;
 const variantCount=collection.filter(pokemon=>(pokemon.variant&&pokemon.variant!=="Normal")||(pokemon.form&&pokemon.form!=="Normal")).length;
+const costumeCount=collection.filter(pokemon=>String(pokemon.costume||"").trim()).length;
+const eventCount=collection.filter(pokemon=>String(pokemon.event||"").trim()).length;
+const backgroundCount=collection.filter(pokemon=>String(pokemon.background||"").trim()).length;
+const formCount=collection.filter(pokemon=>pokemon.form&&pokemon.form!=="Normal").length;
+const variantCounts={Shadow:0,Purified:0,Dynamax:0,Gigantamax:0,Mega:0,"Mega X":0,"Mega Y":0,Primal:0};
+collection.forEach(pokemon=>{
+const variant=String(pokemon.variant||"Normal");
+if(Object.prototype.hasOwnProperty.call(variantCounts,variant))variantCounts[variant]++;
+});
 const starCounts=[0,0,0,0,0];
 collection.forEach(pokemon=>{starCounts[getAppraisalStarCount(pokemon.attackIV,pokemon.defenseIV,pokemon.staminaIV)]++;});
 const missing=1025-unique;
@@ -1404,6 +1417,16 @@ if(document.getElementById("homeVariants"))document.getElementById("homeVariants
 document.getElementById("statsLucky").textContent=luckyCount;
 if(document.getElementById("statsVariantInsight"))document.getElementById("statsVariantInsight").textContent=variantCount;
 if(document.getElementById("statsFourStarInsight"))document.getElementById("statsFourStarInsight").textContent=fourStarCount;
+if(document.getElementById("statsCostumeInsight"))document.getElementById("statsCostumeInsight").textContent=costumeCount;
+if(document.getElementById("statsEventInsight"))document.getElementById("statsEventInsight").textContent=eventCount;
+if(document.getElementById("statsBackgroundInsight"))document.getElementById("statsBackgroundInsight").textContent=backgroundCount;
+if(document.getElementById("statsFormInsight"))document.getElementById("statsFormInsight").textContent=formCount;
+if(document.getElementById("statsShadow"))document.getElementById("statsShadow").textContent=variantCounts.Shadow;
+if(document.getElementById("statsPurified"))document.getElementById("statsPurified").textContent=variantCounts.Purified;
+if(document.getElementById("statsDynamax"))document.getElementById("statsDynamax").textContent=variantCounts.Dynamax;
+if(document.getElementById("statsGigantamax"))document.getElementById("statsGigantamax").textContent=variantCounts.Gigantamax;
+if(document.getElementById("statsMega"))document.getElementById("statsMega").textContent=variantCounts.Mega+variantCounts["Mega X"]+variantCounts["Mega Y"];
+if(document.getElementById("statsPrimal"))document.getElementById("statsPrimal").textContent=variantCounts.Primal;
 renderRankings(collection,"great");
 renderHomeFeaturedCollection(collection);
 renderHomeQuickInsights(collection);
