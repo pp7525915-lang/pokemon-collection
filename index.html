@@ -799,66 +799,126 @@ const pokemonId=String(pokemon.pokemonId||pokemon.id);
 const cacheKey=pokemonId+"|"+costume+"|"+(shiny?"shiny":"normal");
 if(costumeArtworkCache[cacheKey])return costumeArtworkCache[cacheKey];
 if(costumeArtworkPromiseCache[cacheKey])return costumeArtworkPromiseCache[cacheKey];
+
+function probeImage(url){
+return new Promise(resolve=>{
+const image=new Image();
+let settled=false;
+const finish=result=>{
+if(settled)return;
+settled=true;
+image.onload=null;
+image.onerror=null;
+resolve(result);
+};
+image.onload=()=>finish(true);
+image.onerror=()=>finish(false);
+image.src=url;
+setTimeout(()=>finish(false),5000);
+});
+}
+
 costumeArtworkPromiseCache[cacheKey]=(async()=>{
 const forms=await loadCostumeFormsData();
-const speciesName=String(pokemon.name||"").toUpperCase().replace(/[^A-Z0-9]+/g,"_");
 const target=normalizeCostumeText(costume);
-const candidates=forms.filter(item=>{
+const speciesName=String(pokemon.name||"").toUpperCase().replace(/[^A-Z0-9]+/g,"_");
+const speciesId=String(pokemonId);
+
+const candidates=(Array.isArray(forms)?forms:[]).filter(item=>{
 if(!item||!item.isCostume)return false;
 const proto=String(item.proto||"").toUpperCase();
-if(!proto.startsWith(speciesName+"_"))return false;
-const formName=normalizeCostumeText(item.formName);
-const protoText=normalizeCostumeText(proto.replace(speciesName+"_",""));
-return formName===target||protoText===target||formName.includes(target)||target.includes(formName);
-});
-const candidate=candidates.sort((a,b)=>{
-const aExact=normalizeCostumeText(a.formName)===target?0:1;
-const bExact=normalizeCostumeText(b.formName)===target?0:1;
-return aExact-bExact;
-})[0];
-const assetCodes=[];
-if(candidate&&candidate.proto){
-const proto=String(candidate.proto).toUpperCase();
-const prefix=speciesName+"_";
-if(proto.startsWith(prefix)){
-const costumeCode=proto.slice(prefix.length).trim();
-if(costumeCode)assetCodes.push(costumeCode);
-}
-}
-const catalogMatch=(await loadCostumeCatalogData()).find(item=>{
-const catalogName=normalizeCostumeText(item&&item.name);
-return catalogName===target;
-});
-if(catalogMatch&&catalogMatch.proto){
-const catalogProto=String(catalogMatch.proto).toUpperCase().trim();
-if(catalogProto)assetCodes.push(catalogProto);
-}
-const candidateIds=candidate&&candidate.formId?[candidate.formId]:[];
-if(catalogMatch&&catalogMatch.id!=null)candidateIds.push(catalogMatch.id);
+const itemPokemonId=String(item.pokemonId||item.speciesId||item.id||"");
+const belongsToSpecies=
+proto.startsWith(speciesName+"_")||
+(itemPokemonId&&itemPokemonId===speciesId);
+if(!belongsToSpecies)return false;
 
-const paddedId=String(pokemonId).padStart(3,"0");
+const formName=normalizeCostumeText(item.formName);
+const protoText=normalizeCostumeText(
+proto.startsWith(speciesName+"_")?proto.slice(speciesName.length+1):proto
+);
+const itemCostumeName=normalizeCostumeText(item.costumeName||item.name);
+return formName===target||
+protoText===target||
+itemCostumeName===target||
+formName.includes(target)||
+target.includes(formName)||
+protoText.includes(target)||
+target.includes(protoText)||
+itemCostumeName.includes(target)||
+target.includes(itemCostumeName);
+});
+
+const candidate=candidates.sort((a,b)=>{
+const score=item=>{
+const values=[
+normalizeCostumeText(item&&item.formName),
+normalizeCostumeText(item&&item.costumeName),
+normalizeCostumeText(item&&item.name),
+normalizeCostumeText(item&&item.proto)
+];
+if(values.includes(target))return 0;
+if(values.some(value=>value===speciesName+" "+target))return 1;
+if(values.some(value=>value.includes(target)))return 2;
+return 3;
+};
+return score(a)-score(b);
+})[0];
+
+const costumes=await loadCostumeCatalogData();
+const catalogMatch=(Array.isArray(costumes)?costumes:[]).find(item=>{
+const values=[
+normalizeCostumeText(item&&item.name),
+normalizeCostumeText(item&&item.costumeName),
+normalizeCostumeText(item&&item.proto)
+];
+const itemPokemonId=String(item&& (item.pokemonId||item.speciesId||item.pokemon||""));
+const speciesMatch=!itemPokemonId||itemPokemonId===speciesId;
+return speciesMatch&&(
+values.includes(target)||
+values.some(value=>value.includes(target))||
+target.length>0&&values.some(value=>target.includes(value))
+);
+});
+
 const assetUrls=[];
-for(const assetCode of [...new Set(assetCodes)]){
-const base=GO_ARTWORK_BASE+"pm"+pokemonId+".f"+encodeURIComponent(assetCode);
+const pushProto=(proto)=>{
+const code=String(proto||"").trim().toUpperCase();
+if(!code)return;
+const normalizedCode=code.startsWith(speciesName+"_")?code.slice(speciesName.length+1):code;
+if(normalizedCode){
+const base=GO_ARTWORK_BASE+"pm"+pokemonId+".f"+encodeURIComponent(normalizedCode);
 assetUrls.push(shiny?base+".s.icon.png":base+".icon.png");
 }
-for(const assetId of [...new Set(candidateIds)]){
-const base=GO_ARTWORK_BASE+"pokemon_icon_"+paddedId+"_00_"+String(assetId);
+};
+pushProto(candidate&&candidate.proto);
+pushProto(candidate&&candidate.asset);
+pushProto(catalogMatch&&catalogMatch.proto);
+pushProto(catalogMatch&&catalogMatch.asset);
+
+const candidateIds=[];
+if(candidate&&candidate.formId!=null)candidateIds.push(candidate.formId);
+if(candidate&&candidate.id!=null&&String(candidate.id)!==speciesId)candidateIds.push(candidate.id);
+if(catalogMatch&&catalogMatch.id!=null)candidateIds.push(catalogMatch.id);
+if(catalogMatch&&catalogMatch.formId!=null)candidateIds.push(catalogMatch.formId);
+
+const paddedId=String(pokemonId).padStart(3,"0");
+for(const assetId of [...new Set(candidateIds.map(String))]){
+const base=GO_ARTWORK_BASE+"pokemon_icon_"+paddedId+"_00_"+assetId;
 assetUrls.push(shiny?base+"_shiny.png":base+".png");
 }
+
 for(const url of [...new Set(assetUrls)]){
-try{
-const response=await fetch(url,{method:"HEAD"});
-if(response.ok)return url;
-}catch(error){}
-}
-if(shiny)return getPokemonArtwork({...pokemon,shiny:true});
-return getPokemonArtwork({...pokemon,shiny:false});
-})().finally(()=>{delete costumeArtworkPromiseCache[cacheKey];});
-costumeArtworkPromiseCache[cacheKey].then(url=>{costumeArtworkCache[cacheKey]=url;});
-return costumeArtworkPromiseCache[cacheKey];
+if(await probeImage(url))return url;
 }
 
+return getPokemonArtwork({...pokemon,shiny:!!shiny});
+})().finally(()=>{delete costumeArtworkPromiseCache[cacheKey];});
+costumeArtworkPromiseCache[cacheKey].then(url=>{
+if(url)costumeArtworkCache[cacheKey]=url;
+});
+return costumeArtworkPromiseCache[cacheKey];
+}
 async function updateCostumeArtworkImage(imageElement,pokemon,costume,shiny){
 if(!imageElement||!pokemon||!costume)return;
 const url=await getPokemonGoCostumeArtwork(pokemon,costume,shiny);
