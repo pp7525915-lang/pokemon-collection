@@ -439,7 +439,7 @@ html{scroll-behavior:auto}
 <div class="iv-appraisal-card battle-stat-full"><strong>IV Appraisal</strong><div id="ivPreview" class="message" style="display:none;margin-top:8px;"></div></div>
 </div>
 </div>
-<div id="movesSection" class="moves-section"><h2>⚡ Moves</h2><p class="section-subtitle">Record the Fast Move and Charged Move for this Pokémon.</p><div class="moves-grid"><div class="move-card"><label for="fastMove">Fast Move</label><input id="fastMove" type="text" placeholder="Example: Thunder Shock"></div><div class="move-card"><label for="chargedMove">Charged Move</label><input id="chargedMove" type="text" placeholder="Example: Wild Charge"></div></div></div>
+<div id="movesSection" class="moves-section"><h2>⚡ Moves</h2><p class="section-subtitle">Choose from this Pokémon's available Pokémon GO moves. The list updates when you change Pokémon or form.</p><div class="moves-grid"><div class="move-card"><label for="fastMove">Fast Move</label><select id="fastMove"><option value="">Select Fast Move</option></select></div><div class="move-card"><label for="chargedMove">Charged Move</label><select id="chargedMove"><option value="">Select Charged Move</option></select></div></div><div id="movesMessage" class="message" style="display:none;margin-top:10px;"></div></div>
 <div id="specialSection" class="special-section">
 <h2>✨ Special</h2>
 <p class="section-subtitle">Record special features and collection variants for this Pokémon.</p>
@@ -1133,7 +1133,7 @@ setSpecialBackground("");
 document.getElementById("pokemonSelect").value="";
 document.getElementById("selectedPokemonPreview").innerHTML="";
 document.getElementById("cp").value="";document.getElementById("hp").value="";
-["fastMove","chargedMove","costume","event","background","caughtPlace","pokemonType"].forEach(id=>document.getElementById(id).value="");applyPokemonTypeBackground("");
+["costume","event","background","caughtPlace","pokemonType"].forEach(id=>document.getElementById(id).value="");document.getElementById("fastMove").value="";document.getElementById("chargedMove").value="";document.getElementById("movesMessage").style.display="none";applyPokemonTypeBackground("");
 document.getElementById("caughtDate").value="";
 document.getElementById("pokemonEventSuggestions").innerHTML="";document.getElementById("pokemonGoSelectedEvents").innerHTML="";renderPokemonGoEventBranding();renderPokemonGoCostumePicker(0,"");
 document.getElementById("pokemonForm").innerHTML="<option value=\"Normal\">Normal Form</option>";
@@ -1166,7 +1166,7 @@ renderPokemonGoEventSuggestions(pokemon.pokemonId);
 renderPokemonGoSelectedEvents();renderPokemonGoEventBranding();renderPokemonGoCostumePicker(pokemon.pokemonId,pokemon.costume||"");applyPokemonTypeBackground(document.getElementById("pokemonType").value);
 setFormOptions(pokemon.pokemonId,pokemon.form||"Normal");
 document.getElementById("shiny").value=pokemon.shiny?"true":"false";
-setVariantOptions(pokemon.pokemonId,pokemon.variant||"Normal").then(()=>renderSelectedPokemonPreview());
+setVariantOptions(pokemon.pokemonId,pokemon.variant||"Normal").then(()=>populatePokemonGoMoves(pokemon.pokemonId,pokemon.fastMove||"",pokemon.chargedMove||"").then(()=>renderSelectedPokemonPreview()));
 document.getElementById("lucky").value=pokemon.lucky?"true":"false";
 document.getElementById("attackIV").value=limitIV(pokemon.attackIV);
 document.getElementById("defenseIV").value=limitIV(pokemon.defenseIV);
@@ -2913,9 +2913,124 @@ section.classList.add("has-type-bg");
 section.style.setProperty("--type-bg-a",pokemonTypeColors[types[0]]);
 section.style.setProperty("--type-bg-b",pokemonTypeColors[types[1]||types[0]]);
 }
+const POGO_MOVES_API_URL="https://pogoapi.net/api/v1/current_pokemon_moves.json";
+let pokemonGoMovesCache=null;
+let pokemonGoMovesLoading=null;
+
+function normalizePokemonGoMoveForm(value){
+return String(value||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"_");
+}
+
+function getSelectedMoveForm(){
+const variant=String(document.getElementById("pokemonVariant")?.value||"Normal");
+const form=String(document.getElementById("pokemonForm")?.value||"Normal");
+if(variant==="Shadow")return "Shadow";
+if(variant==="Purified")return "Purified";
+if(variant==="Mega")return "Mega";
+if(variant==="Mega X")return "Mega_X";
+if(variant==="Mega Y")return "Mega_Y";
+if(variant==="Primal")return "Primal";
+if(variant==="Dynamax"||variant==="Gigantamax")return "Normal";
+return form==="Normal"?"Normal":form;
+}
+
+async function loadPokemonGoMovesData(){
+if(Array.isArray(pokemonGoMovesCache))return pokemonGoMovesCache;
+if(pokemonGoMovesLoading)return pokemonGoMovesLoading;
+pokemonGoMovesLoading=fetch(POGO_MOVES_API_URL)
+.then(response=>{
+if(!response.ok)throw new Error("Moves API request failed");
+return response.json();
+})
+.then(data=>{
+pokemonGoMovesCache=Array.isArray(data)?data:[];
+return pokemonGoMovesCache;
+})
+.catch(error=>{
+console.error("Dex Go moves data error:",error);
+pokemonGoMovesCache=[];
+return pokemonGoMovesCache;
+})
+.finally(()=>{pokemonGoMovesLoading=null;});
+return pokemonGoMovesLoading;
+}
+
+function setMoveOptions(selectId,moves,savedValue){
+const select=document.getElementById(selectId);
+if(!select)return;
+const normalizedSaved=String(savedValue||"").trim().toLowerCase();
+select.innerHTML='<option value="">Select '+(selectId==="fastMove"?"Fast":"Charged")+' Move</option>';
+const unique=[];
+(moves||[]).forEach(move=>{
+const name=String(move||"").trim();
+if(name&&!unique.some(item=>item.toLowerCase()===name.toLowerCase()))unique.push(name);
+});
+if(normalizedSaved&&!unique.some(item=>item.toLowerCase()===normalizedSaved)){
+unique.unshift(String(savedValue).trim());
+}
+unique.sort((a,b)=>{
+if(normalizedSaved&&a.toLowerCase()===normalizedSaved)return -1;
+if(normalizedSaved&&b.toLowerCase()===normalizedSaved)return 1;
+return a.localeCompare(b);
+});
+unique.forEach(name=>{
+const option=document.createElement("option");
+option.value=name;
+option.textContent=name;
+select.appendChild(option);
+});
+if(savedValue)select.value=String(savedValue).trim();
+}
+
+async function populatePokemonGoMoves(pokemonId,savedFastMove="",savedChargedMove=""){
+const message=document.getElementById("movesMessage");
+const fastSelect=document.getElementById("fastMove");
+const chargedSelect=document.getElementById("chargedMove");
+if(!fastSelect||!chargedSelect)return;
+if(!pokemonId){
+setMoveOptions("fastMove",[],savedFastMove);
+setMoveOptions("chargedMove",[],savedChargedMove);
+if(message){message.style.display="none";message.textContent="";}
+return;
+}
+if(message){
+message.style.display="block";
+message.textContent="Loading moves...";
+}
+const data=await loadPokemonGoMovesData();
+const id=Number(pokemonId);
+const selectedForm=normalizePokemonGoMoveForm(getSelectedMoveForm());
+let matches=data.filter(item=>Number(item.pokemon_id)===id);
+let formMatches=matches.filter(item=>normalizePokemonGoMoveForm(item.form||"Normal")===selectedForm);
+if(formMatches.length)matches=formMatches;
+else{
+const normalMatches=matches.filter(item=>normalizePokemonGoMoveForm(item.form||"Normal")==="normal");
+if(normalMatches.length)matches=normalMatches;
+}
+const fastMoves=[];
+const chargedMoves=[];
+matches.forEach(item=>{
+(item.fast_moves||[]).forEach(move=>{if(!fastMoves.includes(move))fastMoves.push(move);});
+(item.charged_moves||[]).forEach(move=>{if(!chargedMoves.includes(move))chargedMoves.push(move);});
+(item.elite_fast_moves||[]).forEach(move=>{if(!fastMoves.includes(move))fastMoves.push(move+" (Elite TM)");});
+(item.elite_charged_moves||[]).forEach(move=>{if(!chargedMoves.includes(move))chargedMoves.push(move+" (Elite TM)");});
+});
+setMoveOptions("fastMove",fastMoves,savedFastMove);
+setMoveOptions("chargedMove",chargedMoves,savedChargedMove);
+if(message){
+if(matches.length){
+message.style.display="block";
+message.textContent=fastMoves.length+" Fast Move"+(fastMoves.length===1?"":"s")+" • "+chargedMoves.length+" Charged Move"+(chargedMoves.length===1?"":"s")+" available";
+}else{
+message.style.display="block";
+message.textContent="No move data found for this form yet.";
+}
+}
+}
+
 function selectPokemon(){
 const id=Number(pokemonSelect.value);
-if(!id){selectedPokemon=null;renderSelectedPokemonPreview();return}
+if(!id){selectedPokemon=null;populatePokemonGoMoves(0);renderSelectedPokemonPreview();return}
 selectedPokemon=pokemonList.find(pokemon=>pokemon.id===id);
 if(!selectedPokemon)return;
 setFormOptions(selectedPokemon.id,"Normal");
@@ -2923,7 +3038,10 @@ populatePokemonGoEventList(selectedPokemon.id);
 renderPokemonGoEventSuggestions(selectedPokemon.id);
 renderPokemonGoSelectedEvents();
 renderPokemonGoCostumePicker(selectedPokemon.id,document.getElementById("costume").value);
-setVariantOptions(selectedPokemon.id,"Normal").then(()=>renderSelectedPokemonPreview());
+setVariantOptions(selectedPokemon.id,"Normal").then(()=>{
+populatePokemonGoMoves(selectedPokemon.id);
+renderSelectedPokemonPreview();
+});
 document.getElementById("pokemonType").value="Loading...";applyPokemonTypeBackground("Loading...");
 fetch("https://pokeapi.co/api/v2/pokemon/"+selectedPokemon.id).then(response=>response.json()).then(data=>{if(selectedPokemon&&selectedPokemon.id===id){document.getElementById("pokemonType").value=data.types.map(item=>formatPokemonName(item.type.name)).join(", ");applyPokemonTypeBackground(document.getElementById("pokemonType").value);renderPokemonDetails(data);}}).catch(()=>{document.getElementById("pokemonType").value="";document.getElementById("pokemonDetails").style.display="none";});
 renderSelectedPokemonPreview();
@@ -2933,7 +3051,8 @@ pokemonSearch.addEventListener("input",filterPokemon);
 pokemonSelect.addEventListener("change",selectPokemon);
 document.getElementById("shiny").addEventListener("change",renderSelectedPokemonPreview);
 document.getElementById("pokemonForm").addEventListener("change",renderSelectedPokemonPreview);
-document.getElementById("pokemonVariant").addEventListener("change",renderSelectedPokemonPreview);
+document.getElementById("pokemonVariant").addEventListener("change",()=>{renderSelectedPokemonPreview();if(selectedPokemon)populatePokemonGoMoves(selectedPokemon.id);});
+document.getElementById("pokemonForm").addEventListener("change",()=>{if(selectedPokemon)populatePokemonGoMoves(selectedPokemon.id);});
 populateSpecialBackgrounds();
 const backgroundPreset=document.getElementById("backgroundPreset");
 if(backgroundPreset)backgroundPreset.addEventListener("change",()=>setSpecialBackground(backgroundPreset.value));
