@@ -789,6 +789,10 @@ const costumeArtworkCache={};
 const costumeArtworkPromiseCache={};
 let costumeFormsData=null;
 let costumeFormsPromise=null;
+let costumeCatalogData=null;
+let costumeCatalogPromise=null;
+let costumeArtworkLabelData=null;
+let costumeArtworkLabelPromise=null;
 
 function normalizeCostumeText(value){
 return String(value||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
@@ -806,6 +810,20 @@ return costumeFormsData;
 .catch(()=>[])
 .finally(()=>{costumeFormsPromise=null;});
 return costumeFormsPromise;
+}
+
+async function loadCostumeArtworkLabelData(){
+if(costumeArtworkLabelData)return costumeArtworkLabelData;
+if(costumeArtworkLabelPromise)return costumeArtworkLabelPromise;
+costumeArtworkLabelPromise=fetch("https://raw.githubusercontent.com/Hailey-Ross/hailsDotGO/main/internal/costumes/labels.json")
+.then(response=>response.ok?response.json():null)
+.then(data=>{
+costumeArtworkLabelData=data&&typeof data==="object"?data:null;
+return costumeArtworkLabelData;
+})
+.catch(()=>null)
+.finally(()=>{costumeArtworkLabelPromise=null;});
+return costumeArtworkLabelPromise;
 }
 
 async function loadCostumeCatalogData(){
@@ -912,6 +930,29 @@ target.length>0&&values.some(value=>target.includes(value))
 
 const assetUrls=[];
 const directAssetUrls=[];
+const artworkLabelData=await loadCostumeArtworkLabelData();
+const labelAliases=artworkLabelData&&artworkLabelData.aliases&&typeof artworkLabelData.aliases==="object"?artworkLabelData.aliases:{};
+const speciesLabels=artworkLabelData&&artworkLabelData.species&&typeof artworkLabelData.species==="object"?artworkLabelData.species:{};
+const speciesLabelGroup=Object.keys(speciesLabels).find(key=>normalizeCostumeText(key)===normalizeCostumeText(pokemon.name));
+const speciesCostumeLabels=speciesLabelGroup&&speciesLabels[speciesLabelGroup]&&typeof speciesLabels[speciesLabelGroup]==="object"?speciesLabels[speciesLabelGroup]:{};
+const sharedLabels=Array.isArray(artworkLabelData&&artworkLabelData.shared)?artworkLabelData.shared:[];
+const directLabel=Object.keys(speciesCostumeLabels).find(key=>normalizeCostumeText(key)===target);
+const aliasKey=Object.keys(labelAliases).find(key=>normalizeCostumeText(key)===target);
+const canonicalLabel=directLabel||((aliasKey&&labelAliases[aliasKey])||null);
+const mappedCode=directLabel?speciesCostumeLabels[directLabel]:
+canonicalLabel?(speciesCostumeLabels[canonicalLabel]||sharedLabels.find(item=>normalizeCostumeText(item&&item.label)===normalizeCostumeText(canonicalLabel))?.code):
+sharedLabels.find(item=>normalizeCostumeText(item&&item.label)===target)?.code;
+const pushArtworkCode=(code)=>{
+const raw=String(code||"").trim();
+const match=raw.match(/^([fc]):(.+)$/i);
+if(!match)return;
+const prefix=match[1].toLowerCase();
+const assetCode=match[2].trim();
+if(!assetCode)return;
+const base=GO_ARTWORK_BASE+"pm"+pokemonId+"."+prefix+encodeURIComponent(assetCode);
+directAssetUrls.push(shiny?base+".s.icon.png":base+".icon.png");
+};
+pushArtworkCode(mappedCode);
 const pushProto=(proto)=>{
 const code=String(proto||"").trim().toUpperCase();
 if(!code)return;
