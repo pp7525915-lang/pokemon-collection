@@ -2190,8 +2190,17 @@ return match;
 function getEventCostumeCandidates(eventName,pokemonId=null){
 const name=String(eventName||"").toLowerCase();
 const all=[];
+const linkedIds=[...new Set(
+Object.keys(pokemonGoEventPokemonMap).map(Number).filter(id=>{
+const events=pokemonGoEventPokemonMap[id]||[];
+return events.some(item=>String(item).toLowerCase()===name);
+})
+)];
 const add=(costumeNames)=>{
-const ids=pokemonId?[Number(pokemonId)]:Object.keys(pokemonGoCostumeMap).map(Number);
+const selectedId=pokemonId==null?null:Number(pokemonId);
+const ids=selectedId!=null&&!Number.isNaN(selectedId)
+? [selectedId]
+: (linkedIds.length?linkedIds:Object.keys(pokemonGoCostumeMap).map(Number));
 ids.forEach(id=>{
 const names=pokemonGoCostumeMap[String(id)]||[];
 costumeNames.forEach(costume=>{
@@ -2234,7 +2243,7 @@ if(!box)return;
 const selectedEvents=getPokemonGoSelectedEvents();
 const currentPokemonId=selectedPokemon?Number(selectedPokemon.id):null;
 const eventName=selectedEvents[selectedEvents.length-1]||"";
-const candidates=eventName?getEventCostumeCandidates(eventName,selectedPokemon):[];
+const candidates=eventName?getEventCostumeCandidates(eventName,currentPokemonId):[];
 if(!eventName||!candidates.length){
 box.innerHTML="";
 box.style.display="none";
